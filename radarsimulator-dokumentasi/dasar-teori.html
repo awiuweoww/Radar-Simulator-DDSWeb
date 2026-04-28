@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasar Teori | Dokumentasi Project</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'neutral',
+            fontFamily: 'Poppins'
+        });
+    </script>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo">👀</span>
+            <span class="title">Dokumentasi Project</span>
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-group">
+                <a href="dasar-teori.html" class="nav-group-title">1. Dasar Teori</a>
+                <a href="dasar-teori.html#opendds-entities" class="nav-link">OpenDDS: 7 Entitas</a>
+                <a href="dasar-teori.html#webdds-intro" class="nav-link">WebDDS: Analogi & OMG</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="list-gateway.html" class="nav-group-title">2. List Gateway</a>
+                <a href="list-gateway.html#nanomq" class="nav-link">NanoMQ DDSProxy</a>
+                <a href="list-gateway.html#eprosima" class="nav-link">Eprosima</a>
+                <a href="list-gateway.html#rti-web" class="nav-link">RTI Web Integration</a>
+                <a href="list-gateway.html#custom-bridge" class="nav-link">Custom Bridge (Node.js)</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="qos-hirarki.html" class="nav-group-title">3. List QoS & Hirarki</a>
+                <a href="qos-hirarki.html#qos-matching" class="nav-link">QoS Matching</a>
+                <a href="qos-hirarki.html#qos-project" class="nav-link">QoS dalam Proyek</a>
+                <a href="qos-hirarki.html#qos-list" class="nav-link">Daftar Kebijakan QoS</a>
+                <a href="qos-hirarki.html#qos-hierarchy" class="nav-link">Hirarki QoS</a>
+                <a href="qos-hirarki.html#qos-tables" class="nav-link">Tabel Referensi QoS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-fe.html" class="nav-group-title">4. Dokumentasi FE</a>
+                <a href="dokumentasi-fe.html#fe-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-fe.html#fe-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-fe.html#fe-openlayers" class="nav-link">OpenLayers Map</a>
+                <a href="dokumentasi-fe.html#fe-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-fe.html#fe-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-fe.html#fe-idl" class="nav-link">Kompilasi IDL ke Types</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-be.html" class="nav-group-title">5. Dokumentasi BE</a>
+                <a href="dokumentasi-be.html#be-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-be.html#be-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-be.html#be-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-be.html#be-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-be.html#be-idl" class="nav-link">Kompilasi IDL BE</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-gateway.html" class="nav-group-title">6. Dokumentasi Gateway</a>
+                <a href="dokumentasi-gateway.html#gt-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-gateway.html#gt-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-gateway.html#gt-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-gateway.html#gt-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-gateway.html#gt-idl" class="nav-link">Kompilasi IDL Gateway</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="perbandingan-pengujian.html" class="nav-group-title">7. Perbandingan Pengujian</a>
+                <a href="perbandingan-pengujian.html#test-results" class="nav-link">gRPC vs WebDDS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="kesimpulan.html" class="nav-group-title">8. Kesimpulan</a>
+                <a href="kesimpulan.html#conclusion" class="nav-link">Implementasi Proyek</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="referensi.html" class="nav-group-title">9. Referensi</a>
+                <a href="referensi.html#references" class="nav-link">Bacaan Lebih Lanjut</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="ensiklopedi-error.html" class="nav-group-title">10. Ensiklopedi Error</a>
+                <a href="ensiklopedi-error.html#segfault" class="nav-link">Segmentation Fault</a>
+                <a href="ensiklopedi-error.html#dds-root" class="nav-link">DDS_ROOT not set</a>
+                <a href="ensiklopedi-error.html#port-in-use" class="nav-link">Address already in use</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <header class="main-header">
+            <h1>1. Dasar Teori</h1>
+            <p class="subtitle">Memahami pondasi OpenDDS dan konsep WebDDS sesuai standar OMG.</p>
+        </header>
+
+        <section id="opendds-intro">
+            <h2>Apa itu OpenDDS?</h2>
+            <p>
+                <strong>OpenDDS</strong> merupakan implementasi open-source dari standar <em>Data Distribution
+                    Service</em> (DDS) yang digunakan untuk membangun komunikasi data secara real-time pada sistem
+                terdistribusi. OpenDDS menggunakan pola <strong>publish-subscribe</strong>, di mana publisher
+                mengirimkan data dan subscriber menerima data secara langsung tanpa perlu melakukan permintaan berulang
+                (polling).
+            </p>
+            <p>
+                Pendekatan ini membuat pertukaran data menjadi lebih cepat, efisien, dan sangat cocok untuk aplikasi
+                yang membutuhkan latensi rendah serta aliran data kontinu, seperti sistem radar, monitoring, simulasi,
+                dan IoT.
+            </p>
+            <div class="grid-box">
+                <div class="box">
+                    <h4>Multi-Language Binding</h4>
+                    <p>Ditulis dalam C++, namun mendukung Java, C#, Node.js, dan Python.</p>
+                </div>
+                <div class="box">
+                    <h4>Kustomisasi QoS</h4>
+                    <p>Memungkinkan pengaturan Quality of Service yang mendalam untuk kontrol pengiriman data.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="opendds-entities">
+            <h2>OpenDDS: 7 Entitas Utama</h2>
+            <p>Ekosistem DCPS (Data-Centric Publish-Subscribe) dalam OpenDDS terdiri dari 7 entitas utama:</p>
+            <ul class="feature-list">
+                <li><strong>Domain Participant:</strong> Entitas utama yang menghubungkan aplikasi ke DDS Domain.</li>
+                <li><strong>Topic:</strong> Objek yang menghubungkan pengirim dan penerima melalui nama dan tipe data
+                    yang unik.</li>
+                <li><strong>Publisher & Subscriber:</strong> Entitas yang mengelola kumpulan DataWriter dan DataReader
+                    serta konfigurasi QoS grup.</li>
+                <li><strong>DataWriter:</strong> Komponen yang bertanggung jawab menulis/mengirim data ke Topik
+                    tertentu.</li>
+                <li><strong>DataReader:</strong> Komponen yang bertanggung jawab membaca/menerima data dari Topik
+                    tertentu.</li>
+                <li><strong>TypeSupport:</strong> Hasil generasi file IDL yang mendefinisikan struktur data agar dapat
+                    dimengerti oleh sistem DDS.</li>
+            </ul>
+        </section>
+
+        <section id="opendds-arch">
+            <h2>Arsitektur Transport & Discovery</h2>
+            <p>Untuk berkomunikasi, partisipan DDS memerlukan mekanisme untuk saling menemukan dan mengirimkan pesan:
+            </p>
+
+            <div style="display: flex; gap: 2.5rem; align-items: flex-start; margin: 3rem 0; flex-wrap: wrap;">
+                <div
+                    style="flex: 1; min-width: 300px; background: #f8fafc; padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border); text-align: center;">
+                    <img src="rtps-discovery-flow.png" alt="RTPS Discovery and Data Flow"
+                        style="width: 100%; max-width: 500px;">
+                </div>
+                <div style="flex: 1; min-width: 300px;">
+                    <p>
+                        Gambar di samping menunjukkan alur kerja penemuan partisipan (Discovery) dan pengiriman data
+                        antara Publisher dan Subscriber. Proses ini bekerja secara otomatis melalui beberapa tahapan:
+                    </p>
+                    <ol class="feature-list">
+                        <li><strong>Publisher Advertises Topic:</strong> Aplikasi pengirim mengumumkan ketersediaan
+                            topik melalui protokol Discovery.</li>
+                        <li><strong>Subscriber Discovers Topic:</strong> Aplikasi penerima mendeteksi pengumuman
+                            tersebut menggunakan grup multicast <strong>RTPS SPDP</strong> (Simple Participant Discovery
+                            Protocol).</li>
+                        <li><strong>Publisher Writes Samples:</strong> Setelah terjadi kecocokan (matching), data
+                            dikirim secara efisien melalui layer Transport langsung ke tujuan.</li>
+                    </ol>
+                    <p>
+                        Dalam proyek ini, kita menggunakan <strong>RTPS Discovery</strong> yang bersifat desentralisasi
+                        dan <strong>RTPS/UDP Transport</strong> pada <strong>DDS Domain 0</strong> untuk memastikan
+                        latensi yang minimal.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid-box">
+                <div class="box">
+                    <h4>Discovery (RTPS)</h4>
+                    <p>Proses otomatis untuk menemukan partisipan lain tanpa memerlukan broker pusat (InfoRepo).</p>
+                </div>
+                <div class="box">
+                    <h4>Transport (UDP)</h4>
+                    <p>Mekanisme pengiriman data yang cepat dan ringan, ideal untuk aliran data radar kontinu.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="data-flow" style="margin-top: 4rem;">
+            <h2>Bagaimana Proses Data Mengalir?</h2>
+            
+            <div style="display: flex; gap: 3rem; align-items: flex-start; margin-top: 2rem; flex-wrap: wrap;">
+                <div style="flex: 2; min-width: 300px;">
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">1. Fase Sumber / Inisiasi (Publisher)</h3>
+                        <p style="margin-top: 0.5rem;">Ini adalah proses di mana informasi pertama kali dibuat dan disiapkan untuk dikirim. Dalam proyek ini, sumbernya bisa berupa <strong>C++ Backend</strong> yang melakukan kalkulasi pergerakan target radar, atau <strong>React Frontend</strong> ketika operator menekan tombol instruksi simulasi (Start/Stop).</p>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">2. Fase Distribusi / Jembatan Komunikasi (Ruang Data)</h3>
+                        <p style="margin-top: 0.5rem;">Data tidak dikirim satu-ke-satu (<i>point-to-point</i> manual), melainkan "diumumkan" ke sebuah ruang topik bersama. Karena Browser web dan sistem C++ berbicara dengan protokol yang berbeda (WebSocket vs UDP), fase ini secara krusial melibatkan <strong>Gateway Node.js</strong> untuk menjembatani dan menerjemahkan data <i>binary</i> agar bisa melintas mulus antar platform.</p>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">3. Fase Keandalan (Quality of Service / QoS)</h3>
+                        <p style="margin-top: 0.5rem;">Ini adalah "otak pengawas" jaringan. Di proyek ini, QoS bertindak memberikan aturan tegas: instruksi kendali diberi label <i>Reliable</i> (pantang hilang walau jaringan buruk), sementara aliran puluhan ribu radar diberi label <i>Best Effort</i> (boleh hilang sebagian demi mengejar latensi). Ini membuat sistem tangguh tanpa *bottleneck*.</p>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">4. Fase Tujuan / Eksekusi (Subscriber)</h3>
+                        <p style="margin-top: 0.5rem;">Ini adalah titik akhir di mana data akhirnya ditangkap dan langsung diwujudkan (<i>rendered</i>). Pada Frontend, wujudnya adalah pembaruan titik pesawat di kanvas <strong>Mapbox</strong> secara instan. Pada Backend, wujudnya adalah rekonfigurasi ulang jumlah target objek simulasi.</p>
+                    </div>
+                </div>
+
+                <div style="flex: 1; min-width: 250px; display: flex; justify-content: center;">
+                    <div class="mermaid">
+                        graph TD
+                            A((INISIASI)) --> B((DISTRIBUSI))
+                            B --> C((QUALITY))
+                            C --> D((EKSEKUSI))
+                            
+                            style A fill:#dbeafe,stroke:#93c5fd,color:#1e40af,stroke-width:2px
+                            style B fill:#fee2e2,stroke:#fca5a5,color:#991b1b,stroke-width:2px
+                            style C fill:#dcfce7,stroke:#86efac,color:#166534,stroke-width:2px
+                            style D fill:#fef9c3,stroke:#fde047,color:#854d0e,stroke-width:2px
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="data-integration" style="margin-top: 4rem;">
+            <h2>Visualisasi Alur Integrasi Penuh</h2>
+            <p>Diagram urutan (<i>Sequence Diagram</i>) di bawah ini menjabarkan alur sistem secara <strong>dua arah (*Full-loop*)</strong>: dimulai dari antarmuka Web yang mengirimkan jumlah target pesawat, perintah tersebut merambat hingga ke level C++, lalu C++ membalasnya dengan memancarkan aliran <i>streaming</i> radar puluhan ribu kali per detik kembali ke Web.</p>
+            
+            <div style="display: flex; justify-content: center; margin-top: 2rem; background: #f8fafc; padding: 2rem; border-radius: 1rem; border: 1px solid var(--border); overflow-x: auto;">
+                <div class="mermaid">
+                    %%{init: {
+                        'theme': 'base',
+                        'themeVariables': {
+                            'fontSize': '16px',
+                            'fontFamily': 'Poppins',
+                            'primaryColor': '#e0e7ff',
+                            'primaryBorderColor': '#4f46e5',
+                            'primaryTextColor': '#312e81',
+                            'actorBkg': '#dbeafe',
+                            'actorBorder': '#2563eb',
+                            'noteBkgColor': '#fef3c7',
+                            'noteBorderColor': '#d97706',
+                            'noteTextColor': '#92400e',
+                            'lineColor': '#475569'
+                        }
+                    }}%%
+                    sequenceDiagram
+                        participant F as Frontend (React)
+                        participant G as Gateway (Node.js)
+                        participant B as Backend (C++)
+
+                        Note over F,G: 1. Inisiasi Simulasi (REST API)
+                        F->>G: POST /topic/CommandTopic {target_count: 1000}
+                        
+                        Note over G,B: DDS RTPS Protocol (RELIABLE QoS)
+                        G->>B: Publish RadarCommand (Biner)
+                        B->>B: Re-kalkulasi & Siapkan 1000 Objek
+                        
+                        Note over B,G: 2. Aliran Data Radar (BEST EFFORT QoS)
+                        B->>G: Publish Streaming RadarTrack
+                        
+                        G->>G: Ekstraksi Data C++ & fastJson Serialization
+                        
+                        Note over G,F: 3. Pengiriman Real-time (Native ws)
+                        G-->>F: ws.send( fastJson String )
+                        
+                        F->>F: JSON.parse(event.data)
+                        F->>F: Render Ulang Titik Objek dalam map
+                </div>
+            </div>
+        </section>
+
+        <section id="webdds-intro" style="margin-top: 4rem;">
+            <h2>Konsep WebDDS</h2>
+            <p class="subtitle" style="font-weight: 700; color: var(--text-dark); margin-bottom: 1rem;">WEB DATA
+                DISTRIBUTION SERVICE</p>
+            <p>
+                WebDDS dirancang agar aplikasi web (browser) dapat berpartisipasi dalam ekosistem DDS. Karena browser
+                tidak dapat menjalankan protokol UDP secara langsung, WebDDS menggunakan <strong>Gateway</strong>
+                sebagai jembatan yang menghubungkan browser (via WebSocket) ke jaringan backend DDS (via biner/UDP).
+            </p>
+        </section>
+
+        <section id="analogi-webdds">
+            <h2>Analogi Sistem Publish-Subscribe</h2>
+            <div style="display: flex; gap: 2.5rem; align-items: center; margin: 3rem 0; flex-wrap: wrap;">
+                <div
+                    style="flex: 1; min-width: 300px; background: #f8fafc; padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border); text-align: center;">
+                    <img src="dds-entities-diagram.png" alt="DDS Entity Diagram" style="width: 100%; max-width: 450px;">
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1rem;">Gambar: Hubungan antar
+                        entitas dalam Domain DDS</p>
+                </div>
+                <div style="flex: 1.2; min-width: 300px;">
+                    <p>Bayangkan di sisi kiri, terdapat <strong>Data Writer</strong> (penulis artikel) yang hanya fokus
+                        menulis berita tanpa perlu tahu siapa pembacanya.</p>
+                    <p>Artikel diserahkan ke <strong>Publisher</strong> (kantor percetakan) dengan label
+                        <strong>Topic</strong> tertentu (misal: <em>"Berita SepakBola"</em>).
+                    </p>
+                    <p>Di sisi kanan, <strong>Subscriber</strong> (pembaca) akan menerima berita secara otomatis melalui
+                        <strong>Data Reader</strong> jika ia berlangganan topik tersebut.
+                    </p>
+                    <div class="info-card" style="border-left-color: #10b981; background-color: #f0fdf4;">
+                        <p>Penulis tidak perlu menghubungi pembaca satu per satu. Cukup taruh data di sistem distribusi,
+                            dan semua pelanggan akan menerima informasi secara real-time.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>&copy; 2026 Dokumentasi Project Radar WebDDS. LEN Inovasi Teknologi ~ chndr.</p>
+        </footer>
+    </main>
+</body>
+
+</html>

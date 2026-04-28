@@ -98,6 +98,32 @@ Lakukan pengecekan berikut untuk memastikan OpenDDS telah terinstal dengan benar
 
 ---
 
+## 5. Cara Membangun Project (Build)
+
+Setelah OpenDDS terinstal dan environment variables sudah dikonfigurasi, Anda dapat membangun project backend dengan langkah-langkah berikut:
+
+### a. Install Dependensi (Conan)
+Gunakan Conan untuk mengunduh library pendukung seperti `spdlog` dan `fmt`:
+```bash
+conan install . --output-folder=build --build=missing
+```
+
+### b. Konfigurasi CMake
+Gunakan preset dari Conan untuk konfigurasi build:
+```bash
+cmake --preset conan-release
+```
+
+### c. Kompilasi Project
+Jalankan proses build menggunakan CMake:
+```bash
+cmake --build build --config Release --target all -j$(nproc)
+```
+
+Setelah berhasil, file executable `be-stream-odds-cpp` akan tersedia di dalam folder `build/`.
+
+---
+
 ## Catatan Tambahan
 Jika Anda membangun dari source code (bukan pre-built), Anda perlu menjalankan:
 ```bash

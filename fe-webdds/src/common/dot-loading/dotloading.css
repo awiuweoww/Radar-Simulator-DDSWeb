@@ -1,0 +1,36 @@
+.dot-loading {
+    gap: 4px;
+}
+
+.dot {
+    width: 5px;
+    height: 5px;
+    background-color: currentColor;
+    border-radius: 9999px;
+    animation: blink 1s infinite;
+    opacity: 0.3;
+}
+
+.dot.delay-1 {
+    animation-delay: 0.2s;
+}
+
+.dot.delay-2 {
+    animation-delay: 0.4s;
+}
+
+.dot.delay-3 {
+    animation-delay: 0.6s;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}

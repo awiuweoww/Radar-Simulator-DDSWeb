@@ -1,0 +1,21 @@
+networks:
+  default:
+    name: radar-net
+    external: true
+
+services:
+  be-stream-odds-cpp:
+    privileged: true  
+    restart: always
+    build:
+      context: .
+    container_name: radar-be
+    volumes:
+      - ${OPENDDS_HOST_PATH}:/opt/OpenDDS
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      OPENDDS_HOST_PATH: ${OPENDDS_HOST_PATH}
+      LOG_LEVEL: ${LOG_LEVEL}
+      IOR_PATH: ${IOR_PATH}
+      RTPS_PATH: ${RTPS_PATH}

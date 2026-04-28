@@ -1,43 +1,66 @@
-services:
-  # 1. Custom Radar Gateway (Reliable Bridge)
-  radar-gateway:
-    build:
-      context: ./gateway-bridge
-    container_name: radar-gateway
-    ports:
-      - "8080:8080"
-    networks:
-      - radar-net
+version: "3.9"
 
-  # 2. Backend C++ Publisher
+services:
+  # 1. Backend C++ (Radar Engine)
   radar-be:
     build:
-      context: ./be-stream-radar-cpp
+      context: ./be-stream-odds-cpp
       dockerfile: Dockerfile
-    container_name: radar-be
-    depends_on:
-      - radar-gateway
+    container_name: radar-backend-open
+    privileged: true
+    restart: unless-stopped
     networks:
-      - radar-net
-    restart: always
+      - radar-streaming-net
+    volumes:
+      - ${OPENDDS_HOST_PATH:-/home/chandreu/opt/OpenDDS/OpenDDS-3.29.1}:/opt/OpenDDS
+      - ./be-stream-odds-cpp/rtps.ini:/app/rtps.ini:ro
+    environment:
+      - LD_LIBRARY_PATH=/opt/OpenDDS/ACE_wrappers/lib:/opt/OpenDDS/lib
+    command: ["./be-stream-odds-cpp", "-DCPSConfigFile", "/app/rtps.ini"]
 
-  # 3. Frontend Dashboard
+  # 2. Gateway Standard OMG (DDS-WEB)
+  radar-gateway:
+    build:
+      context: ./gateway-ddsweb
+      dockerfile: Dockerfile
+    container_name: radar-gateway-omg
+    restart: unless-stopped
+    networks:
+      - radar-streaming-net
+    ports:
+      - "8080:8080"
+    volumes:
+      # Kita tetap mount OpenDDS karena ini library besar yang sudah ada di host
+      - ${OPENDDS_HOST_PATH:-/home/chandreu/opt/OpenDDS/OpenDDS-3.29.1}:/opt/OpenDDS
+      - ./be-stream-odds-cpp/rtps.ini:/app/rtps.ini:ro
+    environment:
+      - ACE_ROOT=/opt/OpenDDS/ACE_wrappers
+      - TAO_ROOT=/opt/OpenDDS/ACE_wrappers/TAO
+      - DDS_ROOT=/opt/OpenDDS
+      # Path LD_LIBRARY_PATH harus mengarah ke lokasi library di dalam container
+      - LD_LIBRARY_PATH=/opt/OpenDDS/ACE_wrappers/lib:/opt/OpenDDS/lib:/app/idl/RadarTrack:/app/idl/RadarCommand
+    depends_on:
+      - radar-be
+
+  # 3. Frontend React (Radar Visualization)
   radar-fe:
     build:
-      context: ./fe-stream-radar-webdds
+      context: ./fe-webdds
       dockerfile: Dockerfile
-    container_name: radar-fe-v2
+    container_name: radar-frontend-omg
+    restart: unless-stopped
+    networks:
+      - radar-streaming-net
     ports:
       - "3000:3000"
-    volumes:
-      - ./fe-stream-radar-webdds:/app_build
-      - /app_build/node_modules 
     environment:
-      - CACHE_BREAKER=2
-      - VITE_WEBDDS_URL=ws://localhost:8080/webdds
-    networks:
-      - radar-net
+      - VITE_DDS_GATEWAY_REST=http://localhost:8080/dds
+      - VITE_DDS_GATEWAY_WS=ws://localhost:8080/dds
+    depends_on:
+      - radar-gateway
 
 networks:
-  radar-net:
+  radar-streaming-net:
     driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"

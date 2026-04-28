@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encyclopedia of Radar WebDDS | Home</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo">👀</span>
+            <span class="title">Dokumentasi Project</span>
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-group">
+                <a href="dasar-teori.html" class="nav-group-title">1. Dasar Teori</a>
+                <a href="dasar-teori.html#opendds-entities" class="nav-link">OpenDDS: 7 Entitas</a>
+                <a href="dasar-teori.html#webdds-intro" class="nav-link">WebDDS: Analogi & OMG</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="list-gateway.html" class="nav-group-title">2. List Gateway</a>
+                <a href="list-gateway.html#nanomq" class="nav-link">NanoMQ DDSProxy</a>
+                <a href="list-gateway.html#eprosima" class="nav-link">Eprosima</a>
+                <a href="list-gateway.html#rti-web" class="nav-link">RTI Web Integration</a>
+                <a href="list-gateway.html#custom-bridge" class="nav-link">Custom Bridge (Node.js)</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="qos-hirarki.html" class="nav-group-title">3. List QoS & Hirarki</a>
+                <a href="qos-hirarki.html#qos-matching" class="nav-link">QoS Matching</a>
+                <a href="qos-hirarki.html#qos-project" class="nav-link">QoS dalam Proyek</a>
+                <a href="qos-hirarki.html#qos-list" class="nav-link">Daftar Kebijakan QoS</a>
+                <a href="qos-hirarki.html#qos-hierarchy" class="nav-link">Hirarki QoS</a>
+                <a href="qos-hirarki.html#qos-tables" class="nav-link">Tabel Referensi QoS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-fe.html" class="nav-group-title">4. Dokumentasi FE</a>
+                <a href="dokumentasi-fe.html#fe-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-fe.html#fe-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-fe.html#fe-openlayers" class="nav-link">OpenLayers Map</a>
+                <a href="dokumentasi-fe.html#fe-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-fe.html#fe-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-fe.html#fe-idl" class="nav-link">Kompilasi IDL ke Types</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-be.html" class="nav-group-title">5. Dokumentasi BE</a>
+                <a href="dokumentasi-be.html#be-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-be.html#be-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-be.html#be-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-be.html#be-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-be.html#be-idl" class="nav-link">Kompilasi IDL BE</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-gateway.html" class="nav-group-title">6. Dokumentasi Gateway</a>
+                <a href="dokumentasi-gateway.html#gt-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-gateway.html#gt-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-gateway.html#gt-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-gateway.html#gt-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-gateway.html#gt-idl" class="nav-link">Kompilasi IDL Gateway</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="perbandingan-pengujian.html" class="nav-group-title">7. Perbandingan Pengujian</a>
+                <a href="perbandingan-pengujian.html#test-results" class="nav-link">gRPC vs WebDDS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="kesimpulan.html" class="nav-group-title">8. Kesimpulan</a>
+                <a href="kesimpulan.html#conclusion" class="nav-link">Implementasi Proyek</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="referensi.html" class="nav-group-title">9. Referensi</a>
+                <a href="referensi.html#references" class="nav-link">Bacaan Lebih Lanjut</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <header class="main-header">
+            <h1>Encyclopedia of Radar WebDDS</h1>
+            <p class="subtitle">Panduan lengkap integrasi sistem mission-critical OpenDDS ke ekosistem Web modern.</p>
+        </header>
+
+        <section id="introduction">
+            <h2>Selamat Datang</h2>
+            <p>
+                Dokumentasi ini dirancang untuk memberikan pemahaman mendalam tentang bagaimana membangun jembatan data
+                real-time menggunakan OpenDDS dan WebDDS. Gunakan sidebar di sebelah kiri untuk menavigasi setiap bab.
+            </p>
+            <div class="grid-box">
+                <div class="box">
+                    <h4>Pondasi Teori</h4>
+                    <p>Pelajari 7 entitas utama DDS dan standar Web-Enabled DDS dari OMG.</p>
+                    <a href="dasar-teori.html" class="nav-link" style="padding-left: 0; color: var(--primary);">Buka Bab
+                        1 →</a>
+                </div>
+                <div class="box">
+                    <h4>Implementasi Teknis</h4>
+                    <p>Setup detail untuk Frontend (React), Backend (C++), dan Gateway (Node.js).</p>
+                    <a href="dokumentasi-gateway.html" class="nav-link"
+                        style="padding-left: 0; color: var(--primary);">Lihat Guide Gateway →</a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>&copy; 2026 Dokumentasi Project Radar WebDDS. LEN Inovasi Teknologi ~ chndr.</p>
+        </footer>
+    </main>
+</body>
+
+</html>

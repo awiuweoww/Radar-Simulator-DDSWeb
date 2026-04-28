@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List Gateway | Dokumentasi Project</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo">👀</span>
+            <span class="title">Dokumentasi Project</span>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-group">
+                <a href="dasar-teori.html" class="nav-group-title">1. Dasar Teori</a>
+                <a href="dasar-teori.html#opendds-entities" class="nav-link">OpenDDS: 7 Entitas</a>
+                <a href="dasar-teori.html#webdds-intro" class="nav-link">WebDDS: Analogi & OMG</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="list-gateway.html" class="nav-group-title">2. List Gateway</a>
+                <a href="list-gateway.html#nanomq" class="nav-link active">NanoMQ DDSProxy</a>
+                <a href="list-gateway.html#eprosima" class="nav-link">Eprosima</a>
+                <a href="list-gateway.html#rti-web" class="nav-link">RTI Web Integration</a>
+                <a href="list-gateway.html#custom-bridge" class="nav-link">Custom Bridge (Node.js)</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="qos-hirarki.html" class="nav-group-title">3. List QoS & Hirarki</a>
+                <a href="qos-hirarki.html#qos-matching" class="nav-link">QoS Matching</a>
+                <a href="qos-hirarki.html#qos-project" class="nav-link">QoS dalam Proyek</a>
+                <a href="qos-hirarki.html#qos-list" class="nav-link">Daftar Kebijakan QoS</a>
+                <a href="qos-hirarki.html#qos-hierarchy" class="nav-link">Hirarki QoS</a>
+                <a href="qos-hirarki.html#qos-tables" class="nav-link">Tabel Referensi QoS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-fe.html" class="nav-group-title">4. Dokumentasi FE</a>
+                <a href="dokumentasi-fe.html#fe-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-fe.html#fe-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-fe.html#fe-openlayers" class="nav-link">OpenLayers Map</a>
+                <a href="dokumentasi-fe.html#fe-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-fe.html#fe-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-fe.html#fe-idl" class="nav-link">Kompilasi IDL ke Types</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-be.html" class="nav-group-title">5. Dokumentasi BE</a>
+                <a href="dokumentasi-be.html#be-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-be.html#be-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-be.html#be-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-be.html#be-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-be.html#be-idl" class="nav-link">Kompilasi IDL BE</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-gateway.html" class="nav-group-title">6. Dokumentasi Gateway</a>
+                <a href="dokumentasi-gateway.html#gt-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-gateway.html#gt-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-gateway.html#gt-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-gateway.html#gt-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-gateway.html#gt-idl" class="nav-link">Kompilasi IDL Gateway</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="perbandingan-pengujian.html" class="nav-group-title">7. Perbandingan Pengujian</a>
+                <a href="perbandingan-pengujian.html#test-results" class="nav-link">gRPC vs WebDDS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="kesimpulan.html" class="nav-group-title">8. Kesimpulan</a>
+                <a href="kesimpulan.html#conclusion" class="nav-link">Implementasi Proyek</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="referensi.html" class="nav-group-title">9. Referensi</a>
+                <a href="referensi.html#references" class="nav-link">Bacaan Lebih Lanjut</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <header class="main-header">
+            <h1>2. List Gateway</h1>
+            <p class="subtitle">Eksplorasi solusi bridging antara jaringan DDS dan ekosistem Web.</p>
+        </header>
+
+        <section id="introduction">
+            <h2>Mengatasi Batasan UDP di Web</h2>
+            <p>
+                Di era sistem terdistribusi modern, komunikasi real-time menjadi fondasi penting dalam berbagai
+                aplikasi, mulai dari radar yang memantau pergerakan objek secara kontinu, sistem tracking kendaraan,
+                hingga ekosistem IoT yang mengandalkan aliran data tanpa jeda. Teknologi seperti DDS memungkinkan
+                pertukaran data yang cepat, efisien, dan bersifat publish-subscribe tanpa perlu permintaan berulang.
+            </p>
+            <p>
+                Namun, ketika kebutuhan ini bergeser ke ranah web, muncul sebuah batasan mendasar dimana browser tidak
+                dirancang untuk berkomunikasi menggunakan protokol UDP secara langsung. Keterbatasan ini menciptakan
+                jurang antara sistem backend yang real-time dan frontend berbasis web, sehingga diperlukan pendekatan
+                baru untuk menjembatani keduanya.
+            </p>
+            <div class="info-card">
+                <p>
+                    Untuk menjembatani perbedaan ini, digunakan sebuah <strong>gateway</strong> yang berfungsi sebagai
+                    penghubung antara sistem backend seperti OpenDDS yang berjalan di atas UDP, dengan aplikasi web yang
+                    hanya mendukung TCP/WebSocket. Gateway akan menerima data dari DDS, lalu meneruskannya ke browser
+                    dengan protokol yang kompatibel.
+                </p>
+            </div>
+            <p>
+                Di sisi lain, WebDDS hadir untuk membawa konsep DDS ke lingkungan web. Dengan memanfaatkan WebSocket,
+                WebDDS memungkinkan mekanisme publish-subscribe tetap berjalan di browser secara real-time. Kombinasi
+                gateway dan WebDDS inilah yang menjadi solusi utama untuk mengatasi keterbatasan UDP di web.
+            </p>
+            <p>
+                Terdapat berbagai jenis gateway yang dapat digunakan, masing-masing dengan pendekatan, kompleksitas,
+                serta tingkat integrasi yang berbeda terhadap ekosistem DDS:
+            </p>
+        </section>
+
+        <section id="nanomq">
+            <h2>1. NanoMQ DDSProxy</h2>
+            <div style="display: flex; gap: 2.5rem; align-items: flex-start; margin: 2rem 0; flex-wrap: wrap;">
+                <div
+                    style="flex: 1; min-width: 300px; background: #f8fafc; padding: 1rem; border-radius: 1rem; border: 1px solid var(--border); text-align: center;">
+                    <img src="nanomq-diagram.png" alt="NanoMQ DDSProxy Diagram" style="width: 100%; max-width: 450px;">
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Gambar: Arsitektur
+                        Bridging NanoMQ MQTT-DDS</p>
+                </div>
+                <div style="flex: 1.5; min-width: 300px;">
+                    <p>NanoMQ DDSProxy adalah fitur integrasi di dalam broker NanoMQ yang berfungsi sebagai gateway
+                        komunikasi dua arah antara protokol MQTT dan DDS (Data Distribution Service).</p>
+                    <p>NanoMQ memperkenalkan plugin DDS Proxy yang dikembangkan berdasarkan Cyclone DDS. Plugin ini
+                        dapat mengkonversi pesan DDS menjadi pesan MQTT dan menjembataninya ke cloud, memungkinkan
+                        pengguna untuk mengirimkan data DDS lintas domain melalui NanoMQ dan berkomunikasi dengan cloud
+                        melalui MQTT.</p>
+                </div>
+            </div>
+
+            <h3>Syarat Penggunaan</h3>
+            <ul class="feature-list">
+                <li><strong>Dependensi DDS:</strong> Sebelum menginisiasi gateway DDS, perlu untuk menginstal CycloneDDS
+                    dan Iceoryx. CycloneDDS merupakan dependensi inti, sedangkan Iceoryx diperlukan untuk komunikasi
+                    memori bersama.</li>
+                <li><strong>Kompilasi NanoMQ:</strong> NanoMQ harus di-build dari sumber (source code) dengan
+                    mengaktifkan flag DDS.</li>
+                <li><strong>File Konfigurasi:</strong> Memerlukan file <code>namomq.conf</code> yang dikonfigurasi untuk
+                    menentukan pemetaan (mapping) antara topik MQTT dan tipe data DDS.</li>
+            </ul>
+
+            <h3>Keunggulan</h3>
+            <ul class="feature-list">
+                <li><strong>Jembatan MQTT:</strong> Menjembatani pesan dari edge ke berbagai cloud global secara
+                    langsung.</li>
+                <li><strong>Mesin Aturan:</strong> Menggunakan mesin aturan berbasis SQL (terintegrasi eKuiper) untuk
+                    fleksibilitas data di perangkat ujung.</li>
+                <li><strong>Ketahanan Pesan:</strong> Fitur ketahanan data bawaan yang otomatis melanjutkan pengunggahan
+                    saat koneksi pulih.</li>
+                <li><strong>Kemudahan Integrasi:</strong> WebHook berbasis event dan API HTTP yang ramah EdgeOps.</li>
+                <li><strong>Protokol Multi-Bahasa:</strong> Mendukung ZeroMQ, nanomsg, NNG, dan WebSocket.</li>
+            </ul>
+
+            <h3>Dokumentasi & Contoh Penggunaan</h3>
+            <ul class="feature-list">
+                <li>Dokumentasi resmi NanoMQ: <a href="https://nanomq.io/docs/en/latest/" target="_blank">nanomq.io</a>
+                </li>
+                <li>Source Code: GitHub NanoMQ (direktori <code>nanomq/plugins</code>).</li>
+                <li>Referensi Core DDS: GitHub CycloneDDS.</li>
+            </ul>
+        </section>
+
+        <section id="eprosima">
+            <h2>2. eProsima Integration Service</h2>
+            <div style="display: flex; gap: 2.5rem; align-items: flex-start; margin: 2rem 0; flex-wrap: wrap;">
+                <div
+                    style="flex: 1; min-width: 300px; background: #f8fafc; padding: 1rem; border-radius: 1rem; border: 1px solid var(--border); text-align: center;">
+                    <img src="eprosima-diagram.png" alt="eProsima Integration Service Diagram"
+                        style="width: 100%; max-width: 450px;">
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Gambar: Modular System
+                        Handle eProsima</p>
+                </div>
+                <div style="flex: 1.5; min-width: 300px;">
+                    <p>eProsima Integration Service adalah solusi gateway serbaguna yang memungkinkan komunikasi antar
+                        berbagai protokol komunikasi yang berbeda. Fokus utamanya adalah menjembatani Fast DDS
+                        (implementasi DDS standar dari eProsima) dengan protokol lain seperti MQTT, ROS 2, WebSocket,
+                        atau bahkan sistem legacy.</p>
+                    <p>Integration Service menggunakan inti dari Fast DDS untuk memfasilitasi pertukaran data antar
+                        domain. Dengan menggunakan gateway ini, pengguna dapat mengintegrasikan sistem robotika atau
+                        industri yang berbasis DDS secara transparan.</p>
+                </div>
+            </div>
+
+            <h3>Syarat Penggunaan</h3>
+            <ul class="feature-list">
+                <li><strong>Fast DDS & Fast CDR:</strong> Pengguna harus menginstal eProsima Fast DDS dan Fast CDR
+                    (Serialization library) sebagai dependensi inti.</li>
+                <li><strong>System Handles:</strong> Diperlukan instalasi plugin khusus (System Handles) untuk setiap
+                    protokol (misal: FastDDS-SH dan MQTT-SH).</li>
+                <li><strong>YAML Configuration:</strong> Menyusun file YAML untuk pemetaan topik, tipe data (IDL), serta
+                    arah komunikasi (Ingress/Egress).</li>
+            </ul>
+
+            <h3>Keunggulan</h3>
+            <ul class="feature-list">
+                <li><strong>Interoperabilitas Tanpa Batas:</strong> Pertukaran data transparan antar protokol yang
+                    berbeda.</li>
+                <li><strong>Arsitektur Modular:</strong> Konsep System Handle memudahkan penambahan/penghapusan dukungan
+                    protokol tanpa mengganggu modul lain.</li>
+                <li><strong>Dukungan Tipe Data Dinamis:</strong> Memungkinkan pemrosesan data tanpa kompilasi ulang saat
+                    ada perubahan struktur pesan.</li>
+                <li><strong>Performa Standar Industri:</strong> Latensi sangat rendah dan keandalan tinggi (middleware
+                    default ROS 2).</li>
+                <li><strong>Skalabilitas Cloud & LAN:</strong> Mendukung integrasi dari edge ke cloud melalui protokol
+                    ramah internet (WAN/MQTT).</li>
+            </ul>
+
+            <h3>Dokumentasi & Contoh Penggunaan</h3>
+            <ul class="feature-list">
+                <li>Dokumentasi resmi: <a href="https://integration-service.docs.eprosima.com/"
+                        target="_blank">integration-service.docs.eprosima.com</a></li>
+                <li>Source Code: GitHub eProsima Integration Service.</li>
+                <li>Web Resmi: <a href="https://eprosima.com" target="_blank">eprosima.com</a></li>
+            </ul>
+        </section>
+
+        <section id="rti-web">
+            <h2>3. RTI Web Integration Service</h2>
+            <div style="display: flex; gap: 2.5rem; align-items: flex-start; margin: 2rem 0; flex-wrap: wrap;">
+                <div
+                    style="flex: 1; min-width: 300px; background: #f8fafc; padding: 1rem; border-radius: 1rem; border: 1px solid var(--border); text-align: center;">
+                    <img src="rti-diagram.png" alt="RTI Web Integration Service Diagram"
+                        style="width: 100%; max-width: 450px;">
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Gambar: Arsitektur
+                        RESTful RTI Web Integration</p>
+                </div>
+                <div style="flex: 1.5; min-width: 300px;">
+                    <p>RTI Web Integration Service adalah aplikasi gateway siap pakai yang dirancang untuk menjembatani
+                        komunikasi antara aplikasi berbasis web dengan jaringan DDS (Data Distribution Service).</p>
+                    <p>Layanan ini memungkinkan pengembang web untuk berinteraksi dengan sistem real-time yang kompleks
+                        tanpa perlu memahami detail protokol DDS secara mendalam. Bertindak sebagai jembatan yang
+                        memetakan operasi HTTP (POST, GET, PUT, DELETE) ke dalam operasi DDS (Write, Read, Take,
+                        Dispose).</p>
+                </div>
+            </div>
+
+            <h3>Syarat Penggunaan</h3>
+            <ul class="feature-list">
+                <li><strong>RTI Connext DDS:</strong> Memerlukan instalasi RTI Connext DDS (versi Pro) karena layanan
+                    ini merupakan bagian dari ekosistem RTI.</li>
+                <li><strong>Lisensi RTI:</strong> Diperlukan lisensi aktif untuk menjalankan service ini.</li>
+                <li><strong>Web Server/Container:</strong> Dapat dijalankan sebagai aplikasi mandiri (standalone) atau
+                    di dalam container untuk memfasilitasi akses endpoint REST.</li>
+                <li><strong>Konfigurasi XML:</strong> Mendefinisikan file XML untuk mengatur pemetaan antara sumber daya
+                    URL dengan topik-topik DDS.</li>
+            </ul>
+
+            <h3>Keunggulan</h3>
+            <ul class="feature-list">
+                <li><strong>Aksesibilitas Standar:</strong> Mengakses data DDS melalui antarmuka RESTful standar.</li>
+                <li><strong>Konversi Format Otomatis:</strong> Menerjemahkan data JSON/XML ke representasi biner DDS
+                    secara otomatis.</li>
+                <li><strong>Keamanan Terintegrasi:</strong> Mendukung HTTPS/TLS dan mekanisme autentikasi web standar.
+                </li>
+                <li><strong>Tanpa Kode (Low-Code):</strong> Membangun jembatan komunikasi cukup dengan konfigurasi XML.
+                </li>
+                <li><strong>Skalabilitas Cloud:</strong> Mendukung arsitektur mikroservis untuk kontrol sistem jarak
+                    jauh.</li>
+            </ul>
+
+            <h3>Dokumentasi & Contoh Penggunaan</h3>
+            <ul class="feature-list">
+                <li>Dokumentasi Resmi RTI: <a href="https://community.rti.com/documentation"
+                        target="_blank">community.rti.com</a></li>
+                <li>Contoh (GitHub): GitHub RTI-Community/web-integration-service-examples</li>
+                <li>Web Resmi: <a href="https://rti.com" target="_blank">rti.com</a></li>
+            </ul>
+        </section>
+
+        <section id="custom-bridge">
+            <h2>4. Custom Bridge Gateway (Node.js)</h2>
+            <p>OpenDDS Node.js Gateway merupakan pendekatan kustom yang memungkinkan aplikasi berbasis Node.js untuk
+                berinteraksi dengan domain DDS. Integrasi ini dilakukan melalui modul <code>node-opendds</code>, yang
+                berfungsi sebagai binding antara runtime Node.js dan library OpenDDS berbasis C++.</p>
+            <p>Dalam proyek ini, gateway menggunakan pendekatan <strong>Hybrid Mode</strong>: menggunakan <strong>REST
+                    API</strong> (Express) untuk operasi Write (Publish Command) dan <strong>WebSocket</strong> (ws)
+                untuk operasi Read (Subscribe Data Radar) secara real-time.</p>
+
+            <h3>Syarat Penggunaan</h3>
+            <ul class="feature-list">
+                <li><strong>Instalasi OpenDDS:</strong> Menginstal OpenDDS beserta dependensinya seperti ACE/TAO di
+                    sistem host.</li>
+                <li><strong>Konfigurasi Environment:</strong> Mengatur variabel lingkungan seperti <code>DDS_ROOT</code>
+                    dan <code>ACE_ROOT</code>.</li>
+                <li><strong>C++ Compiler:</strong> Diperlukan compiler (gcc/g++) untuk membangun native binding.</li>
+                <li><strong>Definisi IDL:</strong> Menentukan struktur data dalam file IDL untuk proses serialisasi
+                    biner.</li>
+            </ul>
+
+            <h3>Keunggulan</h3>
+            <ul class="feature-list">
+                <li><strong>Dukungan WebSocket Real-time:</strong> Ideal untuk streaming data radar dengan latensi
+                    sangat rendah ke frontend React.</li>
+                <li><strong>Kontrol Penuh (Customizable):</strong> Pengembang dapat menentukan logika bridging sendiri,
+                    termasuk filtrasi data sebelum dikirim ke web.</li>
+                <li><strong>Efisiensi Biner:</strong> Memanfaatkan <code>opendds.load()</code> untuk memuat library
+                    <code>.so</code> hasil kompilasi IDL secara langsung.
+                </li>
+            </ul>
+
+            <div class="info-card" style="border-left-color: #f59e0b;">
+                <h3>Catatan Penting (Batasan)</h3>
+                <ul class="feature-list warning">
+                    <li>Modul <code>node-opendds</code> merupakan kontribusi komunitas, bukan bagian inti resmi OpenDDS.
+                    </li>
+                    <li>Dokumentasi masih terbatas dan memerlukan eksplorasi source code secara mandiri.</li>
+                    <li>Gateway ini bertindak sebagai <strong>Application-level Bridge</strong>, di mana browser tidak
+                        menjadi DDS Participant secara langsung.</li>
+                </ul>
+            </div>
+
+            <h3>Dokumentasi & Contoh Penggunaan</h3>
+            <ul class="feature-list">
+                <li>Dokumentasi Resmi OpenDDS: <a href="https://opendds.readthedocs.io"
+                        target="_blank">opendds.readthedocs.io</a></li>
+                <li>Source Code Modul: GitHub OpenDDS/node-opendds</li>
+                <li>Contoh Implementasi: GitHub OpenDDS/DeveloperResources</li>
+            </ul>
+        </section>
+
+        <footer class="footer">
+            <p>&copy; 2026 Dokumentasi Project Radar WebDDS. LEN Inovasi Teknologi ~ chndr.</p>
+        </footer>
+    </main>
+</body>
+
+</html>

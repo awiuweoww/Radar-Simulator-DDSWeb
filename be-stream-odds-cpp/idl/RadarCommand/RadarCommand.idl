@@ -1,0 +1,13 @@
+/*
+ * IDL untuk Kontrol Command Simulasi Radar
+ */
+
+module RadarCommand {
+
+    @topic
+    struct Command {
+        string action;        
+        long value;          
+    };
+
+};

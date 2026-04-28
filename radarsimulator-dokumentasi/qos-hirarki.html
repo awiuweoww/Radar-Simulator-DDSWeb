@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QoS & Hirarki | Dokumentasi Project</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo">👀</span>
+            <span class="title">Dokumentasi Project</span>
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-group">
+                <a href="dasar-teori.html" class="nav-group-title">1. Dasar Teori</a>
+                <a href="dasar-teori.html#opendds-entities" class="nav-link">OpenDDS: 7 Entitas</a>
+                <a href="dasar-teori.html#webdds-intro" class="nav-link">WebDDS: Analogi & OMG</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="list-gateway.html" class="nav-group-title">2. List Gateway</a>
+                <a href="list-gateway.html#nanomq" class="nav-link">NanoMQ DDSProxy</a>
+                <a href="list-gateway.html#eprosima" class="nav-link">Eprosima</a>
+                <a href="list-gateway.html#rti-web" class="nav-link">RTI Web Integration</a>
+                <a href="list-gateway.html#custom-bridge" class="nav-link">Custom Bridge (Node.js)</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="qos-hirarki.html" class="nav-group-title">3. List QoS & Hirarki</a>
+                <a href="qos-hirarki.html#qos-matching" class="nav-link">QoS Matching</a>
+                <a href="qos-hirarki.html#qos-project" class="nav-link">QoS dalam Proyek</a>
+                <a href="qos-hirarki.html#qos-list" class="nav-link">Daftar Kebijakan QoS</a>
+                <a href="qos-hirarki.html#qos-hierarchy" class="nav-link">Hirarki QoS</a>
+                <a href="qos-hirarki.html#qos-tables" class="nav-link">Tabel Referensi QoS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-fe.html" class="nav-group-title">4. Dokumentasi FE</a>
+                <a href="dokumentasi-fe.html#fe-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-fe.html#fe-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-fe.html#fe-openlayers" class="nav-link">OpenLayers Map</a>
+                <a href="dokumentasi-fe.html#fe-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-fe.html#fe-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-fe.html#fe-idl" class="nav-link">Kompilasi IDL ke Types</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-be.html" class="nav-group-title">5. Dokumentasi BE</a>
+                <a href="dokumentasi-be.html#be-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-be.html#be-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-be.html#be-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-be.html#be-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-be.html#be-idl" class="nav-link">Kompilasi IDL BE</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-gateway.html" class="nav-group-title">6. Dokumentasi Gateway</a>
+                <a href="dokumentasi-gateway.html#gt-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-gateway.html#gt-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-gateway.html#gt-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-gateway.html#gt-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-gateway.html#gt-idl" class="nav-link">Kompilasi IDL Gateway</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="perbandingan-pengujian.html" class="nav-group-title">7. Perbandingan Pengujian</a>
+                <a href="perbandingan-pengujian.html#test-results" class="nav-link">gRPC vs WebDDS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="kesimpulan.html" class="nav-group-title">8. Kesimpulan</a>
+                <a href="kesimpulan.html#conclusion" class="nav-link">Implementasi Proyek</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="referensi.html" class="nav-group-title">9. Referensi</a>
+                <a href="referensi.html#references" class="nav-link">Bacaan Lebih Lanjut</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <header class="main-header">
+            <h1>3. List QoS & Hirarki</h1>
+            <p class="subtitle">Memahami kebijakan Quality of Service (QoS) untuk pengiriman data yang optimal.</p>
+        </header>
+
+        <section id="qos-matching">
+            <h2>QoS Matching: Kunci Komunikasi DDS</h2>
+            <p>
+                Dalam DDS, komunikasi antara publisher dan subscriber tidak akan langsung terjadi begitu saja, tetapi
+                harus melalui proses <strong>QoS matching</strong> atau kecocokan QoS. Proses ini digunakan untuk
+                memastikan bahwa konfigurasi Quality of Service yang dimiliki oleh publisher dan subscriber saling
+                kompatibel sehingga pertukaran data dapat berlangsung dengan benar.
+            </p>
+            <div class="info-card">
+                <p>
+                    Jika QoS antara kedua pihak tidak sesuai, maka koneksi komunikasi dapat gagal terbentuk meskipun
+                    keduanya berada pada topic yang sama.
+                </p>
+            </div>
+        </section>
+
+        <section id="qos-project">
+            <h2>Implementasi QoS dalam Proyek</h2>
+            <p>Berikut adalah strategi penerapan QoS yang digunakan dalam arsitektur Radar Simulator (BE ↔ Gateway ↔
+                FE):</p>
+
+            <div class="grid-box">
+                <div class="box">
+                    <h4>1. Aliran Data Radar (Streaming)</h4>
+                    <p><strong>Topik:</strong> <code>RadarTrackTopic</code></p>
+                    <ul class="feature-list">
+                        <li><strong>Reliability:</strong> <code>BEST_EFFORT</code></li>
+                        <li><strong>History:</strong> <code>KEEP_LAST</code> (Depth 1)</li>
+                        <li><strong>Lifespan:</strong> 3 Detik</li>
+                    </ul>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">
+                        <strong>Alasan:</strong> Data radar dikirim sangat cepat. Kecepatan (low latency) lebih penting
+                        daripada keutuhan setiap paket. Jika satu paket hilang, data terbaru akan segera
+                        menggantikannya.
+                    </p>
+                </div>
+                <div class="box">
+                    <h4>2. Perintah Kontrol (Commands)</h4>
+                    <p><strong>Topik:</strong> <code>CommandTopic</code></p>
+                    <ul class="feature-list">
+                        <li><strong>Reliability:</strong> <code>RELIABLE</code></li>
+                        <li><strong>Durability:</strong> <code>TRANSIENT_LOCAL</code></li>
+                        <li><strong>History:</strong> <code>KEEP_LAST</code> (Depth 10)</li>
+                    </ul>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">
+                        <strong>Alasan:</strong> Perintah kontrol (Start/Stop) bersifat kritis dan wajib sampai.
+                        <em>Transient Local</em> memastikan backend yang baru menyala bisa mendapatkan perintah terakhir
+                        yang dikirim.
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-card" style="border-left-color: #f59e0b;">
+                <h3>Monitoring Liveliness</h3>
+                <p>Backend menggunakan <strong>Automatic Liveliness</strong> dengan durasi 2 detik. Hal ini memungkinkan
+                    Gateway dan sistem lain untuk mendeteksi secara instan jika mesin simulator radar berhenti berfungsi
+                    atau mengalami <em>crash</em>.</p>
+            </div>
+        </section>
+
+        <section id="qos-list">
+            <h2>Daftar Kebijakan QoS Utama</h2>
+            <ul class="feature-list">
+                <li><strong>Reliability:</strong> <code>RELIABLE</code> (jaminan sampai) vs <code>BEST_EFFORT</code>
+                    (cepat, tanpa jaminan).</li>
+                <li><strong>Durability:</strong> <code>VOLATILE</code> (data transient) vs <code>TRANSIENT_LOCAL</code>
+                    (simpan data untuk subscriber baru).</li>
+                <li><strong>History:</strong> <code>KEEP_LAST</code> (simpan N data terakhir) vs <code>KEEP_ALL</code>
+                    (simpan semua data).</li>
+                <li><strong>Liveliness:</strong> Menentukan kapan sebuah entitas dianggap "mati" atau tidak aktif.</li>
+                <li><strong>Deadline:</strong> Batas waktu pengiriman data harus sampai.</li>
+            </ul>
+        </section>
+
+        <section id="qos-hierarchy">
+            <h2>Hirarki Pewarisan QoS</h2>
+            <p>QoS dapat diatur di berbagai level entitas. Jika tidak diatur, entitas di bawah akan mewarisi QoS dari
+                entitas di atasnya:</p>
+            <div class="info-card" style="border-left-color: #10b981;">
+                <ol style="padding-left: 1rem;">
+                    <li><strong>Domain Participant</strong> (Global)</li>
+                    <li><strong>Publisher / Subscriber</strong> (Grup)</li>
+                    <li><strong>DataWriter / DataReader</strong> (Spesifik/Individual)</li>
+                </ol>
+            </div>
+
+            <h3 style="margin-top: 3rem;">Tabel Kompatibilitas QoS (Matching)</h3>
+            <p>Tabel berikut merinci aturan kecocokan antara DataWriter (Offered) dan DataReader (Requested) agar komunikasi dapat terjalin:</p>
+            <table class="simple-table" style="font-size: 0.85rem;">
+                <thead style="background-color: #020617; color: #ffffff;">
+                    <tr>
+                        <th>Nama QoS</th>
+                        <th>Jika Writer Mengatur...</th>
+                        <th>Maka Reader Harus...</th>
+                        <th>Akibat Jika Tidak Cocok</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Reliability</td>
+                        <td>Menyetel RELIABLE (Pasti sampai)</td>
+                        <td>Bisa meminta RELIABLE atau BEST_EFFORT.</td>
+                        <td>Jika Reader minta RELIABLE tapi Writer hanya sedia BEST_EFFORT, mereka tidak akan terhubung.</td>
+                    </tr>
+                    <tr>
+                        <td>Durability</td>
+                        <td>Menyetel TRANSIENT (Simpan data lama)</td>
+                        <td>Bisa meminta TRANSIENT atau VOLATILE.</td>
+                        <td>Jika Reader minta data disimpan (TRANSIENT) tapi Writer tidak menyimpannya, mereka tidak akan terhubung.</td>
+                    </tr>
+                    <tr>
+                        <td>Deadline</td>
+                        <td>Menyetel durasi 10 detik (Janji kirim tiap 10s)</td>
+                        <td>Harus meminta durasi sama atau lebih lama (misal 10s atau 12s).</td>
+                        <td>Jika Reader minta data tiap 5 detik tapi Writer hanya sanggup 10 detik, koneksi gagal.</td>
+                    </tr>
+                    <tr>
+                        <td>Ownership</td>
+                        <td>Menyetel EXCLUSIVE (Hanya satu pengirim)</td>
+                        <td>Harus menyetel EXCLUSIVE juga.</td>
+                        <td>Jika satu SHARED dan satu EXCLUSIVE, mereka tidak akan saling bicara.</td>
+                    </tr>
+                    <tr>
+                        <td>Liveliness</td>
+                        <td>Berjanji lapor diri tiap 5 detik</td>
+                        <td>Harus meminta laporan sama atau lebih lama (misal 5s atau 10s).</td>
+                        <td>Jika Reader ingin dipantau ketat tapi Writer santai, koneksi gagal.</td>
+                    </tr>
+                    <tr>
+                        <td>Presentation</td>
+                        <td>Menyetel urutan tingkat GROUP</td>
+                        <td>Harus meminta tingkat yang sama atau lebih rendah (misal TOPIC atau INSTANCE).</td>
+                        <td>Jika Reader minta aturan lebih ketat dari yang disediakan Writer, data tidak akan mengalir.</td>
+                    </tr>
+                    <tr>
+                        <td>Destination Order</td>
+                        <td>Menyetel SOURCE_TIMESTAMP</td>
+                        <td>Bisa meminta SOURCE atau RECEPTION.</td>
+                        <td>Jika Reader minta urutan waktu pengirim tapi Writer tidak menyediakannya, mereka tidak cocok.</td>
+                    </tr>
+                    <tr>
+                        <td>Latency Budget</td>
+                        <td>Memberi info durasi pengiriman</td>
+                        <td>Nilai Writer harus lebih besar atau sama dengan nilai Reader.</td>
+                        <td>Digunakan untuk kecocokan asosiasi agar performa sistem tetap terpantau.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 3rem;">Tabel Ketergantungan (Inter-dependencies)</h3>
+            <p>Beberapa kebijakan QoS saling mempengaruhi satu sama lain dalam operasionalnya:</p>
+            <table class="simple-table" style="font-size: 0.85rem;">
+                <thead style="background-color: #020617; color: #ffffff;">
+                    <tr>
+                        <th>Jika Menggunakan...</th>
+                        <th>Maka harus Memperhatikan...</th>
+                        <th>Alasannya</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Time Based Filter</td>
+                        <td>Deadline QoS</td>
+                        <td>Jika Reader membatasi data masuk (misal: cuma mau 1 data per detik), pastikan Deadline-nya tidak lebih kecil dari 1 detik, atau sistem akan terus-terusan menganggap data terlambat.</td>
+                    </tr>
+                    <tr>
+                        <td>Lifespan</td>
+                        <td>Durability</td>
+                        <td>Lifespan (masa kedaluwarsa) tidak akan terasa gunanya jika Durability-nya VOLATILE (langsung hilang). Lifespan sangat berguna pada data yang disimpan (TRANSIENT).</td>
+                    </tr>
+                    <tr>
+                        <td>Reliability (RELIABLE)</td>
+                        <td>Resource Limits</td>
+                        <td>Pada mode RELIABLE, jika memori penuh (Resource Limits tercapai), Writer akan berhenti mengirim data sampai ada ruang kosong. Tanpa limit yang benar, aplikasi bisa freeze.</td>
+                    </tr>
+                    <tr>
+                        <td>Entity Factory</td>
+                        <td>Operasi enable()</td>
+                        <td>Jika Factory disetel false (manual), entitas Anda tidak akan pernah mengirim/menerima data sampai Anda memanggil perintah .enable() di kode program.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="qos-gateway" style="margin-top: 4rem;">
+            <h2>Keterbatasan & Sintaks QoS pada Gateway (Node.js)</h2>
+            <p>Berbeda dengan C++ yang memiliki akses penuh ke matriks puluhan kebijakan QoS OpenDDS, <i>Gateway</i> Node.js di proyek ini menggunakan <i>bindings</i> C++ (modul <code>opendds</code>) yang <strong>hanya mengekspos sebagian kecil</strong> konfigurasi QoS. Hal ini merupakan keterbatasan bawaan (<i>limitation</i>) dari <i>library</i> Node.js OpenDDS itu sendiri.</p>
+            
+            <div class="info-card alert" style="border-left-color: #f59e0b; background-color: #fffbeb; margin-top: 1.5rem;">
+                <h3 style="color: #b45309;">Keterbatasan Akses QoS</h3>
+                <p style="margin-top: 0.5rem; color: #78350f;">Di JavaScript/Node.js, Anda <strong>tidak bisa</strong> menyetel pengaturan lanjutan seperti <code>Deadline</code>, <code>Liveliness</code>, atau ukuran <i>buffer</i> Transport secara dinamis. Anda secara praktis hanya diizinkan untuk mendefinisikan tiga parameter dasar: <strong>Reliability</strong>, <strong>History</strong>, dan <strong>Durability</strong>. Jika Anda memaksa memasukkan properti lain yang tidak didukung ke dalam objek JSON QoS, modul tersebut akan mengabaikannya atau bahkan memicu <i>Crash / Segmentation Fault</i> pada Gateway.</p>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Tabel Sintaks QoS di Node.js</h3>
+            <p>Berikut adalah konfigurasi QoS utama yang aman dan didukung saat Anda menciptakan DataWriter atau DataReader di *Gateway* Node.js:</p>
+            <table class="simple-table" style="font-size: 0.85rem;">
+                <thead style="background-color: #020617; color: #ffffff;">
+                    <tr>
+                        <th>Jenis QoS</th>
+                        <th>Penulisan Sintaks JSON (Gateway)</th>
+                        <th>Penjelasan Praktis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Reliability</strong></td>
+                        <td><code>reliability: { kind: 'RELIABLE_RELIABILITY_QOS' }</code><br><br><code>reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' }</code></td>
+                        <td>Menentukan apakah Gateway menuntut jaminan pengiriman data. <strong>Wajib</strong> disesuaikan (*matching*) dengan QoS di C++. (Dalam proyek: Radar memakai BEST_EFFORT, sedangkan Command memakai RELIABLE).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>History</strong></td>
+                        <td><code>history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 }</code><br><br><code>history: { kind: 'KEEP_ALL_HISTORY_QOS' }</code></td>
+                        <td>Menentukan berapa banyak sampel data yang ditahan di *buffer* memori *Gateway*. Sangat disarankan memakai <code>KEEP_LAST</code> dengan <code>depth</code> kecil (misal: 1 atau 10) guna mencegah kebocoran memori (*memory leak*) pada server Node.js.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Durability</strong></td>
+                        <td><code>durability: { kind: 'VOLATILE_DURABILITY_QOS' }</code><br><br><code>durability: { kind: 'TRANSIENT_LOCAL_DURABILITY_QOS' }</code></td>
+                        <td>Menentukan umur riwayat data. Jika diset TRANSIENT_LOCAL, Gateway/C++ bisa menerima pesan "terakhir" yang dikirim meskipun penerima baru saja menyala. (Proyek ini menggunakannya untuk menjamin penyelarasan sinkronisasi *Command*).</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p style="margin-top: 1.5rem;"><strong>Contoh Format Objek QoS di <code>server.js</code>:</strong></p>
+            <pre><code>// Definisi QoS diubah menjadi objek JSON biasa
+const qosObj = {
+    DataWriterQos: {
+        reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
+        history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 },
+        durability: { kind: 'TRANSIENT_LOCAL_DURABILITY_QOS' }
+    }
+};
+
+// Disuntikkan sebagai argumen ketiga
+const writer = participant.create_datawriter(topicName, typeName, qosObj);</code></pre>
+        </section>
+
+        <section id="qos-tables" style="margin-top: 4rem;">
+            <h2>Tabel Referensi QoS</h2>
+            <p>Berikut adalah tautan referensi lengkap mengenai kebijakan dan daftar QoS yang digunakan dalam OpenDDS
+                dan WebDDS:</p>
+            <ul class="feature-list">
+                <li><a href="https://docs.google.com/spreadsheets/d/1m2qarUGDjTnHpUgfHwkXOOFIOsrcnM870OMKL8Cpxds/edit?usp=sharing"
+                        target="_blank">Kebijakan QoS OpenDDS</a></li>
+                <li><a href="https://docs.google.com/spreadsheets/d/1wNlzKtmFym5SqHnE6aDJ0-rCpROObTu7FcmMDRU2nSM/edit?usp=sharing"
+                        target="_blank">Hubungan Fungsional & Kontekstual DDS</a></li>
+                <li><a href="https://docs.google.com/spreadsheets/d/1MApjF1k6EBvqflnruHOVqKDl2XhQgoqLM3_pg6OaYGY/edit?usp=sharing"
+                        target="_blank">Hubungan QoS Writer & Reader</a></li>
+                <li><a href="https://docs.google.com/spreadsheets/d/1fDboEgeYrSd-ooermLhTf7D66DFhf0aGTKrd2D8zRaE/edit?usp=sharing"
+                        target="_blank">Daftar Lengkap QoS OpenDDS</a></li>
+                <li><a href="https://docs.google.com/spreadsheets/d/1cO2I6nhOQaOsNUSKU6gVXKoZMfKQvM_2Ou0PO9yaQF0/edit?usp=sharing"
+                        target="_blank">Daftar Lengkap QoS WebDDS</a></li>
+            </ul>
+        </section>
+
+        <footer class="footer">
+            <p>&copy; 2026 Dokumentasi Project Radar WebDDS. LEN Inovasi Teknologi ~ chndr.</p>
+        </footer>
+    </main>
+</body>
+
+</html>

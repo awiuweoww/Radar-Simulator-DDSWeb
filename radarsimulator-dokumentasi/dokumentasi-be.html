@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentasi BE | Dokumentasi Project</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo">👀</span>
+            <span class="title">Dokumentasi Project</span>
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-group">
+                <a href="dasar-teori.html" class="nav-group-title">1. Dasar Teori</a>
+                <a href="dasar-teori.html#opendds-entities" class="nav-link">OpenDDS: 7 Entitas</a>
+                <a href="dasar-teori.html#webdds-intro" class="nav-link">WebDDS: Analogi & OMG</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="list-gateway.html" class="nav-group-title">2. List Gateway</a>
+                <a href="list-gateway.html#nanomq" class="nav-link">NanoMQ DDSProxy</a>
+                <a href="list-gateway.html#eprosima" class="nav-link">Eprosima</a>
+                <a href="list-gateway.html#rti-web" class="nav-link">RTI Web Integration</a>
+                <a href="list-gateway.html#custom-bridge" class="nav-link">Custom Bridge (Node.js)</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="qos-hirarki.html" class="nav-group-title">3. List QoS & Hirarki</a>
+                <a href="qos-hirarki.html#qos-matching" class="nav-link">QoS Matching</a>
+                <a href="qos-hirarki.html#qos-project" class="nav-link">QoS dalam Proyek</a>
+                <a href="qos-hirarki.html#qos-list" class="nav-link">Daftar Kebijakan QoS</a>
+                <a href="qos-hirarki.html#qos-hierarchy" class="nav-link">Hirarki QoS</a>
+                <a href="qos-hirarki.html#qos-tables" class="nav-link">Tabel Referensi QoS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-fe.html" class="nav-group-title">4. Dokumentasi FE</a>
+                <a href="dokumentasi-fe.html#fe-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-fe.html#fe-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-fe.html#fe-openlayers" class="nav-link">OpenLayers Map</a>
+                <a href="dokumentasi-fe.html#fe-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-fe.html#fe-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-fe.html#fe-idl" class="nav-link">Kompilasi IDL ke Types</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-be.html" class="nav-group-title">5. Dokumentasi BE</a>
+                <a href="dokumentasi-be.html#be-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-be.html#be-monorepo" class="nav-link active">Monorepo & File</a>
+                <a href="dokumentasi-be.html#be-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-be.html#be-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-be.html#be-idl" class="nav-link">Kompilasi IDL BE</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-gateway.html" class="nav-group-title">6. Dokumentasi Gateway</a>
+                <a href="dokumentasi-gateway.html#gt-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-gateway.html#gt-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-gateway.html#gt-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-gateway.html#gt-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-gateway.html#gt-idl" class="nav-link">Kompilasi IDL Gateway</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="perbandingan-pengujian.html" class="nav-group-title">7. Perbandingan Pengujian</a>
+                <a href="perbandingan-pengujian.html#test-results" class="nav-link">gRPC vs WebDDS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="kesimpulan.html" class="nav-group-title">8. Kesimpulan</a>
+                <a href="kesimpulan.html#conclusion" class="nav-link">Implementasi Proyek</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="referensi.html" class="nav-group-title">9. Referensi</a>
+                <a href="referensi.html#references" class="nav-link">Bacaan Lebih Lanjut</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <header class="main-header">
+            <h1>5. Dokumentasi BE</h1>
+            <p class="subtitle">Panduan pengembangan backend menggunakan OpenDDS C++.</p>
+        </header>
+
+        <section id="be-setup">
+            <h2>Setup & Instalasi </h2>
+            <p>Backend simulator radar dibangun menggunakan OpenDDS murni dengan bahasa C++. Untuk memastikan kebebasan dependensi, alur kompilasi (<i>build</i>) sangat direkomendasikan menggunakan <strong>Conan</strong> sebagai <i>package manager</i> (seperti yang dijabarkan pada tahapan <code>Dockerfile</code>).</p>
+            
+            <pre><code># 1. Pastikan dependensi OS, Python (pip), dan CMake (>= 3.31) sudah terinstal.
+# 2. Unduh dan Ekstrak OpenDDS (v3.29.1)
+wget https://docs.len-iot.id/s/xm9zTrTASaBxd8p/download/OpenDDS-3.29.1.zip
+unzip OpenDDS-3.29.1.zip -d /opt/OpenDDS
+
+# 3. Setup Environment Variable OpenDDS (Penting)
+export ACE_ROOT="/opt/OpenDDS/ACE_wrappers"
+export TAO_ROOT="/opt/OpenDDS/ACE_wrappers/TAO"
+export DDS_ROOT="/opt/OpenDDS"
+export MPC_ROOT="/opt/OpenDDS/ACE_wrappers/MPC"
+export LD_LIBRARY_PATH="/opt/OpenDDS/ACE_wrappers/lib:/opt/OpenDDS/lib:$LD_LIBRARY_PATH"
+export PATH="/opt/OpenDDS/ACE_wrappers/bin:/opt/OpenDDS/bin:$PATH"
+
+# 4. Masuk ke root backend & Inisialisasi Conan
+cd be-stream-odds-cpp
+pip3 install conan
+conan profile detect --force
+conan install . --output-folder=build --build=missing
+
+# 5. Build menggunakan CMake (Membaca preset dari Conan)
+cmake --preset conan-release
+cmake --build build --config Release --target all -j$(nproc)
+
+# 6. Menjalankan Binary Backend
+cd build
+./be-stream-odds-cpp -DCPSConfigFile ../rtps.ini</code></pre>
+        </section>
+
+        <section id="be-monorepo">
+            <h2>Monorepo & Struktur File Lengkap</h2>
+            <p>Struktur folder dan file pada project <code>be-stream-odds-cpp</code> untuk memberikan gambaran arsitektur sistem backend C++:</p>
+            
+            <pre><code>be-stream-odds-cpp/
+├── src/                        # Source code utama (C++)
+│   ├── app.cpp                 # Entry point: Inisialisasi DDS & Simulator Loop
+│   ├── adapters/               # Layer integrasi dengan middleware DDS
+│   │   └── service_adapters/
+│   │       └── odds_adapter/   # Implementasi spesifik OpenDDS
+│   │           ├── publishers/ # Pengiriman data radar (RadarTrackTopic)
+│   │           ├── subscribers/# Penerimaan perintah (CommandTopic)
+│   │           └── odds_operator/ Helper operasi DDS (check status, narrow)
+│   ├── handlers/               # Business Logic (Pemrosesan Target Radar)
+│   ├── threads/                # Manajemen thread untuk operasi paralel
+│   └── utils/                  # Utilitas Logging dan Pembacaan Config
+├── idl/                        # Definisi Interface (Data Structure)
+│   ├── RadarTrack/             # Definisi skema data track radar
+│   └── RadarCommand/           # Definisi skema data perintah kontrol
+├── CMakeLists.txt              # Konfigurasi Build System (CMake)
+├── conanfile.txt               # Manajemen dependensi library C++
+├── rtps.ini                    # Konfigurasi RTPS Discovery & UDP Transport
+├── generate_idl                # Shell script otomatisasi kompilasi IDL
+├── Dockerfile                  # Konfigurasi containerization
+└── .env                        # Konfigurasi environment backend</code></pre>
+
+            <div class="info-card" style="margin-top: 2rem;">
+                <h2>Penjelasan Detail Core Konfigurasi & Engine</h2>
+                <p>Berikut ini adalah tiga file krusial yang mengatur berjalannya simulator radar di backend:</p>
+                <div class="code-reference-grid" style="margin-top: 1.5rem;">
+                    <div class="code-ref-item">
+                        <span class="ref-label">1. Engine Utama: <code>src/app.cpp</code></span>
+                        <p>File *entry point* di mana *loop* simulasi berjalan. Tiga tugas utamanya:</p>
+                        <ul class="feature-list" style="margin-top: 0.5rem;">
+                            <li><strong>Thread Terpisah:</strong> Memisahkan proses baca perintah (*subscriber*) ke latar belakang agar pengiriman data tidak terhambat.</li>
+                            <li><strong>Pre-calculation:</strong> Menghitung nilai rumit (sin/cos/heading) untuk 10.000 target sebelum *loop* dimulai guna menghemat beban CPU.</li>
+                            <li><strong>Loop Simulasi (200ms):</strong> Terus berputar menghitung posisi/trajektori baru dan mem-<i>publish</i> datanya ke DDS.</li>
+                        </ul>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">2. Konfigurasi Jaringan: <code>rtps.ini</code></span>
+                        <p>File wajib yang di-*load* lewat flag <code>-DCPSConfigFile</code> untuk mengatur koneksi *low-level* OpenDDS:</p>
+                        <ul class="feature-list" style="margin-top: 0.5rem;">
+                            <li><code>DCPSDefaultDiscovery=rtps</code>: Memaksa DDS memakai sistem <strong>Peer-to-Peer</strong> (*multicast*) tanpa *server* sentral.</li>
+                            <li><code>transport_type=rtps_udp</code>: Mengirim lalu lintas paket data via UDP untuk mengejar latensi rendah.</li>
+                            <li><strong>Buffer Maksimal:</strong> Memperbesar <code>rcv_buffer_size</code> & <code>snd_buffer_size</code> OS agar sanggup menahan ribuan paket per detik tanpa *drop*.</li>
+                        </ul>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">3. Fallback Discovery: <code>simple.ior</code></span>
+                        <p>File warisan dari sistem DDS terpusat (berbasis CORBA InfoRepo).</p>
+                        <ul class="feature-list" style="margin-top: 0.5rem;">
+                            <li><strong>Isi File:</strong> Berupa string heksadesimal yang menyimpan alamat IP & Port server <code>DCPSInfoRepo</code>.</li>
+                            <li><strong>Fungsi:</strong> Bertindak layaknya <strong>Buku Telepon</strong> agar *publisher* dan *subscriber* saling menemukan.</li>
+                            <li><strong>Konteks:</strong> Karena sekarang kita memakai P2P murni (<code>rtps.ini</code>), file ini hanya dibiarkan sebagai mekanisme <i>fallback</i> jika sewaktu-waktu beralih kembali ke arsitektur sentral.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="be-pubsub">
+            <h2>Bagaimana mengatur Pub, Sub, Domain, Domain Participant dan Topic di OpenDDS</h2>
+            <p>Implementasi C++ murni OpenDDS di backend sangat berpegang pada standar spesifikasi Data Distribution Service (DDS) dari OMG. Konsep dasar mengenai apa itu Domain Participant, Topic, Publisher, maupun Subscriber dapat Anda baca secara menyeluruh di bab <a href="dasar-teori.html#opendds-entities" style="color: var(--primary-color); font-weight: 600;">Dasar Teori</a>.</p>
+
+            <div class="info-card" style="margin-top: 1.5rem;">
+                <h2>Alur Implementasi Nyata di Project</h2>
+                <p>Dalam proyek ini, kerumitan inisialisasi entitas DDS tidak diletakkan bertumpuk di satu file <code>main</code>, melainkan diabstraksi ke dalam arsitektur berbasis OOP (Abstract & Concrete classes). Berikut adalah penjabaran <i>flow</i> penciptaan entitas DDS beserta file aslinya:</p>
+                <br>
+                <div class="code-reference-grid">
+                    
+                    <div class="code-ref-item">
+                        <span class="ref-label">1. Entry Point: app.cpp</span>
+                        <span class="ref-location">src/app.cpp (Line 30 - 37)</span>
+                        <p>Aplikasi dimulai dengan memanggil <i>Participant Factory</i> bawaan OpenDDS, lalu mem-<i>passing</i> factory ini kepada objek Singleton <code>ODDSDomainParticipant</code>. Setelah participant berhasil dibuat, ia disuntikkan ke kelas Publisher dan Subscriber konkret.</p>
+                        <pre><code>// Inisialisasi Domain Participant
+DDS::DomainParticipantFactory_var factory = TheParticipantFactoryWithArgs(argc, argv);
+auto participant = ODDSDomainParticipant::get_instance(factory)->get_participant_();
+
+// Menyuntikkan Participant ke Publisher & Subscriber
+RadarTrackODDSPublisher radar_publisher(participant);
+RadarCommandODDSSubscriber radar_subscriber(participant);</code></pre>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">2. Implementasi Domain Participant</span>
+                        <span class="ref-location">src/adapters/.../domain_participant.cpp (Line 50)</span>
+                        <p>File ini menangani inisialisasi <i>Domain Participant</i> pada domain ID spesifik (default: 0). Jika file konfigurasi transport RTPS tidak diberikan melalui argumen CLI, adapter ini memuat <code>rtps.ini</code> lokal secara otomatis sebagai <i>fallback</i>.</p>
+                        <pre><code>participant_ = factory->create_participant(domain, PARTICIPANT_QOS_DEFAULT, nullptr, OpenDDS::DCPS::DEFAULT_STATUS_MASK);</code></pre>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">3. Abstraksi Publisher & Subscriber Base</span>
+                        <span class="ref-location">abstract_odds_publisher.cpp & abstract_odds_subscriber.cpp</span>
+                        <p>Kelas abstrak ini bertugas mengeksekusi <code>create_publisher()</code> dan <code>create_subscriber()</code>. Di sinilah QoS diinisialisasi secara aman menggunakan <code>get_default_publisher_qos()</code> agar meminimalisir kemungkinan <i>segmentation fault</i> akibat manipulasi QoS langsung.</p>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">4. Concrete Publisher (RadarTrack)</span>
+                        <span class="ref-location">src/adapters/.../radar_track_publisher.cpp (Line 17 - 32)</span>
+                        <p>Berbeda dengan JS di frontend yang sangat dinamis, C++ mewajibkan registrasi <code>TypeSupport</code> sebelum Topic bisa dibuat. File ini memuat struktur IDL <code>RadarTrack</code>, mengatur QoS (<i>Best Effort</i>, <i>Lifespan</i> 3 detik), memanggil pembuatan Topic <code>RadarTrackTopic</code>, lalu melakukan konversi <i>narrowing</i> menjadi objek tipe aman <code>TrackDataDataWriter</code>.</p>
+                        <pre><code>// 1. Registrasi TypeSupport
+type_support = std::make_unique&lt;RadarTrack::TrackDataTypeSupportImpl&gt;().release();
+type_name = type_support->get_type_name();
+result = type_support->register_type(*this->get_participant_(), type_name);
+
+// 2. Modifikasi QoS & Set Topic
+this->get_w_qos_()->lifespan.duration.sec = 3;
+this->set_topic(type_name, "RadarTrackTopic", writer);
+
+// 3. DataWriter Narrowing
+radar_writer_ = RadarTrack::TrackDataDataWriter::_narrow(writer);</code></pre>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">5. Eksekusi Pengiriman Data (Publish / Write)</span>
+                        <span class="ref-location">src/adapters/.../radar_track_publisher.cpp (Line 38 - 54)</span>
+                        <p>Setelah diinisialisasi, proses pengiriman data dilakukan dengan memuat nilai ke dalam objek tipe bentukan IDL (<code>RadarTrack::TrackData</code>), lalu memanggil method <code>write()</code> pada objek DataWriter yang sudah di-<i>narrow</i>.</p>
+                        <pre><code>// 1. Memuat data ke objek IDL C++
+radar_msg_.trackId = data.trackId;
+radar_msg_.lat = data.lat;
+radar_msg_.lon = data.lon;
+
+// 2. Menulis / Mengirim data ke DDS Domain
+DDS::ReturnCode_t result = radar_writer_->write(radar_msg_, DDS::HANDLE_NIL);
+this->get_odds_operator_()->check_status(result, "radar_writer_->write() failed");</code></pre>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">6. Concrete Subscriber (RadarCommand)</span>
+                        <span class="ref-location">src/adapters/.../radar_command_subscriber.cpp (Line 23 - 27)</span>
+                        <p>Prosedur serupa terjadi untuk penerima kendali (Command). Tipe dukungan didaftarkan, QoS dimodifikasi menjadi <code>RELIABLE</code> (karena instruksi tidak boleh hilang), dan Topic diset ke <code>CommandTopic</code>, lalu diakhiri dengan narrowing <code>CommandDataReader</code>.</p>
+                        <pre><code>this->get_r_qos_()->reliability.kind = DDS::RELIABLE_RELIABILITY_QOS;
+this->set_topic(type_name, "CommandTopic", reader);
+radar_command_reader_ = RadarCommand::CommandDataReader::_narrow(reader);</code></pre>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">7. Eksekusi Penerimaan Data (Subscribe / Take)</span>
+                        <span class="ref-location">src/adapters/.../radar_command_subscriber.cpp (Line 32 - 68)</span>
+                        <p>Pengambilan data diimplementasikan di dalam <i>loop thread</i> menggunakan method <code>take()</code>. Data diekstrak dengan memvalidasi <code>info_seq_</code>, dan wajib diakhiri dengan <code>return_loan()</code> untuk mengembalikan kepemilikan memori ke OpenDDS.</p>
+                        <pre><code>// 1. Mengambil (take) data dari queue DDS
+this->result_ = this->radar_command_reader_->take(
+    this->msg_list_, this->info_seq_, DDS::LENGTH_UNLIMITED,
+    DDS::ANY_SAMPLE_STATE, DDS::ANY_VIEW_STATE, DDS::ANY_INSTANCE_STATE
+);
+
+if (this->result_ == DDS::RETCODE_OK) {
+    // 2. Iterasi & Ekstrak Data Valid
+    for (CORBA::ULong i = 0; i < this->msg_list_.length(); i++) {
+        if (this->info_seq_[i].valid_data) {
+            this->command_receive_data_.action = this->msg_list_[i].action.in();
+            this->command_receive_data_.value = this->msg_list_[i].value;
+        }
+    }
+    // 3. Mengembalikan "pinjaman" memori ke OpenDDS
+    this->radar_command_reader_->return_loan(this->msg_list_, this->info_seq_);
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            <br>
+            
+            <div class="info-card alert" style="margin-top: 1rem;">
+                <h2>Prasyarat Krusial OpenDDS C++</h2>
+                <ul class="feature-list">
+                    <li><strong>DDS::ReturnCode_t Checking:</strong> Hampir setiap operasi OpenDDS mengembalikan kode status. Proyek ini membungkusnya dalam utilitas <code>odds_operator_.check_status()</code> untuk memastikan jika gagal (seperti memori penuh atau IDL tidak cocok), aplikasi akan dihentikan secara <i>graceful</i> dengan log <i>error</i>.</li>
+                    <li><strong>TypeSupport Registration:</strong> Pendaftaran tipe ini adalah langkah wajib <i>compiler</i> C++. Tanpa mendaftarkan instansiasi <code>TypeSupportImpl</code>, eksekusi <code>create_topic()</code> pasti gagal.</li>
+                    <li><strong>Sistem CORBA <i>Smart Pointer</i> (_var):</strong> Penanganan struktur atau objek DDS secara internal menggunakan <code>_var</code> (seperti <code>DDS::Topic_var</code>). Penggunaan <i>pointer</i> mentah sangat dilarang demi mencegah memori <i>leak</i>.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="be-qos">
+            <h2>Bagaimana mengatur QoS di OpenDDS pada BE</h2>
+            <p>Dalam spesifikasi DDS, <i>Quality of Service</i> (QoS) secara teori dapat dipasang di berbagai level hierarki (<i>DomainParticipant</i>, <i>Publisher/Subscriber</i>, <i>Topic</i>, maupun <i>DataWriter/DataReader</i>). Namun, di dalam arsitektur backend ini, pengaturan QoS <strong>secara spesifik difokuskan dan diterapkan pada level <i>End-Point</i>, yaitu pada objek <i>DataWriter</i> dan <i>DataReader</i></strong>.</p>
+
+            <div class="info-card" style="margin-top: 1rem;">
+                <h3>Mengapa QoS diterapkan di level DataWriter dan DataReader?</h3>
+                <ul class="feature-list" style="margin-top: 0.5rem;">
+                    <li><strong>Publisher & Subscriber:</strong> Berfungsi sebagai "manajer grup" dari <i>writer/reader</i>. Memberikan QoS di level ini biasanya ditujukan untuk *group presentation* atau berbagi memori, namun tidak secara spesifik mengatur perilaku paket datanya.</li>
+                    <li><strong>Topic:</strong> Berfungsi sebagai penghubung nama dan <i>TypeSupport</i>. Meskipun *Topic* memiliki konfigurasi QoS bawaan, nilainya seringkali hanya dipakai sebagai kerangka dasar (*baseline*) lalu ditimpa (*override*) oleh entitas pengirim/penerima aslinya.</li>
+                    <li><strong>DataWriter & DataReader:</strong> Inilah objek "pekerja keras" riil yang melakukan I/O *byte* ke jaringan. Dengan menyematkan QoS seperti <code>RELIABILITY</code> atau <code>LIFESPAN</code> langsung pada entitas ini, kita memperoleh kontrol 100% presisi untuk setiap aliran data tanpa mengganggu jalur *publisher/subscriber* lain.</li>
+                </ul>
+            </div>
+
+            <div class="code-reference-grid" style="margin-top: 1.5rem;">
+                <div class="code-ref-item">
+                    <span class="ref-label">Penerapan di Sisi Pengirim (DataWriter)</span>
+                    <span class="ref-location">src/adapters/.../radar_track_publisher.cpp (Line 22 - 32)</span>
+                    <p>Pada saat inisialisasi <code>RadarTrackODDSPublisher</code>, sistem mengambil nilai <i>default</i> variabel <code>w_qos_</code> (<i>Writer QoS</i>), memodifikasinya menjadi <i>Best Effort</i> (untuk *streaming* latensi rendah), dan menyematkan <i>Lifespan</i> 3 detik agar data basi otomatis terbuang.</p>
+                    <pre><code>// 1. Modifikasi parameter Writer QoS (Line 22-29)
+this->get_w_qos_()->reliability.kind = DDS::BEST_EFFORT_RELIABILITY_QOS;
+this->get_w_qos_()->lifespan.duration.sec = 3;
+this->get_w_qos_()->liveliness.kind = DDS::AUTOMATIC_LIVELINESS_QOS;
+
+// 2. Injeksi QoS saat penciptaan DataWriter (dipanggil via set_topic pada Line 31)
+this->set_topic(type_name, "RadarTrackTopic", writer);</code></pre>
+                </div>
+                
+                <div class="code-ref-item">
+                    <span class="ref-label">Penerapan di Sisi Penerima (DataReader)</span>
+                    <span class="ref-location">src/adapters/.../radar_command_subscriber.cpp (Line 22 - 24)</span>
+                    <p>Pola identik diterapkan pada <code>RadarCommandODDSSubscriber</code>. Nilai <code>r_qos_</code> (<i>Reader QoS</i>) diubah mutlak menjadi <i>RELIABLE</i> (karena perintah kendali <i>Start/Stop</i> dari <i>frontend</i> pantang hilang di jalan) sebelum disematkan ke pembuatan <code>DataReader</code>.</p>
+                    <pre><code>// 1. Modifikasi parameter Reader QoS (Line 23)
+this->get_r_qos_()->reliability.kind = DDS::RELIABLE_RELIABILITY_QOS;
+
+// 2. Injeksi QoS saat penciptaan DataReader (dipanggil via set_topic pada Line 24)
+this->set_topic(type_name, "CommandTopic", reader);</code></pre>
+                </div>
+            </div>
+            
+            <div class="info-card alert" style="margin-top: 1.5rem;">
+                <h3>⚠️ Peringatan: Bahaya <i>Segmentation Fault</i> pada C++ QoS</h3>
+                <p>Dalam bahasa C++, ketika Anda membuat variabel QoS baru (misalnya <code>DDS::DataWriterQos my_qos;</code>), isinya awalnya adalah "sampah memori" (<i>garbage values</i>) yang tidak valid. Jika Anda hanya mengubah parameter <code>reliability</code> dan membiarkan parameter lainnya berisi nilai sampah, aplikasi OpenDDS akan <strong>crash (<i>segmentation fault</i>)</strong> saat membaca nilai sampah tersebut.</p>
+                <p style="margin-top: 0.5rem;"><strong>Solusinya:</strong> Di dalam <i>backend</i> ini (pada file <i>abstract</i>), kita <u>selalu memanggil</u> fungsi <code>get_default_datawriter_qos()</code> terlebih dahulu untuk mengisi struktur tersebut dengan nilai bawaan yang aman. Setelah memori struktur tersebut aman, barulah kita modifikasi nilai spesifik yang kita mau.</p>
+            </div>
+        </section>
+
+        <section id="be-idl">
+            <h2>Bagaimana mengatur dan mengkompilasi IDL di C++ (Backend)</h2>
+            <p>Berbeda dengan Node.js/JavaScript yang dapat memecah skema IDL secara dinamis (*runtime*), di bahasa C++, file IDL tidak bisa langsung dijalankan. Skema IDL tersebut harus dikonversi terlebih dahulu menjadi puluhan file *header* (<code>.h</code>) dan *source* (<code>.cpp</code>) C++ agar kompilator (GCC/Clang) dapat mengenalinya sebagai *Class/Struct* yang sah.</p>
+
+            <div class="code-reference-grid" style="margin-top: 1.5rem;">
+                <div class="code-ref-item">
+                    <span class="ref-label">1. Kompilasi IDL menggunakan <code>generate_idl</code></span>
+                    <span class="ref-location">be-stream-odds-cpp/generate_idl</span>
+                    <p>Di direktori dasar *backend*, terdapat *script* bernama <code>generate_idl</code>. Jika Anda merubah rancangan struktur data di dalam <code>idl/RadarTrack/RadarTrack.idl</code>, Anda diwajibkan untuk membangkitkan ulang kodenya melalui terminal menggunakan eksekusi skrip ini (contoh: <code>./generate_idl idl/RadarTrack/RadarTrack</code>).</p>
+                    <pre><code>#!/bin/bash
+
+# Validasi argumen terminal
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 &lt;FILE_NAME&gt;"
+    exit 1
+fi
+
+IDL_FILE_NAME="$1.idl"
+TYPE_SUPPORT_FILE_NAME="$1TypeSupport.idl"
+
+# 1. tao_idl: Menciptakan C++ CORBA bindings
+tao_idl -I "$DDS_ROOT" -Sa -St -Sm -Sci -in --idl-version 4 --unknown-annotations ignore "$IDL_FILE_NAME"
+
+# 2. opendds_idl: Menghasilkan struktur DDS TypeSupport
+opendds_idl -Gxtypes-complete "$IDL_FILE_NAME"
+
+# 3. tao_idl (Tahap 2): Mengkompilasi TypeSupport ke C++
+tao_idl -I "$DDS_ROOT" -Sa -St -Sm -Sci -in --idl-version 4 --unknown-annotations ignore "$TYPE_SUPPORT_FILE_NAME"
+
+echo "Execution completed."</code></pre>
+                </div>
+                
+                <div class="code-ref-item">
+                    <span class="ref-label">2. Hasil Kompilasi & Penempatan (*Models*)</span>
+                    <span class="ref-location">src/models/odds_models/... & CMakeLists.txt (Line 25-34)</span>
+                    <p>Satu file IDL akan meledak menjadi <strong>sekitar 11 file C++</strong> setelah dikompilasi (misalnya: <code>RadarTrackC.cpp</code>, <code>RadarTrackS.h</code>, <code>RadarTrackTypeSupportImpl.cpp</code>, dll).</p>
+                    <ul class="feature-list" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+                        <li><strong>Penempatan:</strong> Pindahkan kesebelas file hasil <i>generate</i> tersebut ke dalam folder *models* yang relevan (contoh: <code>src/models/odds_models/radar_track_model/</code>).</li>
+                        <li><strong>Kompilasi Akhir:</strong> Anda tidak perlu mendaftarkannya satu persatu. File <code>CMakeLists.txt</code> sudah didesain memindai seluruh <code>.cpp</code> di folder *models* tersebut secara otomatis.</li>
+                    </ul>
+                    <pre><code># Potongan kode di CMakeLists.txt yang memindai otomatis
+file(GLOB_RECURSE SOURCES 
+    src/*.cpp 
+    src/*.cc 
+    src/*.h 
+    src/*.hpp
+)
+# Memasukkan semua file TypeSupport dan logic ke dalam objek kompilasi
+add_library(shared-objects OBJECT ${SOURCES})
+add_executable(${PROJECT_NAME} src/app.cpp $<TARGET_OBJECTS:shared-objects>)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>&copy; 2026 Dokumentasi Project Radar WebDDS. LEN Inovasi Teknologi ~ chndr.</p>
+        </footer>
+    </main>
+</body>
+
+</html>

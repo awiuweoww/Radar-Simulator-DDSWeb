@@ -1,0 +1,18 @@
+/*
+ * IDL untuk Simulasi Radar menggunakan OpenDDS
+ * 
+ */
+
+module RadarTrack {
+
+    @topic
+    struct TrackData {
+        @key long trackId;
+        double lat;
+        double lon;
+        float speed;
+        long long timestamp; 
+        octet classification; 
+    };
+
+};

@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    image: ${SERVICE_NAME:-stream-radar-frontend}:latest
+    container_name: ${SERVICE_NAME:-radar-webdds}
+    env_file:
+      - .env
+    ports:
+      - "${TARGET_PORT:-3000}:${SERVICE_PORT:-3000}"
+    volumes:
+      # Sinkronisasi folder lokal ke container untuk Hot Reload
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped

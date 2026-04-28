@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentasi FE | Dokumentasi Project</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo">👀</span>
+            <span class="title">Dokumentasi Project</span>
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-group">
+                <a href="dasar-teori.html" class="nav-group-title">1. Dasar Teori</a>
+                <a href="dasar-teori.html#opendds-entities" class="nav-link">OpenDDS: 7 Entitas</a>
+                <a href="dasar-teori.html#webdds-intro" class="nav-link">WebDDS: Analogi & OMG</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="list-gateway.html" class="nav-group-title">2. List Gateway</a>
+                <a href="list-gateway.html#nanomq" class="nav-link">NanoMQ DDSProxy</a>
+                <a href="list-gateway.html#eprosima" class="nav-link">Eprosima</a>
+                <a href="list-gateway.html#rti-web" class="nav-link">RTI Web Integration</a>
+                <a href="list-gateway.html#custom-bridge" class="nav-link">Custom Bridge (Node.js)</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="qos-hirarki.html" class="nav-group-title">3. List QoS & Hirarki</a>
+                <a href="qos-hirarki.html#qos-matching" class="nav-link">QoS Matching</a>
+                <a href="qos-hirarki.html#qos-project" class="nav-link">QoS dalam Proyek</a>
+                <a href="qos-hirarki.html#qos-list" class="nav-link">Daftar Kebijakan QoS</a>
+                <a href="qos-hirarki.html#qos-hierarchy" class="nav-link">Hirarki QoS</a>
+                <a href="qos-hirarki.html#qos-tables" class="nav-link">Tabel Referensi QoS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-fe.html" class="nav-group-title">4. Dokumentasi FE</a>
+                <a href="dokumentasi-fe.html#fe-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-fe.html#fe-monorepo" class="nav-link active">Monorepo & File</a>
+                <a href="dokumentasi-fe.html#fe-openlayers" class="nav-link">OpenLayers Map</a>
+                <a href="dokumentasi-fe.html#fe-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-fe.html#fe-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-fe.html#fe-idl" class="nav-link">Kompilasi IDL ke Types</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-be.html" class="nav-group-title">5. Dokumentasi BE</a>
+                <a href="dokumentasi-be.html#be-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-be.html#be-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-be.html#be-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-be.html#be-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-be.html#be-idl" class="nav-link">Kompilasi IDL BE</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-gateway.html" class="nav-group-title">6. Dokumentasi Gateway</a>
+                <a href="dokumentasi-gateway.html#gt-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-gateway.html#gt-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-gateway.html#gt-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-gateway.html#gt-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-gateway.html#gt-idl" class="nav-link">Kompilasi IDL Gateway</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="perbandingan-pengujian.html" class="nav-group-title">7. Perbandingan Pengujian</a>
+                <a href="perbandingan-pengujian.html#test-results" class="nav-link">gRPC vs WebDDS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="kesimpulan.html" class="nav-group-title">8. Kesimpulan</a>
+                <a href="kesimpulan.html#conclusion" class="nav-link">Implementasi Proyek</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="referensi.html" class="nav-group-title">9. Referensi</a>
+                <a href="referensi.html#references" class="nav-link">Bacaan Lebih Lanjut</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <header class="main-header">
+            <h1>4. Dokumentasi FE</h1>
+            <p class="subtitle">Panduan pengembangan frontend menggunakan React dan OpenLayers.</p>
+        </header>
+
+        <section id="fe-setup">
+            <h2>Setup & Instalasi</h2>
+            <p>Frontend dibangun menggunakan React dengan Vite/Rspack untuk proses build yang sangat cepat.</p>
+            <pre><code># 1. Masuk ke direktori frontend
+cd fe-webdds
+
+# 2. Install dependensi menggunakan pnpm
+pnpm install
+
+# 3. Menjalankan Dashboard Radar
+pnpm dev</code></pre>
+        </section>
+
+        <section id="fe-monorepo">
+            <h2>Monorepo & Struktur File Lengkap</h2>
+            <p>Struktur folder dan file pada project <code>fe-webdds</code> untuk memberikan gambaran arsitektur
+                aplikasi secara utuh:</p>
+
+            <pre><code>fe-webdds/
+├── src/                        # Source code utama aplikasi
+│   ├── idl/                    # Definisi skema data DDS (original)
+│   ├── types/                  # Kontrak data TypeScript (Hasil Kompilasi IDL)
+│   │   ├── RadarTrack.ts       # Interface untuk data posisi radar
+│   │   └── RadarCommand.ts     # Interface untuk perintah kontrol simulator
+│   ├── utils/
+│   │   ├── api/
+│   │   │   ├── radarApi.ts     # Singleton instance Pub-Sub WebDDS
+│   │   │   └── webdds.ts       # Low-level wrapper OMG WebDDS via WebSocket
+│   │   └── logger/             # Utilitas monitoring performa paket data
+│   ├── hooks/
+│   │   ├── useRadarEngine.ts   # React hook untuk lifecycle koneksi DDS
+│   │   └── useMapInstance.ts   # React hook untuk kontrol peta OpenLayers
+│   ├── components/             # Komponen UI (Map, Dashboard, Sidebar)
+│   ├── scripts/
+│   │   └── idl-compiler.js     # Script otomatisasi IDL-to-TypeScript
+│   └── main.tsx                # Entry point utama aplikasi React
+├── rspack.config.ts            # Konfigurasi build tool (Rspack Engine)
+├── tailwind.config.js          # Konfigurasi styling & design system
+├── tsconfig.json               # Aturan kompilasi TypeScript
+├── Dockerfile                  # Konfigurasi containerization
+├── package.json                # Daftar dependensi dan script NPM
+└── .env                        # Konfigurasi environment (URL Gateway)</code></pre>
+
+            <div class="info-card" style="margin-top: 2rem;">
+                <h3>Penjelasan File Kunci</h3>
+                <table class="simple-table">
+                    <tr>
+                        <th style="width: 30%;">File</th>
+                        <th>Fungsi Strategis</th>
+                    </tr>
+                    <tr>
+                        <td><code>radarApi.ts</code></td>
+                        <td>Mengelola instance <code>Participant</code> WebDDS dan mengatur topik yang akan
+                            di-subscribe.</td>
+                    </tr>
+                    <tr>
+                        <td><code>idl-compiler.js</code></td>
+                        <td>Menjamin tipe data di Frontend selalu sinkron dengan Backend C++ tanpa perlu menulis ulang
+                            interface secara manual.</td>
+                    </tr>
+                    <tr>
+                        <td><code>rspack.config.ts</code></td>
+                        <td>Mengatur bundling aplikasi dengan kecepatan tinggi, memungkinkan pengembangan real-time yang
+                            lancar.</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <section id="fe-openlayers">
+            <h2>Integrasi Peta Taktis OpenLayers</h2>
+            <p>Peta pada dashboard ini bukan sekadar tampilan statis, melainkan sebuah <strong>Tactical Map
+                    Engine</strong> yang dirancang untuk menangani ratusan objek bergerak secara real-time dengan
+                performa tinggi.</p>
+
+
+
+            <div class="info-card">
+                <h3>Transformasi Koordinat & Proyeksi</h3>
+                <p>Data dari OpenDDS biasanya datang dalam format Geografis (WGS84: Longitude, Latitude). Karena
+                    OpenLayers menggunakan proyeksi Web Mercator (EPSG:3857), setiap paket data ditransformasi
+                    menggunakan fungsi <code>fromLonLat()</code> sebelum ditampilkan:</p>
+                <pre><code>const coords = fromLonLat([t.lon, t.lat]);
+feature.getGeometry().setCoordinates(coords);</code></pre>
+            </div>
+
+            <div class="info-card">
+                <h3>Sinkronisasi Visual (Radar Sweep)</h3>
+                <p>Elemen "Sapuan Radar" (Sweep) disinkronkan secara dinamis dengan resolusi peta. Ini memastikan ukuran
+                    sapuan tetap akurat terhadap skala geografis (misal: radius 45km) meskipun pengguna melakukan Zoom
+                    In/Out.</p>
+                <pre><code>const diameterPx = (radiusMeter * 2) / map.getView().getResolution();
+sweepElement.style.width = `${diameterPx}px`;</code></pre>
+            </div>
+        </section>
+        <br><br><br>
+        <section id="fe-pubsub">
+            <h2>Bagaimana mengatur Pub, Sub, & Topic di WebDDS</h2>
+            <p>Implementasi WebDDS pada Frontend mengikuti standar OMG (Object Management Group) yang mengabstraksi
+                komunikasi biner DDS menjadi operasi berbasis Web (JSON/WebSocket).</p>
+
+            <div class="grid-box">
+                <div class="box">
+                    <h4>1. Konsep Dasar</h4>
+                    <ul class="feature-list">
+                        <li><strong>Topic:</strong> Sebuah "saluran" data yang diidentifikasi oleh nama unik dan tipe
+                            data tertentu (berdasarkan IDL).</li>
+                        <li><strong>Subscriber:</strong> Entitas yang mendaftarkan diri (subscribe) ke sebuah Topik
+                            untuk menerima data secara otomatis setiap kali ada update.</li>
+                        <li><strong>Publisher:</strong> Entitas yang memiliki kemampuan untuk menulis (write) data ke
+                            sebuah Topik.</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>2. Syntax Umum (WebDDS Standard)</h4>
+                    <pre><code>// Membuat Topik (Nama, TipeData)
+const myTopic = new Topic("UserPos", "MyIDL::Position");
+
+// Berlangganan Data (Subscriber)
+participant.subscribe(myTopic, (data) => {
+    console.log("Data Diterima:", data);
+});
+
+// Menyiapkan Pengiriman (Publisher)
+const writer = participant.publish(myTopic);
+writer.write({ x: 10, y: 20 });</code></pre>
+                </div>
+            </div>
+            <br>
+            <div class="info-card" style="margin-top: 2rem;">
+                <h2>Implementasi Nyata di Project</h2>
+                <p>Seluruh logika ini dapat ditemukan di file: <br>
+                    <code class="file-path">fe-webdds/src/utils/api/radarApi.ts</code>
+                </p>
+
+                <div class="code-reference-grid">
+                    <div class="code-ref-item">
+                        <span class="ref-label">Definisi Topik</span>
+                        <span class="ref-location">Line 31 - 32</span>
+                        <p>Mendefinisikan <code>RadarTrackTopic</code> untuk data biner radar dan
+                            <code>CommandTopic</code> untuk kontrol instruksi.
+                        </p>
+                        <pre><code>this.trackTopic = new Topic('RadarTrackTopic', 'RadarTrack::TrackData'); // Line 31
+this.commandTopic = new Topic('CommandTopic', 'RadarCommand::Command'); // Line 32</code></pre>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">Inisialisasi Subscriber</span>
+                        <span class="ref-location">Line 48</span>
+                        <p>Melakukan registrasi ke Gateway untuk menerima aliran data secara asinkron.</p>
+                        <pre><code>this.participant.subscribe(this.trackTopic, (data) => { ... }); // Line 48</code></pre>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">Inisialisasi Publisher</span>
+                        <span class="ref-location">Line 66</span>
+                        <p>Membuka jalur pengiriman data untuk perintah kendali dari dashboard ke backend.</p>
+                        <pre><code>this.commandWriter = this.participant.publish(this.commandTopic); // Line 66</code></pre>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">Eksekusi Write</span>
+                        <span class="ref-location">Line 85</span>
+                        <p>Mengirimkan objek perintah (JSON) yang akan diterjemahkan menjadi biner oleh Gateway.</p>
+                        <pre><code>this.commandWriter.write({ action: 'START', value: count }); // Line 85</code></pre>
+                    </div>
+                </div>
+            </div>
+            <br>
+            
+            <div class="info-card alert" style="margin-top: 2rem;">
+                
+                <h2>Syarat & Prasyarat Penting</h2>
+                <p>Agar mekanisme Pub/Sub dapat berjalan tanpa error, ada beberapa syarat teknis yang wajib dipenuhi:
+                </p>
+                <ul class="feature-list">
+                    <li><strong>Domain ID Matching:</strong> Frontend harus menggunakan Domain ID yang sama dengan
+                        Backend (default: <code>0</code>). Pengaturan ini dilakukan saat memanggil
+                        <code>dds.createParticipant(0)</code>.</li>
+                    <li><strong>Case-Sensitive Topic:</strong> Nama Topik (misal: <code>RadarTrackTopic</code>) dan Nama
+                        Tipe Data (misal: <code>RadarTrack::TrackData</code>) harus **sama persis** karakternya dengan
+                        yang didefinisikan di file IDL Backend.</li>
+                    <li><strong>Konektivitas Gateway:</strong> Pastikan variabel lingkungan (<code>.env</code>) sudah
+                        mengarah ke URL Gateway yang aktif (REST & WebSocket).
+                        <pre><code>VITE_DDS_GATEWAY_REST=http://localhost:8080/dds
+VITE_DDS_GATEWAY_WS=ws://localhost:8080/dds</code></pre>
+                    </li>
+                    <li><strong>QoS Compatibility:</strong> Pastikan kebijakan QoS (Reliability, Durability, dll) yang
+                        diminta oleh Frontend tidak "lebih berat" daripada yang ditawarkan oleh Backend (Rx <= Tx).</li>
+                </ul>
+            </div>
+        </section>
+        <br>
+        <br>
+        <section id="fe-qos">
+            <h2>Bagaimana mengatur QoS di WebDDS pada FE</h2>
+            <p>Dalam arsitektur project ini, kebijakan <strong>Quality of Service (QoS)</strong> dikelola secara terpusat pada <strong>DDS Gateway</strong>. Hal ini dilakukan untuk menjamin konsistensi dan memudahkan pemeliharaan tanpa perlu melakukan konfigurasi manual di sisi browser.</p>
+
+            <div class="info-card">
+                <h3>Sentralisasi QoS di Gateway</h3>
+                <p>Meskipun Frontend mengirim data melalui WebSocket, Gateway-lah yang menentukan bagaimana data tersebut dikirimkan ke jaringan DDS biner. Contohnya:</p>
+                <ul class="feature-list">
+                    <li><strong>Transparansi:</strong> Developer FE cukup fokus pada data JSON. Gateway secara otomatis menerapkan <code>RELIABLE</code> dan <code>TRANSIENT_LOCAL</code> untuk setiap perintah yang dikirim.</li>
+                    <li><strong>Konsistensi:</strong> Dengan mengatur QoS di Gateway, kita memastikan seluruh client Web (jika ada lebih dari satu) memiliki profil koneksi yang identik dan kompatibel dengan Backend C++.</li>
+                </ul>
+            </div>
+            
+            <p style="font-size: 0.9rem; color: var(--text-muted);">
+                *Untuk melihat detail implementasi kode QoS, silakan merujuk ke <strong>Bab 6: Dokumentasi Gateway</strong>.
+            </p>
+        </section>
+
+        <section id="fe-idl">
+            <h2>Bagaimana mengatur & mengkompile IDL di FE</h2>
+            <p>Agar struktur data di Frontend selalu sinkron dengan Backend tanpa menulis ulang kode, kami menggunakan <strong>Universal IDL-to-TS Compiler</strong> kustom.</p>
+
+            <div class="info-card alert" style="margin-top: 1rem;">
+                <h3>⚠️ Konteks & Keterbatasan OpenDDS</h3>
+                <p>Berbeda dengan beberapa kompetitor DDS komersial (seperti <strong>RTI Connext</strong> yang memiliki <em>Web Integration Service</em> resmi), OpenDDS saat ini belum memiliki tool generator resmi untuk ekosistem Web/JavaScript.</p>
+                <ul class="feature-list">
+                    <li><strong>Tanpa Tool Bawaan:</strong> OpenDDS tidak menyertakan binary seperti <code>opendds_js_gen</code> untuk mengonversi IDL ke TypeScript secara otomatis.</li>
+                    <li><strong>Solusi Kustom:</strong> Oleh karena itu, di project ini kami membangun script <code>idl-compiler.js</code> secara mandiri sebagai jembatan (bridge) agar tipe data biner tetap bisa dibaca dengan aman di browser.</li>
+                    <li><strong>Perbandingan:</strong> Pada platform lain, proses ini biasanya sudah include dalam tools SDK mereka, namun di OpenDDS kita harus melakukan parsing manual terhadap file IDL.</li>
+                </ul>
+            </div>
+
+            <div class="grid-box">
+                <div class="box">
+                    <h4>1. Lokasi & Pemetaan Folder</h4>
+                    <p>Proses kompilasi mengikuti aturan pemetaan folder sebagai berikut:</p>
+                    <ul class="feature-list">
+                        <li><strong>Source (Input):</strong> <code>src/idl/&lt;Folder&gt;/&lt;NamaFile&gt;.idl</code></li>
+                        <li><strong>Destination (Output):</strong> <code>src/types/&lt;NamaFile&gt;.ts</code></li>
+                    </ul>
+                    <p class="text-sm mt-2">Contoh: <code>src/idl/RadarTrack/RadarTrack.idl</code> akan diubah menjadi <code>src/types/RadarTrack.ts</code>.</p>
+                </div>
+                <div class="box">
+                    <h4>2. Perintah Eksekusi</h4>
+                    <p>Jalankan perintah berikut di terminal (root folder <code>fe-webdds</code>):</p>
+                    <pre><code>node scripts/idl-compiler.js src/idl/RadarTrack/RadarTrack.idl src/types/RadarTrack.ts</code></pre>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3>Full Source Code: scripts/idl-compiler.js</h3>
+                <p>Berikut adalah kode lengkap dari script compiler yang digunakan untuk mentransformasi skema IDL menjadi TypeScript:</p>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <pre style="margin: 0; font-size: 0.8rem;"><code>/**
+ * UNIVERSAL OMG IDL to TypeScript Compiler
+ * -----------------------------------------
+ * Dirancang khusus untuk ekosistem OpenDDS/DDS-WEB.
+ * Mendukung: Struct, Enum, Module, Sequence, Typedef, dan Anotasi (@).
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const TYPE_MAP = {
+    'long': { ts: 'number', read: 'reader.readInt32()' },
+    'unsigned long': { ts: 'number', read: 'reader.readUint32()' },
+    'long long': { ts: 'number', read: 'Number(reader.readInt64())' },
+    'short': { ts: 'number', read: 'reader.readInt16()' },
+    'double': { ts: 'number', read: 'reader.readFloat64()' },
+    'float': { ts: 'number', read: 'reader.readFloat32()' },
+    'octet': { ts: 'number', read: 'reader.readUint8()' },
+    'char': { ts: 'string', read: 'String.fromCharCode(reader.readUint8())' },
+    'string': { ts: 'string', read: 'reader.readString()' },
+    'boolean': { ts: 'boolean', read: 'reader.readBoolean()' }
+};
+
+class IDLCompiler {
+    constructor() {
+        this.typedefs = {};
+        this.enums = {};
+    }
+
+    cleanSource(source) {
+        source = source.replace(/\/\/.*$/gm, '');
+        source = source.replace(/\/\*[\s\S]*?\*\//g, '');
+        source = source.replace(/@\w+(\s*\([\s\S]*?\))?/g, '');
+        return source.trim();
+    }
+
+    parse(source) {
+        source = this.cleanSource(source);
+        const results = { modules: [], structs: [], enums: [], typedefs: [] };
+
+        const tdRegex = /typedef\s+sequence&lt;([\w\s&lt;&gt;]+)&gt;\s+(\w+);/g;
+        let tdMatch;
+        while ((tdMatch = tdRegex.exec(source)) !== null) {
+            this.typedefs[tdMatch[2]] = { type: tdMatch[1].trim(), isSequence: true };
+        }
+
+        const enumRegex = /enum\s+(\w+)\s*\{([\s\S]*?)\};/g;
+        let eMatch;
+        while ((eMatch = enumRegex.exec(source)) !== null) {
+            const name = eMatch[1];
+            const values = eMatch[2].split(',').map(v => v.trim()).filter(v => v);
+            this.enums[name] = values;
+            results.enums.push({ name, values });
+        }
+
+        const structRegex = /struct\s+(\w+)\s*\{([\s\S]*?)\};/g;
+        let sMatch;
+        while ((sMatch = structRegex.exec(source)) !== null) {
+            const name = sMatch[1];
+            const body = sMatch[2];
+            const fields = [];
+            const fieldRegex = /([\w\s&lt;&gt;]+)\s+(\w+);/g;
+            let fMatch;
+            while ((fMatch = fieldRegex.exec(body)) !== null) {
+                let type = fMatch[1].trim().replace(/\s+/g, ' ');
+                const fieldName = fMatch[2].trim();
+
+                if (type.startsWith('sequence&lt;')) {
+                    const inner = type.match(/sequence&lt;([\w\s&lt;&gt;]+)&gt;/)[1].trim();
+                    fields.push({ name: fieldName, type: inner, isSequence: true });
+                } else if (this.typedefs[type]) {
+                    fields.push({ name: fieldName, type: this.typedefs[type].type, isSequence: this.typedefs[type].isSequence });
+                } else {
+                    fields.push({ name: fieldName, type, isSequence: false });
+                }
+            }
+            results.structs.push({ name, fields });
+        }
+        return results;
+    }
+
+    generate(idlName, data) {
+        let code = `/**\\n * Auto-generated by Universal IDL Compiler\\n * Source: ${idlName}.idl\\n */\\n\\n`;
+        code += `import { CDRReader } from '../utils/CDRReader';\\n\\n`;
+
+        data.enums.forEach(e => {
+            code += `export enum ${e.name} {\\n`;
+            e.values.forEach((v, i) => code += `  ${v} = ${i},\\n`);
+            code += `}\\n\\n`;
+        });
+
+        data.structs.forEach(s => {
+            code += `export interface ${s.name} {\\n`;
+            s.fields.forEach(f => {
+                let tsType = TYPE_MAP[f.type]?.ts || f.type;
+                if (f.isSequence) tsType += '[]';
+                code += `  ${f.name}: ${tsType};\\n`;
+            });
+            code += `}\\n\\n`;
+        });
+
+        data.structs.forEach(s => {
+            code += `export class ${s.name}Codec {\\n`;
+            code += `  static decode(reader: CDRReader): ${s.name} {\\n`;
+            code += `    return {\\n`;
+            s.fields.forEach(f => {
+                if (f.isSequence) {
+                    const isPrimitive = !!TYPE_MAP[f.type];
+                    const readerCall = isPrimitive ? `() => reader.${TYPE_MAP[f.type].read}` : `() => ${f.type}Codec.decode(reader)`;
+                    code += `      ${f.name}: reader.readSequence(${readerCall}),\\n`;
+                } else if (this.enums[f.type]) {
+                    code += `      ${f.name}: reader.readInt32() as ${f.type},\\n`;
+                } else if (TYPE_MAP[f.type]) {
+                    code += `      ${f.name}: ${TYPE_MAP[f.type].read},\\n`;
+                } else {
+                    code += `      ${s.name}: ${f.type}Codec.decode(reader),\\n`;
+                }
+            });
+            code += `    };\\n`;
+            code += `  }\\n`;
+            code += `}\\n\\n`;
+        });
+        return code;
+    }
+}
+
+const args = process.argv.slice(2);
+const compiler = new IDLCompiler();
+const rawSource = fs.readFileSync(args[0], 'utf8');
+const parsedData = compiler.parse(rawSource);
+const generatedCode = compiler.generate(path.basename(args[0], '.idl'), parsedData);
+fs.writeFileSync(args[1], generatedCode);
+console.log(`✅ IDL Compiled: ${path.basename(args[0])}`);</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>&copy; 2026 Dokumentasi Project Radar WebDDS. LEN Inovasi Teknologi ~ chndr.</p>
+        </footer>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentasi Gateway | Dokumentasi Project</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo">👀</span>
+            <span class="title">Dokumentasi Project</span>
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-group">
+                <a href="dasar-teori.html" class="nav-group-title">1. Dasar Teori</a>
+                <a href="dasar-teori.html#opendds-entities" class="nav-link">OpenDDS: 7 Entitas</a>
+                <a href="dasar-teori.html#webdds-intro" class="nav-link">WebDDS: Analogi & OMG</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="list-gateway.html" class="nav-group-title">2. List Gateway</a>
+                <a href="list-gateway.html#nanomq" class="nav-link">NanoMQ DDSProxy</a>
+                <a href="list-gateway.html#eprosima" class="nav-link">Eprosima</a>
+                <a href="list-gateway.html#rti-web" class="nav-link">RTI Web Integration</a>
+                <a href="list-gateway.html#custom-bridge" class="nav-link">Custom Bridge (Node.js)</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="qos-hirarki.html" class="nav-group-title">3. List QoS & Hirarki</a>
+                <a href="qos-hirarki.html#qos-matching" class="nav-link">QoS Matching</a>
+                <a href="qos-hirarki.html#qos-project" class="nav-link">QoS dalam Proyek</a>
+                <a href="qos-hirarki.html#qos-list" class="nav-link">Daftar Kebijakan QoS</a>
+                <a href="qos-hirarki.html#qos-hierarchy" class="nav-link">Hirarki QoS</a>
+                <a href="qos-hirarki.html#qos-tables" class="nav-link">Tabel Referensi QoS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-fe.html" class="nav-group-title">4. Dokumentasi FE</a>
+                <a href="dokumentasi-fe.html#fe-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-fe.html#fe-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-fe.html#fe-openlayers" class="nav-link">OpenLayers Map</a>
+                <a href="dokumentasi-fe.html#fe-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-fe.html#fe-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-fe.html#fe-idl" class="nav-link">Kompilasi IDL ke Types</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-be.html" class="nav-group-title">5. Dokumentasi BE</a>
+                <a href="dokumentasi-be.html#be-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-be.html#be-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-be.html#be-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-be.html#be-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-be.html#be-idl" class="nav-link">Kompilasi IDL BE</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="dokumentasi-gateway.html" class="nav-group-title">6. Dokumentasi Gateway</a>
+                <a href="dokumentasi-gateway.html#gt-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-gateway.html#gt-init" class="nav-link">Inisialisasi Server</a>
+                <a href="dokumentasi-gateway.html#gt-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-gateway.html#gt-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-gateway.html#gt-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-gateway.html#gt-idl" class="nav-link">Kompilasi IDL Gateway</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="perbandingan-pengujian.html" class="nav-group-title">7. Perbandingan Pengujian</a>
+                <a href="perbandingan-pengujian.html#test-results" class="nav-link">gRPC vs WebDDS</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="kesimpulan.html" class="nav-group-title">8. Kesimpulan</a>
+                <a href="kesimpulan.html#conclusion" class="nav-link">Implementasi Proyek</a>
+            </div>
+
+            <div class="nav-group">
+                <a href="referensi.html" class="nav-group-title">9. Referensi</a>
+                <a href="referensi.html#references" class="nav-link">Bacaan Lebih Lanjut</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <header class="main-header">
+            <h1>6. Dokumentasi Gateway</h1>
+            <p class="subtitle">Panduan teknis membangun jembatan biner antara OpenDDS dan WebSocket.</p>
+        </header>
+
+        <section id="gt-setup">
+            <h2>Setup & Instalasi</h2>
+            <p>Gateway dirancang menggunakan Node.js dengan native binding <code>node-opendds</code> untuk performa bridging maksimal.</p>
+            <pre><code># 1. Masuk ke direktori gateway
+cd gateway-ddsweb
+
+# 2. Install dependensi Node.js
+npm install
+
+# 3. Build library biner dari IDL (Shared Object)
+# Pastikan ACE/TAO environment sudah aktif
+npm run build:idl
+
+# 4. Menjalankan Gateway
+# Merujuk ke file konfigurasi RTPS yang ada di folder backend
+node server.js -DCPSConfigFile ../be-stream-odds-cpp/rtps.ini</code></pre>
+        </section>
+
+        <section id="gt-init">
+            <h2>Inisialisasi Server & OpenDDS</h2>
+            <p>Gateway ini menggabungkan protokol HTTP (untuk REST API) dan WebSocket dalam satu server yang terintegrasi dengan OpenDDS.</p>
+
+            <div class="grid-box">
+                <div class="box">
+                    <h4>1. Dependensi Utama</h4>
+                    <p>Menggunakan pustaka standar industri untuk menjamin keandalan:</p>
+                    <ul class="feature-list">
+                        <li><code>opendds</code>: Native binding untuk akses ke jaringan DDS.</li>
+                        <li><code>express</code>: Framework web untuk menangani REST API.</li>
+                        <li><code>ws</code>: Implementasi WebSocket untuk streaming data real-time.</li>
+                        <li><code>http</code>: Modul inti Node.js untuk menyatukan Express dan WS pada satu port.</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>2. Integrasi Server (Hybrid)</h4>
+                    <p>Kedua protokol berjalan berdampingan pada port <code>8080</code>:</p>
+                    <pre><code>const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });</code></pre>
+                </div>
+            </div>
+
+            <div class="info-card" style="margin-top: 2rem;">
+                <h3>Fungsi: initializeDDS()</h3>
+                <p>Fungsi asinkron ini bertanggung jawab menyiapkan lingkungan DDS sebelum server mulai menerima koneksi:</p>
+                
+                <div class="code-ref-item" style="margin-top: 1rem;">
+                    <span class="ref-label">Core Logic</span>
+                    <span class="ref-location">Line 138 - 151</span>
+                    <ul class="feature-list">
+                        <li><strong>opendds.load():</strong> Memasukkan library biner IDL ke dalam memori aplikasi agar Gateway mengenal struktur paket data DDS.</li>
+                        <li><strong>getParticipant(0):</strong> Membuat entitas <em>Domain Participant</em> pada Domain 0 untuk bergabung ke jaringan radar.</li>
+                        <li><strong>Warm-up Writer:</strong> Menyiapkan <code>CommandTopic</code> lebih awal agar tidak terjadi jeda (delay) saat perintah pertama dikirim dari dashboard.</li>
+                    </ul>
+                    <pre><code>async function initializeDDS() {
+    opendds.load(path.join(IDL_BIN_DIR, 'RadarTrack', 'libRadarTrack'));
+    const p0 = getParticipant(0); // Mendaftar ke DDS Domain 0
+    getWriter(p0, 'CommandTopic', 'RadarCommand::Command'); // Warm-up
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="gt-monorepo">
+            <h2>Monorepo & Struktur File Lengkap</h2>
+            <p>Struktur folder dan file pada project <code>gateway-ddsweb</code> yang berfungsi sebagai jembatan (bridge) antara protokol DDS dan Web:</p>
+            
+            <pre><code>gateway-ddsweb/
+├── server.js                   # Entry point: Inisialisasi Express, WebSocket, & OpenDDS
+├── idl/                        # Kontrak data dan build script library biner
+│   ├── RadarTrack/             # Modul IDL Track Radar
+│   ├── RadarCommand/           # Modul IDL Command
+│   └── gateway_idl.mwc         # Workspace master untuk kompilasi massal
+├── scripts/                    # Utilitas otomasi
+│   └── idl-compiler.js         # Script build IDL-to-Binary (.so)
+├── IDL_GUIDE.md                # Panduan teknis pengelolaan IDL
+├── rtps.ini                    # Konfigurasi Discovery & Transport DDS
+├── package.json                # Daftar dependensi dan script (npm run build:idl)
+├── Dockerfile                  # Konfigurasi containerization
+└── .env                        # Variabel lingkungan
+</code></pre>
+
+            <div class="info-card" style="margin-top: 2rem;">
+                <h3>Penjelasan File Kunci</h3>
+                <table class="simple-table">
+                    <tr>
+                        <th style="width: 30%;">File / Folder</th>
+                        <th>Fungsi Strategis</th>
+                    </tr>
+                    <tr>
+                        <td><code>server.js</code></td>
+                        <td>Komponen sentral yang menerjemahkan data biner DDS ke format JSON untuk dikirim via WebSocket, dan sebaliknya.</td>
+                    </tr>
+                    <tr>
+                        <td><code>lib*.so</code></td>
+                        <td>Library Shared Object hasil kompilasi IDL. Digunakan oleh Node.js untuk melakukan serialisasi data sesuai standar OpenDDS.</td>
+                    </tr>
+                    <tr>
+                        <td><code>rtps.ini</code></td>
+                        <td>Memungkinkan gateway untuk bergabung ke dalam Domain DDS yang sama dengan Backend secara otomatis tanpa perantara broker.</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <section id="gt-pubsub">
+            <h2>Bagaimana mengatur Pub, Sub, Topic di Gateway</h2>
+            <p>Gateway bertindak sebagai jembatan yang secara dinamis memetakan permintaan HTTP/WebSocket ke entitas DDS (Topic, DataWriter, DataReader) menggunakan <em>Native Binding</em>.</p>
+
+            <div class="grid-box">
+                <div class="box">
+                    <h4>1. Pemetaan Topic Dinamis</h4>
+                    <p>Gateway mengikuti standar <strong>OMG DDS-WEB</strong> di mana domain dan topik ditentukan melalui URL:</p>
+                    <pre><code>// Format URL di Gateway
+/domain/:domainId/topic/:topicName/data</code></pre>
+                </div>
+                <div class="box">
+                    <h4>2. Registrasi Tipe Data</h4>
+                    <p>Agar Gateway mengenali struktur data biner, library IDL harus dimuat saat startup:</p>
+                    <pre><code>// Line 140 - 141 di server.js
+opendds.load(path.join(IDL_BIN_DIR, 'RadarTrack', 'libRadarTrack'));</code></pre>
+                </div>
+            </div>
+
+            <div class="info-card" style="margin-top: 2rem;">
+                <h3>Alur Operasi Pub/Sub di Gateway</h3>
+                <div class="code-reference-grid">
+                    <div class="code-ref-item">
+                        <span class="ref-label">Publishing (REST POST)</span>
+                        <span class="ref-location">Line 57 - 75</span>
+                        <p>Menerima payload JSON dari aplikasi web dan menerjemahkannya ke biner DDS via <code>DataWriter</code>.</p>
+                        <pre><code>// Mengambil writer yang sesuai topik
+const writer = getWriter(participant, topicName, typeName);
+// Mengirim data ke jaringan DDS
+writer.write(req.body);</code></pre>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">Subscription (WebSocket)</span>
+                        <span class="ref-location">Line 108 - 119</span>
+                        <p>Mendengarkan data dari DDS dan langsung meneruskannya ke klien web yang terhubung.</p>
+                        <pre><code>const reader = participant.subscribe(topicName, typeName, subQos, (r, info, sample) => {
+    if (info.valid_data && ws.readyState === ws.OPEN) {
+        ws.send(JSON.stringify(sample)); // Konversi otomatis ke JSON
+    }
+});</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card alert" style="margin-top: 2rem;">
+                <h3>Manajemen Lifecycle & Cleanup</h3>
+                <p>Berbeda dengan aplikasi C++, di Node.js kita harus memastikan <code>unsubscribe</code> dipanggil saat WebSocket ditutup untuk menghindari kebocoran memori:</p>
+                <pre><code>// Line 125 di server.js
+ws.on('close', () => {
+    participant.unsubscribe(topicName, reader);
+});</code></pre>
+            </div>
+        </section>
+
+        <section id="gt-qos">
+            <h2>Bagaimana mengatur QoS di Gateway</h2>
+            <p>Berbeda dengan Frontend, Gateway memiliki kendali penuh atas kebijakan <strong>DDS QoS</strong> karena berinteraksi langsung dengan native binding OpenDDS.</p>
+
+            <div class="info-card">
+                <h3>Implementasi Nyata di Project</h3>
+                <p>Pengaturan QoS dikonfigurasi secara spesifik per-topik di dalam file: <br>
+                <code class="file-path">gateway-ddsweb/server.js</code></p>
+                
+                <div class="code-reference-grid">
+                    <div class="code-ref-item">
+                        <span class="ref-label">DataWriter QoS (Command)</span>
+                        <span class="ref-location">Line 43 - 50</span>
+                        <p>Mengatur agar perintah kontrol bersifat <strong>Reliable</strong> dan <strong>Transient Local</strong>.</p>
+                        <pre><code>const qos = {
+    DataWriterQos: {
+        reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
+        durability: { kind: 'TRANSIENT_LOCAL_DURABILITY_QOS' }
+    }
+};</code></pre>
+                    </div>
+
+                    <div class="code-ref-item">
+                        <span class="ref-label">DataReader QoS (Radar Tracks)</span>
+                        <span class="ref-location">Line 93 - 105</span>
+                        <p>Mengatur agar streaming data radar menggunakan <strong>Best Effort</strong> untuk latensi terendah.</p>
+                        <pre><code>const subQos = {
+    DataReaderQos: {
+        reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' },
+        history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 1 }
+    }
+};</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <p style="margin-top: 1.5rem;">
+                <strong>Note:</strong> Konfigurasi <code>TRANSIENT_LOCAL</code> pada Gateway memastikan bahwa jika simulator C++ dinyalakan belakangan, ia akan langsung menerima status "START" terakhir yang dikirim dari Dashboard.
+            </p>
+        </section>
+
+        <section id="gt-idl">
+            <h2>Bagaimana mengatur dan mengkompile IDL di Gateway</h2>
+            <p>Berbeda dengan Frontend yang men-generate TypeScript, Gateway mengkompilasi IDL menjadi <strong>Shared Object (.so)</strong> biner agar dapat dimuat oleh mesin native OpenDDS.</p>
+
+            <div class="info-card alert" style="margin-top: 1rem;">
+                <h3>⚠️ Mekanisme Native Binding</h3>
+                <p>Gateway menggunakan <code>node-opendds</code> yang memerlukan library biner (.so) untuk melakukan introspeksi data secara dinamis.</p>
+                <ul class="feature-list">
+                    <li><strong>Proses Dua Tahap:</strong> Pertama, IDL diproses oleh <code>opendds_idl</code> (via MPC). Kedua, hasilnya dikompilasi menggunakan <code>make</code> (G++).</li>
+                    <li><strong>Otomatisasi Wrapper:</strong> Karena perintah aslinya cukup panjang, kami menyediakan script <code>scripts/idl-compiler.js</code> yang mengotomatisasi seluruh alur build tersebut.</li>
+                </ul>
+            </div>
+
+            <div class="grid-box">
+                <div class="box">
+                    <h4>1. Struktur & Master Workspace (MWC)</h4>
+                    <p>MWC digunakan untuk menggabungkan beberapa proyek IDL agar dapat dikompilasi secara massal dalam satu perintah.</p>
+                    <pre><code>// gateway_idl.mwc
+workspace {
+  RadarTrack/RadarTrack.mpc
+  RadarCommand/RadarCommand.mpc
+}</code></pre>
+                </div>
+                <div class="box">
+                    <h4>2. Konfigurasi Proyek (MPC)</h4>
+                    <p>Setiap folder IDL memiliki file <code>.mpc</code> yang mendefinisikan bagaimana library biner harus dibangun.</p>
+                    <pre><code>// RadarTrack.mpc
+project: dcpslib {
+  TypeSupport_Files {
+    RadarTrack.idl
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3>Mengenal MPC (MakeProjectCreator)</h3>
+                <p>OpenDDS menggunakan MPC untuk mengotomatisasi pembuatan Makefile yang kompleks. Berikut adalah komponen kuncinya:</p>
+                <ul class="feature-list">
+                    <li><strong>project: dcpslib</strong>: Menggunakan template <code>dcpslib</code> yang sudah menyertakan dependensi standar OpenDDS untuk library biner.</li>
+                    <li><strong>TypeSupport_Files</strong>: Bagian paling krusial. Memberi tahu sistem bahwa file IDL tersebut harus diproses oleh <code>opendds_idl</code> untuk menghasilkan kode sumber C++ (TypeSupport) sebelum dikompilasi menjadi library <code>.so</code>.</li>
+                    <li><strong>Custom Output</strong>: Secara default, MPC akan menghasilkan library dengan awalan <code>lib</code> (misal: <code>libRadarTrack.so</code>), yang kemudian akan dimuat oleh Node.js via <code>opendds.load()</code>.</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>Workflow Penambahan IDL Baru</h3>
+                <p>Jika Anda ingin menambahkan modul data baru (misal: <code>Weather</code>), ikuti alur kerja berikut agar terintegrasi dengan sistem build otomatis:</p>
+                <div class="workflow-steps">
+                    <ol class="feature-list">
+                        <li><strong>Buat Folder Modul:</strong> Buat folder baru di dalam <code>gateway-ddsweb/idl/</code> (Contoh: <code>idl/Weather/</code>).</li>
+                        <li><strong>Siapkan File IDL:</strong> Letakkan file <code>Weather.idl</code> di dalam folder tersebut.</li>
+                        <li><strong>Buat Konfigurasi MPC:</strong> Buat file <code>Weather.mpc</code> di folder yang sama (copy dari modul lain dan sesuaikan namanya).</li>
+                        <li><strong>Update Master Workspace (MWC):</strong> Daftarkan path MPC baru Anda ke dalam file <code>idl/gateway_idl.mwc</code> agar sistem build mengenalnya.</li>
+                        <li><strong>Eksekusi Build:</strong> Jalankan script compiler untuk menghasilkan library <code>.so</code>.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="info-card alert" style="margin-top: 2rem;">
+                <h4>Eksekusi Build Otomatis</h4>
+                <p>Setelah langkah di atas selesai, jalankan perintah ini di root folder <code>gateway-ddsweb</code>:</p>
+                <pre><code>node scripts/idl-compiler.js</code></pre>
+            </div>
+
+            <div class="info-card">
+                <h3>Full Source Code: scripts/idl-compiler.js (Gateway)</h3>
+                <p>Script ini bertanggung jawab memicu generator MPC dan compiler Make secara berurutan:</p>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <pre style="margin: 0; font-size: 0.8rem;"><code>/**
+ * GATEWAY IDL Compiler & Builder
+ * -----------------------------------------
+ * Dirancang untuk mengotomatisasi kompilasi IDL OpenDDS menjadi
+ * shared library (.so) yang dapat dimuat oleh Node.js.
+ */
+
+const { execSync } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+
+const IDL_DIR = path.resolve(__dirname, '../idl');
+const MWC_FILE = 'gateway_idl.mwc';
+
+console.log('-----------------------------------------');
+console.log(' [SYSTEM] Gateway IDL Builder ...');
+console.log('-----------------------------------------');
+
+try {
+    // Cek Environment
+    if (!process.env.DDS_ROOT || !process.env.ACE_ROOT) {
+        throw new Error('DDS_ROOT atau ACE_ROOT tidak ditemukan.');
+    }
+
+    process.chdir(IDL_DIR);
+
+    // 1. Generate Makefiles menggunakan MPC
+    console.log(' [MPC] Generating GNUACE Makefiles...');
+    execSync('$ACE_ROOT/bin/mwc.pl -type gnuace ' + MWC_FILE, { stdio: 'inherit' });
+
+    // 2. Compile menggunakan Make
+    console.log(' [MAKE] Compiling Shared Libraries...');
+    execSync('make', { stdio: 'inherit' });
+
+    console.log('-----------------------------------------');
+    console.log(' [SUCCESS] All IDLs compiled successfully.');
+    console.log('-----------------------------------------');
+
+} catch (error) {
+    console.error(' [ERROR] Compilation failed:');
+    console.error(error.message);
+    process.exit(1);
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>&copy; 2026 Dokumentasi Project Radar WebDDS. LEN Inovasi Teknologi ~ chndr.</p>
+        </footer>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kesimpulan | Dokumentasi Project</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo">👀</span>
+            <span class="title">Dokumentasi Project</span>
+        </div>
+
+        <nav class="nav-menu">
+            <div class="nav-group">
+                <p class="nav-group-title">1. Dasar Teori</p>
+                <a href="dasar-teori.html#opendds-entities" class="nav-link">OpenDDS: 7 Entitas</a>
+                <a href="dasar-teori.html#webdds-intro" class="nav-link">WebDDS: Analogi & OMG</a>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-group-title">2. List Gateway</p>
+                <a href="list-gateway.html#nanomq" class="nav-link">NanoMQ DDSProxy</a>
+                <a href="list-gateway.html#eprosima" class="nav-link">Eprosima</a>
+                <a href="list-gateway.html#rti-web" class="nav-link">RTI Web Integration</a>
+                <a href="list-gateway.html#custom-bridge" class="nav-link">Custom Bridge (Node.js)</a>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-group-title">3. List QoS & Hirarki</p>
+                <a href="qos-hirarki.html#qos-list" class="nav-link">Daftar & Hirarki QoS</a>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-group-title">4. Dokumentasi FE</p>
+                <a href="dokumentasi-fe.html#fe-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-fe.html#fe-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-fe.html#fe-openlayers" class="nav-link">OpenLayers Map</a>
+                <a href="dokumentasi-fe.html#fe-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-fe.html#fe-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-fe.html#fe-idl" class="nav-link">Kompilasi IDL ke Types</a>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-group-title">5. Dokumentasi BE</p>
+                <a href="dokumentasi-be.html#be-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-be.html#be-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-be.html#be-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-be.html#be-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-be.html#be-idl" class="nav-link">Kompilasi IDL BE</a>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-group-title">6. Dokumentasi Gateway</p>
+                <a href="dokumentasi-gateway.html#gt-setup" class="nav-link">Setup & Instalasi</a>
+                <a href="dokumentasi-gateway.html#gt-monorepo" class="nav-link">Monorepo & File</a>
+                <a href="dokumentasi-gateway.html#gt-pubsub" class="nav-link">Pub, Sub, & Topic</a>
+                <a href="dokumentasi-gateway.html#gt-qos" class="nav-link">Konfigurasi QoS</a>
+                <a href="dokumentasi-gateway.html#gt-idl" class="nav-link">Kompilasi IDL Gateway</a>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-group-title">7. Perbandingan Pengujian</p>
+                <a href="perbandingan-pengujian.html#test-results" class="nav-link">gRPC vs WebDDS</a>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-group-title">8. Kesimpulan</p>
+                <a href="kesimpulan.html#conclusion" class="nav-link active">Implementasi Proyek</a>
+                <a href="kesimpulan.html#ensiklopedi-error" class="nav-link active">Ensiklopedi Error</a>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-group-title">9. Referensi</p>
+                <a href="referensi.html#references" class="nav-link">Bacaan Lebih Lanjut</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <header class="main-header">
+            <h1>8. Kesimpulan & Panduan Error</h1>
+            <p class="subtitle">Ringkasan hasil implementasi proyek Radar WebDDS beserta ensiklopedia solusi untuk kendala teknis yang umum terjadi.</p>
+        </header>
+
+        <section id="conclusion">
+            <h2>Refleksi Implementasi Proyek</h2>
+            <p>Proyek ini berhasil membuktikan bahwa arsitektur <i>mission-critical</i> dari OpenDDS—yang pada dasarnya dirancang untuk memenuhi standar industri dengan tuntutan latensi ultra-rendah—dapat diintegrasikan secara mulus ke dalam ekosistem antarmuka Web modern.</p>
+            <p style="margin-top: 1rem;">Alih-alih menggunakan <i>polling</i> REST API tradisional atau arsitektur klien-server standar, penerapan <strong>Standar OMG DDS-WEB</strong> melalui <i>custom bridge</i> Node.js memungkinkan sistem untuk menerjemahkan lalu lintas UDP berkecepatan tinggi menjadi aliran WebSocket yang ramah-<i>browser</i>, tanpa harus mengorbankan stabilitas maupun reliabilitas tingkat militernya.</p>
+            
+            <p><strong>WebDDS</strong> memang dirancang dengan pendekatan <i>data-centric publish-subscribe</i> yang memungkinkan data mengalir secara terus-menerus ke banyak subscriber tanpa perlu permintaan berulang, sehingga sangat efisien untuk skenario real-time dan distribusi data berskala besar. Dengan dukungan <strong>Quality of Service (QoS)</strong>, WebDDS mampu menjamin keandalan, mengatur prioritas data, serta mengoptimalkan performa dalam kondisi jaringan yang kompleks. 
+
+Namun, bukan berarti WebDDS selalu lebih baik dibandingkan pendekatan lain seperti gRPC-Web. Dalam kasus komunikasi sederhana berbasis request-response atau streaming yang tidak terlalu kompleks, <strong>gRPC-Web</strong> justru bisa lebih ringan, terstruktur, dan mudah diimplementasikan. 
+
+Oleh karena itu, keunggulan streaming pada WebDDS lebih tepat dipahami sebagai keunggulan kontekstual, terutama pada sistem yang membutuhkan distribusi data real-time, many-to-many, dan skalabilitas tinggi, jadi pemilihan WebDDS bukan sebagai solusi yang selalu lebih unggul untuk semua kebutuhan.</p>
+            <div class="info-card" style="margin-top: 2rem;">
+                <p><strong>Pencapaian Utama Arsitektur Ini:</strong></p>
+                <ul class="feature-list" style="margin-top: 0.5rem;">
+                    <li><strong>Skalabilitas Visual:</strong> Sanggup me-<i>render</i> puluhan ribu *stream* pembaruan titik pesawat di Mapbox secara *smooth*.</li>
+                    <li><strong>Manajemen QoS yang Presisi:</strong> Pemisahan secara mutlak antara pengiriman instruksi yang <i>Reliable</i> (pantang hilang) dan aliran data radar yang <i>Best Effort</i> (berfokus pada *throughput* dan latensi).</li>
+                    <li><strong>Efisiensi C++ Engine:</strong> *Backend* ditulis dengan optimisasi tinggi lewat penerapan *pre-calculation* trajektori sinus/cosinus untuk meminimalkan beban CPU pada setiap putaran simulasi.</li>
+                    <li><strong>Standarisasi IDL:</strong> Menerapkan <i>Single Source of Truth</i>, di mana struktur data radar dan *command* dikunci di satu tempat untuk dijamin kesesuaiannya antara C++, Gateway, dan JavaScript.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="ensiklopedi-error" style="margin-top: 4rem;">
+            <h2>Ensiklopedi Error & Solusi</h2>
+            <p style="margin-bottom: 1.5rem;">Daftar rekam jejak *error* yang sering muncul selama pengembangan integrasi C++ dan Node.js beserta panduan memecahkannya.</p>
+            
+            <div class="info-card alert" style="border-left-color: #ef4444; background-color: #fef2f2; margin-bottom: 1.5rem;">
+                <h3 style="color: #b91c1c;">Error: "Segmentation Fault (core dumped)"</h3>
+                <p style="margin-top: 0.5rem; color: #7f1d1d;"><strong>Penyebab:</strong> Sangat umum di C++. Biasanya *Library* biner (<code>.so</code>) yang ada tertinggal/tidak cocok dengan struktur IDL terbaru, atau Anda lupa memanggil <code>get_default_qos()</code> sebelum merubah parameter sehingga sistem membaca *garbage memory*.</p>
+                <p style="margin-top: 0.5rem; color: #7f1d1d;"><strong>Solusi:</strong> Hapus *folder* <code>build</code> pada direktori C++, jalankan <code>make clean</code>, lalu kompilasi bersih ulang dari awal hingga sukses.</p>
+            </div>
+
+            <div class="info-card alert" style="border-left-color: #ef4444; background-color: #fef2f2; margin-bottom: 1.5rem;">
+                <h3 style="color: #b91c1c;">Error: "DDS_ROOT not set"</h3>
+                <p style="margin-top: 0.5rem; color: #7f1d1d;"><strong>Penyebab:</strong> Terminal Anda kehilangan konteks *environment variables* OpenDDS saat akan mengeksekusi aplikasi.</p>
+                <p style="margin-top: 0.5rem; color: #7f1d1d;"><strong>Solusi:</strong> Anda wajib mengeksekusi skrip *source* (*env loader*) sebelum menjalankan aplikasi di tab terminal baru. Contoh: <code>source /path/to/OpenDDS/setenv.sh</code>.</p>
+            </div>
+
+            <div class="info-card alert" style="border-left-color: #ef4444; background-color: #fef2f2;">
+                <h3 style="color: #b91c1c;">Error: "Address already in use"</h3>
+                <p style="margin-top: 0.5rem; color: #7f1d1d;"><strong>Penyebab:</strong> Tabrakan Port. Terjadi saat instance program yang Anda jalankan sebelumnya <i>crash</i> dan menjadi proses yatim (<i>zombie process</i>) yang masih menahan port (seperti port 8080 WebSocket atau port UDP).</p>
+                <p style="margin-top: 0.5rem; color: #7f1d1d;"><strong>Solusi:</strong> Lacak proses pengganggu dengan <code>lsof -i :8080</code> (atau nomor port yang digunakan), dapatkan angka <strong>PID</strong>, lalu matikan paksa dengan instruksi <code>kill -9 &lt;PID&gt;</code>.</p>
+            </div>
+        </section>
+
+        <footer class="footer" style="margin-top: 4rem;">
+            <p>&copy; 2026 Dokumentasi Project Radar WebDDS. LEN Inovasi Teknologi ~ chndr.</p>
+        </footer>
+    </main>
+</body>
+
+</html>
