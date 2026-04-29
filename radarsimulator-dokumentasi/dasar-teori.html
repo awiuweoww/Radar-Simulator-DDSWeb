@@ -202,41 +202,59 @@
 
         <section id="data-flow" style="margin-top: 4rem;">
             <h2>Bagaimana Proses Data Mengalir?</h2>
-            
+
             <div style="display: flex; gap: 3rem; align-items: flex-start; margin-top: 2rem; flex-wrap: wrap;">
                 <div style="flex: 2; min-width: 300px;">
                     <div style="margin-bottom: 1.5rem;">
-                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">1. Fase Sumber / Inisiasi (Publisher)</h3>
-                        <p style="margin-top: 0.5rem;">Ini adalah proses di mana informasi pertama kali dibuat dan disiapkan untuk dikirim. Dalam proyek ini, sumbernya bisa berupa <strong>C++ Backend</strong> yang melakukan kalkulasi pergerakan target radar, atau <strong>React Frontend</strong> ketika operator menekan tombol instruksi simulasi (Start/Stop).</p>
+                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">1. Fase Sumber / Inisiasi (Publisher)
+                        </h3>
+                        <p style="margin-top: 0.5rem;">Ini adalah proses di mana informasi pertama kali dibuat dan
+                            disiapkan untuk dikirim. Dalam proyek ini, sumbernya bisa berupa <strong>C++
+                                Backend</strong> yang melakukan kalkulasi pergerakan target radar, atau <strong>React
+                                Frontend</strong> ketika operator menekan tombol instruksi simulasi (Start/Stop).</p>
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">2. Fase Distribusi / Jembatan Komunikasi (Ruang Data)</h3>
-                        <p style="margin-top: 0.5rem;">Data tidak dikirim satu-ke-satu (<i>point-to-point</i> manual), melainkan "diumumkan" ke sebuah ruang topik bersama. Karena Browser web dan sistem C++ berbicara dengan protokol yang berbeda (WebSocket vs UDP), fase ini secara krusial melibatkan <strong>Gateway Node.js</strong> untuk menjembatani dan menerjemahkan data <i>binary</i> agar bisa melintas mulus antar platform.</p>
+                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">2. Fase Distribusi / Jembatan Komunikasi
+                            (Ruang Data)</h3>
+                        <p style="margin-top: 0.5rem;">Data tidak dikirim satu-ke-satu (<i>point-to-point</i> manual),
+                            melainkan "diumumkan" ke sebuah ruang topik bersama. Karena Browser web dan sistem C++
+                            berbicara dengan protokol yang berbeda (WebSocket vs UDP), fase ini secara krusial
+                            melibatkan <strong>Gateway Node.js</strong> untuk menjembatani dan menerjemahkan data
+                            <i>binary</i> agar bisa melintas mulus antar platform.</p>
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">3. Fase Keandalan (Quality of Service / QoS)</h3>
-                        <p style="margin-top: 0.5rem;">Ini adalah "otak pengawas" jaringan. Di proyek ini, QoS bertindak memberikan aturan tegas: instruksi kendali diberi label <i>Reliable</i> (pantang hilang walau jaringan buruk), sementara aliran puluhan ribu radar diberi label <i>Best Effort</i> (boleh hilang sebagian demi mengejar latensi). Ini membuat sistem tangguh tanpa *bottleneck*.</p>
+                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">3. Fase Keandalan (Quality of Service /
+                            QoS)</h3>
+                        <p style="margin-top: 0.5rem;">Ini adalah "otak pengawas" jaringan. Di proyek ini, QoS bertindak
+                            memberikan aturan tegas: instruksi kendali diberi label <i>Reliable</i> (pantang hilang
+                            walau jaringan buruk), sementara aliran puluhan ribu radar diberi label <i>Best Effort</i>
+                            (boleh hilang sebagian demi mengejar latensi). Ini membuat sistem tangguh tanpa
+                            *bottleneck*.</p>
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">4. Fase Tujuan / Eksekusi (Subscriber)</h3>
-                        <p style="margin-top: 0.5rem;">Ini adalah titik akhir di mana data akhirnya ditangkap dan langsung diwujudkan (<i>rendered</i>). Pada Frontend, wujudnya adalah pembaruan titik pesawat di kanvas <strong>Mapbox</strong> secara instan. Pada Backend, wujudnya adalah rekonfigurasi ulang jumlah target objek simulasi.</p>
+                        <h3 style="font-size: 1.1rem; color: var(--text-dark);">4. Fase Tujuan / Eksekusi (Subscriber)
+                        </h3>
+                        <p style="margin-top: 0.5rem;">Ini adalah titik akhir di mana data akhirnya ditangkap dan
+                            langsung diwujudkan (<i>rendered</i>). Pada Frontend, wujudnya adalah pembaruan titik objek
+                            di kanvas <strong>Mapbox</strong> secara instan. Pada Backend, wujudnya adalah rekonfigurasi
+                            ulang jumlah target objek simulasi.</p>
                     </div>
                 </div>
 
                 <div style="flex: 1; min-width: 250px; display: flex; justify-content: center;">
                     <div class="mermaid">
                         graph TD
-                            A((INISIASI)) --> B((DISTRIBUSI))
-                            B --> C((QUALITY))
-                            C --> D((EKSEKUSI))
-                            
-                            style A fill:#dbeafe,stroke:#93c5fd,color:#1e40af,stroke-width:2px
-                            style B fill:#fee2e2,stroke:#fca5a5,color:#991b1b,stroke-width:2px
-                            style C fill:#dcfce7,stroke:#86efac,color:#166534,stroke-width:2px
-                            style D fill:#fef9c3,stroke:#fde047,color:#854d0e,stroke-width:2px
+                        A((INISIASI)) --> B((DISTRIBUSI))
+                        B --> C((QUALITY))
+                        C --> D((EKSEKUSI))
+
+                        style A fill:#dbeafe,stroke:#93c5fd,color:#1e40af,stroke-width:2px
+                        style B fill:#fee2e2,stroke:#fca5a5,color:#991b1b,stroke-width:2px
+                        style C fill:#dcfce7,stroke:#86efac,color:#166534,stroke-width:2px
+                        style D fill:#fef9c3,stroke:#fde047,color:#854d0e,stroke-width:2px
                     </div>
                 </div>
             </div>
@@ -244,48 +262,52 @@
 
         <section id="data-integration" style="margin-top: 4rem;">
             <h2>Visualisasi Alur Integrasi Penuh</h2>
-            <p>Diagram urutan (<i>Sequence Diagram</i>) di bawah ini menjabarkan alur sistem secara <strong>dua arah (*Full-loop*)</strong>: dimulai dari antarmuka Web yang mengirimkan jumlah target pesawat, perintah tersebut merambat hingga ke level C++, lalu C++ membalasnya dengan memancarkan aliran <i>streaming</i> radar puluhan ribu kali per detik kembali ke Web.</p>
-            
-            <div style="display: flex; justify-content: center; margin-top: 2rem; background: #f8fafc; padding: 2rem; border-radius: 1rem; border: 1px solid var(--border); overflow-x: auto;">
+            <p>Diagram urutan (<i>Sequence Diagram</i>) di bawah ini menjabarkan alur sistem secara <strong>dua arah
+                    (*Full-loop*)</strong>: dimulai dari antarmuka Web yang mengirimkan jumlah target objek, perintah
+                tersebut merambat hingga ke level C++, lalu C++ membalasnya dengan memancarkan aliran <i>streaming</i>
+                radar puluhan ribu kali per detik kembali ke Web.</p>
+
+            <div
+                style="display: flex; justify-content: center; margin-top: 2rem; background: #f8fafc; padding: 2rem; border-radius: 1rem; border: 1px solid var(--border); overflow-x: auto;">
                 <div class="mermaid">
                     %%{init: {
-                        'theme': 'base',
-                        'themeVariables': {
-                            'fontSize': '16px',
-                            'fontFamily': 'Poppins',
-                            'primaryColor': '#e0e7ff',
-                            'primaryBorderColor': '#4f46e5',
-                            'primaryTextColor': '#312e81',
-                            'actorBkg': '#dbeafe',
-                            'actorBorder': '#2563eb',
-                            'noteBkgColor': '#fef3c7',
-                            'noteBorderColor': '#d97706',
-                            'noteTextColor': '#92400e',
-                            'lineColor': '#475569'
-                        }
+                    'theme': 'base',
+                    'themeVariables': {
+                    'fontSize': '16px',
+                    'fontFamily': 'Poppins',
+                    'primaryColor': '#e0e7ff',
+                    'primaryBorderColor': '#4f46e5',
+                    'primaryTextColor': '#312e81',
+                    'actorBkg': '#dbeafe',
+                    'actorBorder': '#2563eb',
+                    'noteBkgColor': '#fef3c7',
+                    'noteBorderColor': '#d97706',
+                    'noteTextColor': '#92400e',
+                    'lineColor': '#475569'
+                    }
                     }}%%
                     sequenceDiagram
-                        participant F as Frontend (React)
-                        participant G as Gateway (Node.js)
-                        participant B as Backend (C++)
+                    participant F as Frontend (React)
+                    participant G as Gateway (Node.js)
+                    participant B as Backend (C++)
 
-                        Note over F,G: 1. Inisiasi Simulasi (REST API)
-                        F->>G: POST /topic/CommandTopic {target_count: 1000}
-                        
-                        Note over G,B: DDS RTPS Protocol (RELIABLE QoS)
-                        G->>B: Publish RadarCommand (Biner)
-                        B->>B: Re-kalkulasi & Siapkan 1000 Objek
-                        
-                        Note over B,G: 2. Aliran Data Radar (BEST EFFORT QoS)
-                        B->>G: Publish Streaming RadarTrack
-                        
-                        G->>G: Ekstraksi Data C++ & fastJson Serialization
-                        
-                        Note over G,F: 3. Pengiriman Real-time (Native ws)
-                        G-->>F: ws.send( fastJson String )
-                        
-                        F->>F: JSON.parse(event.data)
-                        F->>F: Render Ulang Titik Objek dalam map
+                    Note over F,G: 1. Inisiasi Simulasi (REST API)
+                    F->>G: POST /topic/CommandTopic {target_count: 1000}
+
+                    Note over G,B: DDS RTPS Protocol (RELIABLE QoS)
+                    G->>B: Publish RadarCommand (Biner)
+                    B->>B: Re-kalkulasi & Siapkan 1000 Objek
+
+                    Note over B,G: 2. Aliran Data Radar (BEST EFFORT QoS)
+                    B->>G: Publish Streaming RadarTrack
+
+                    G->>G: Ekstraksi Data C++ & fastJson Serialization
+
+                    Note over G,F: 3. Pengiriman Real-time (Native ws)
+                    G-->>F: ws.send( fastJson String )
+
+                    F->>F: JSON.parse(event.data)
+                    F->>F: Render Ulang Titik Objek dalam map
                 </div>
             </div>
         </section>

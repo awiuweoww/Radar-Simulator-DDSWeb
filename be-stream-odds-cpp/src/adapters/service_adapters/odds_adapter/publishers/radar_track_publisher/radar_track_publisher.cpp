@@ -21,11 +21,11 @@ RadarTrackODDSPublisher::RadarTrackODDSPublisher(const DDS::DomainParticipant_va
 
     /** setting QoS reliability, lifespan, and liveliness */
     this->get_w_qos_()->reliability.kind = DDS::BEST_EFFORT_RELIABILITY_QOS;
-    this->get_w_qos_()->lifespan.duration.sec = 3; // Data basi setelah 3 detik
+    this->get_w_qos_()->lifespan.duration.sec = 3; 
     this->get_w_qos_()->lifespan.duration.nanosec = 0;
     
     this->get_w_qos_()->liveliness.kind = DDS::AUTOMATIC_LIVELINESS_QOS;
-    this->get_w_qos_()->liveliness.lease_duration.sec = 2; // Timeout 2 detik
+    this->get_w_qos_()->liveliness.lease_duration.sec = 2; 
     this->get_w_qos_()->liveliness.lease_duration.nanosec = 0;
 
     this->set_topic(type_name, "RadarTrackTopic", writer);

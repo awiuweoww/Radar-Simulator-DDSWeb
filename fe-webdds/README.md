@@ -6,7 +6,7 @@ Modul antarmuka pengguna (Frontend) yang berfungsi memvisualisasikan aliran data
 
 *   **Implementasi Standar WebDDS:** Memiliki modul antarmuka khusus (`src/utils/api/webdds.ts`) yang diprogram untuk patuh pada spesifikasi *Resource-based* OMG DDS-WEB.
 *   **Konektivitas WebSocket:** Menggunakan API Native WebSocket (`ws`) tanpa pustaka perantara, untuk menangkap aliran string JSON frekuensi tinggi yang dipancarkan oleh Gateway.
-*   **Aksi REST API:** Menerbitkan *command/perintah* simulasi (seperti Start/Stop dan re-kalkulasi jumlah target pesawat) dengan merutekannya sebagai HTTP POST.
+*   **Aksi REST API:** Menerbitkan *command/perintah* simulasi (seperti Start/Stop dan re-kalkulasi jumlah target objek) dengan merutekannya sebagai HTTP POST.
 *   **Kanvas Rendeng (*Rendering*):** Menguraikan titik Lintang (*Latitude*) dan Bujur (*Longitude*) untuk diterjemahkan secara langsung ke pustaka Peta (*Map Engine*).
 
 ## Kebutuhan Sistem

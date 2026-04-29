@@ -117,43 +117,69 @@
             <p>Berikut adalah strategi penerapan QoS yang digunakan dalam arsitektur Radar Simulator (BE ↔ Gateway ↔
                 FE):</p>
 
-            <div class="grid-box">
-                <div class="box">
-                    <h4>1. Aliran Data Radar (Streaming)</h4>
-                    <p><strong>Topik:</strong> <code>RadarTrackTopic</code></p>
-                    <ul class="feature-list">
-                        <li><strong>Reliability:</strong> <code>BEST_EFFORT</code></li>
-                        <li><strong>History:</strong> <code>KEEP_LAST</code> (Depth 1)</li>
-                        <li><strong>Lifespan:</strong> 3 Detik</li>
-                    </ul>
-                    <p style="font-size: 0.9rem; color: var(--text-muted);">
-                        <strong>Alasan:</strong> Data radar dikirim sangat cepat. Kecepatan (low latency) lebih penting
-                        daripada keutuhan setiap paket. Jika satu paket hilang, data terbaru akan segera
-                        menggantikannya.
-                    </p>
-                </div>
-                <div class="box">
-                    <h4>2. Perintah Kontrol (Commands)</h4>
-                    <p><strong>Topik:</strong> <code>CommandTopic</code></p>
-                    <ul class="feature-list">
-                        <li><strong>Reliability:</strong> <code>RELIABLE</code></li>
-                        <li><strong>Durability:</strong> <code>TRANSIENT_LOCAL</code></li>
-                        <li><strong>History:</strong> <code>KEEP_LAST</code> (Depth 10)</li>
-                    </ul>
-                    <p style="font-size: 0.9rem; color: var(--text-muted);">
-                        <strong>Alasan:</strong> Perintah kontrol (Start/Stop) bersifat kritis dan wajib sampai.
-                        <em>Transient Local</em> memastikan backend yang baru menyala bisa mendapatkan perintah terakhir
-                        yang dikirim.
-                    </p>
-                </div>
-            </div>
+            <table class="simple-table" style="font-size: 0.85rem; margin-top: 1rem; width: 100%;">
+                <thead style="background-color: #047857; color: #ffffff;">
+                    <tr>
+                        <th>Jenis QoS</th>
+                        <th>Topik / Entitas</th>
+                        <th>Lokasi File & Baris Kode</th>
+                        <th>Alasan Teknis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Reliability</strong><br>(BEST_EFFORT)</td>
+                        <td>RadarTrackTopic<br>(C++ Pub & Gateway Sub)</td>
+                        <td><code style="color: #047857; background: #ecfdf5;">radar_track_publisher.cpp</code>
+                            (Baris 23)<br><code style="color: #047857; background: #ecfdf5;">server.js</code>
+                            (Baris 95)</td>
+                        <td>Radar butuh latensi sangat rendah. Data telat lebih baik dibuang daripada membebani
+                            jaringan.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Reliability</strong><br>(RELIABLE)</td>
+                        <td>CommandTopic<br>(Gateway Pub & C++ Sub)</td>
+                        <td><code style="color: #047857; background: #ecfdf5;">server.js</code> (Baris 45,
+                            101)<br><code
+                                style="color: #047857; background: #ecfdf5;">radar_command_subscriber.cpp</code>
+                            (Baris 23)</td>
+                        <td>Perintah sistem (Start/Stop) sifatnya kritis dan harus dijamin 100% sampai.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>History</strong><br>(KEEP_LAST)</td>
+                        <td>Radar & Command</td>
+                        <td><code style="color: #047857; background: #ecfdf5;">server.js</code> (Baris 46, 96,
+                            102)</td>
+                        <td>Mencegah Gateway <i>Out of Memory</i>. Depth=1 untuk Radar, Depth=10 untuk Command.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Durability</strong><br>(TRANSIENT_LOCAL)</td>
+                        <td>CommandTopic<br>(Gateway Pub)</td>
+                        <td><code style="color: #047857; background: #ecfdf5;">server.js</code> (Baris 47)</td>
+                        <td>Menjamin C++ yang baru dinyalakan otomatis menerima perintah "Target Count" terakhir
+                            dari Gateway tanpa perlu di-klik ulang dari UI Web.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lifespan</strong><br>(3 Detik)</td>
+                        <td>RadarTrackTopic<br>(C++ Pub)</td>
+                        <td><code style="color: #047857; background: #ecfdf5;">radar_track_publisher.cpp</code>
+                            (Baris 24)</td>
+                        <td>Kordinat pesawat yang macet > 3 detik akan otomatis dihancurkan oleh mesin DDS agar
+                            peta tidak merender data <i>zombie</i>.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Liveliness</strong><br>(AUTOMATIC 2 Detik)</td>
+                        <td>RadarTrackTopic<br>(C++ Pub)</td>
+                        <td><code style="color: #047857; background: #ecfdf5;">radar_track_publisher.cpp</code>
+                            (Baris 27-28)</td>
+                        <td>Mekanisme "Detak Jantung" (Heartbeat). Jika C++ <i>Crash</i>, Gateway bisa langsung
+                            mengetahuinya dalam batas maksimal 2 detik.</td>
+                    </tr>
+                </tbody>
+            </table>
 
-            <div class="info-card" style="border-left-color: #f59e0b;">
-                <h3>Monitoring Liveliness</h3>
-                <p>Backend menggunakan <strong>Automatic Liveliness</strong> dengan durasi 2 detik. Hal ini memungkinkan
-                    Gateway dan sistem lain untuk mendeteksi secara instan jika mesin simulator radar berhenti berfungsi
-                    atau mengalami <em>crash</em>.</p>
-            </div>
+
         </section>
 
         <section id="qos-list">
@@ -180,10 +206,14 @@
                     <li><strong>Publisher / Subscriber</strong> (Grup)</li>
                     <li><strong>DataWriter / DataReader</strong> (Spesifik/Individual)</li>
                 </ol>
+
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(16, 185, 129, 0.2);">
+                </div>
             </div>
 
             <h3 style="margin-top: 3rem;">Tabel Kompatibilitas QoS (Matching)</h3>
-            <p>Tabel berikut merinci aturan kecocokan antara DataWriter (Offered) dan DataReader (Requested) agar komunikasi dapat terjalin:</p>
+            <p>Tabel berikut merinci aturan kecocokan antara DataWriter (Offered) dan DataReader (Requested) agar
+                komunikasi dapat terjalin:</p>
             <table class="simple-table" style="font-size: 0.85rem;">
                 <thead style="background-color: #020617; color: #ffffff;">
                     <tr>
@@ -198,13 +228,15 @@
                         <td>Reliability</td>
                         <td>Menyetel RELIABLE (Pasti sampai)</td>
                         <td>Bisa meminta RELIABLE atau BEST_EFFORT.</td>
-                        <td>Jika Reader minta RELIABLE tapi Writer hanya sedia BEST_EFFORT, mereka tidak akan terhubung.</td>
+                        <td>Jika Reader minta RELIABLE tapi Writer hanya sedia BEST_EFFORT, mereka tidak akan terhubung.
+                        </td>
                     </tr>
                     <tr>
                         <td>Durability</td>
                         <td>Menyetel TRANSIENT (Simpan data lama)</td>
                         <td>Bisa meminta TRANSIENT atau VOLATILE.</td>
-                        <td>Jika Reader minta data disimpan (TRANSIENT) tapi Writer tidak menyimpannya, mereka tidak akan terhubung.</td>
+                        <td>Jika Reader minta data disimpan (TRANSIENT) tapi Writer tidak menyimpannya, mereka tidak
+                            akan terhubung.</td>
                     </tr>
                     <tr>
                         <td>Deadline</td>
@@ -228,13 +260,15 @@
                         <td>Presentation</td>
                         <td>Menyetel urutan tingkat GROUP</td>
                         <td>Harus meminta tingkat yang sama atau lebih rendah (misal TOPIC atau INSTANCE).</td>
-                        <td>Jika Reader minta aturan lebih ketat dari yang disediakan Writer, data tidak akan mengalir.</td>
+                        <td>Jika Reader minta aturan lebih ketat dari yang disediakan Writer, data tidak akan mengalir.
+                        </td>
                     </tr>
                     <tr>
                         <td>Destination Order</td>
                         <td>Menyetel SOURCE_TIMESTAMP</td>
                         <td>Bisa meminta SOURCE atau RECEPTION.</td>
-                        <td>Jika Reader minta urutan waktu pengirim tapi Writer tidak menyediakannya, mereka tidak cocok.</td>
+                        <td>Jika Reader minta urutan waktu pengirim tapi Writer tidak menyediakannya, mereka tidak
+                            cocok.</td>
                     </tr>
                     <tr>
                         <td>Latency Budget</td>
@@ -259,22 +293,27 @@
                     <tr>
                         <td>Time Based Filter</td>
                         <td>Deadline QoS</td>
-                        <td>Jika Reader membatasi data masuk (misal: cuma mau 1 data per detik), pastikan Deadline-nya tidak lebih kecil dari 1 detik, atau sistem akan terus-terusan menganggap data terlambat.</td>
+                        <td>Jika Reader membatasi data masuk (misal: cuma mau 1 data per detik), pastikan Deadline-nya
+                            tidak lebih kecil dari 1 detik, atau sistem akan terus-terusan menganggap data terlambat.
+                        </td>
                     </tr>
                     <tr>
                         <td>Lifespan</td>
                         <td>Durability</td>
-                        <td>Lifespan (masa kedaluwarsa) tidak akan terasa gunanya jika Durability-nya VOLATILE (langsung hilang). Lifespan sangat berguna pada data yang disimpan (TRANSIENT).</td>
+                        <td>Lifespan (masa kedaluwarsa) tidak akan terasa gunanya jika Durability-nya VOLATILE (langsung
+                            hilang). Lifespan sangat berguna pada data yang disimpan (TRANSIENT).</td>
                     </tr>
                     <tr>
                         <td>Reliability (RELIABLE)</td>
                         <td>Resource Limits</td>
-                        <td>Pada mode RELIABLE, jika memori penuh (Resource Limits tercapai), Writer akan berhenti mengirim data sampai ada ruang kosong. Tanpa limit yang benar, aplikasi bisa freeze.</td>
+                        <td>Pada mode RELIABLE, jika memori penuh (Resource Limits tercapai), Writer akan berhenti
+                            mengirim data sampai ada ruang kosong. Tanpa limit yang benar, aplikasi bisa freeze.</td>
                     </tr>
                     <tr>
                         <td>Entity Factory</td>
                         <td>Operasi enable()</td>
-                        <td>Jika Factory disetel false (manual), entitas Anda tidak akan pernah mengirim/menerima data sampai Anda memanggil perintah .enable() di kode program.</td>
+                        <td>Jika Factory disetel false (manual), entitas Anda tidak akan pernah mengirim/menerima data
+                            sampai Anda memanggil perintah .enable() di kode program.</td>
                     </tr>
                 </tbody>
             </table>
@@ -282,15 +321,27 @@
 
         <section id="qos-gateway" style="margin-top: 4rem;">
             <h2>Keterbatasan & Sintaks QoS pada Gateway (Node.js)</h2>
-            <p>Berbeda dengan C++ yang memiliki akses penuh ke matriks puluhan kebijakan QoS OpenDDS, <i>Gateway</i> Node.js di proyek ini menggunakan <i>bindings</i> C++ (modul <code>opendds</code>) yang <strong>hanya mengekspos sebagian kecil</strong> konfigurasi QoS. Hal ini merupakan keterbatasan bawaan (<i>limitation</i>) dari <i>library</i> Node.js OpenDDS itu sendiri.</p>
-            
-            <div class="info-card alert" style="border-left-color: #f59e0b; background-color: #fffbeb; margin-top: 1.5rem;">
+            <p>Berbeda dengan C++ yang memiliki akses penuh ke matriks puluhan kebijakan QoS OpenDDS, <i>Gateway</i>
+                Node.js di proyek ini menggunakan <i>bindings</i> C++ (modul <code>opendds</code>) yang <strong>hanya
+                    mengekspos sebagian kecil</strong> konfigurasi QoS. Hal ini merupakan keterbatasan bawaan
+                (<i>limitation</i>) dari <i>library</i> Node.js OpenDDS itu sendiri.</p>
+
+            <div class="info-card alert"
+                style="border-left-color: #f59e0b; background-color: #fffbeb; margin-top: 1.5rem;">
                 <h3 style="color: #b45309;">Keterbatasan Akses QoS</h3>
-                <p style="margin-top: 0.5rem; color: #78350f;">Di JavaScript/Node.js, Anda <strong>tidak bisa</strong> menyetel pengaturan lanjutan seperti <code>Deadline</code>, <code>Liveliness</code>, atau ukuran <i>buffer</i> Transport secara dinamis. Anda secara praktis hanya diizinkan untuk mendefinisikan tiga parameter dasar: <strong>Reliability</strong>, <strong>History</strong>, dan <strong>Durability</strong>. Jika Anda memaksa memasukkan properti lain yang tidak didukung ke dalam objek JSON QoS, modul tersebut akan mengabaikannya atau bahkan memicu <i>Crash / Segmentation Fault</i> pada Gateway.</p>
+                <p style="margin-top: 0.5rem; color: #78350f;">Di JavaScript/Node.js, Anda <strong>tidak bisa</strong>
+                    menyetel pengaturan lanjutan seperti <code>Deadline</code>, <code>Liveliness</code>, atau ukuran
+                    <i>buffer</i> Transport secara dinamis. Anda secara praktis hanya diizinkan untuk mendefinisikan
+                    tiga parameter dasar: <strong>Reliability</strong>, <strong>History</strong>, dan
+                    <strong>Durability</strong>. Jika Anda memaksa memasukkan properti lain yang tidak didukung ke dalam
+                    objek JSON QoS, modul tersebut akan mengabaikannya atau bahkan memicu <i>Crash / Segmentation
+                        Fault</i> pada Gateway.
+                </p>
             </div>
 
             <h3 style="margin-top: 2rem;">Tabel Sintaks QoS di Node.js</h3>
-            <p>Berikut adalah konfigurasi QoS utama yang aman dan didukung saat Anda menciptakan DataWriter atau DataReader di *Gateway* Node.js:</p>
+            <p>Berikut adalah konfigurasi QoS utama yang aman dan didukung saat Anda menciptakan DataWriter atau
+                DataReader di *Gateway* Node.js:</p>
             <table class="simple-table" style="font-size: 0.85rem;">
                 <thead style="background-color: #020617; color: #ffffff;">
                     <tr>
@@ -302,22 +353,31 @@
                 <tbody>
                     <tr>
                         <td><strong>Reliability</strong></td>
-                        <td><code>reliability: { kind: 'RELIABLE_RELIABILITY_QOS' }</code><br><br><code>reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' }</code></td>
-                        <td>Menentukan apakah Gateway menuntut jaminan pengiriman data. <strong>Wajib</strong> disesuaikan (*matching*) dengan QoS di C++. (Dalam proyek: Radar memakai BEST_EFFORT, sedangkan Command memakai RELIABLE).</td>
+                        <td><code>reliability: { kind: 'RELIABLE_RELIABILITY_QOS' }</code><br><br><code>reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' }</code>
+                        </td>
+                        <td>Menentukan apakah Gateway menuntut jaminan pengiriman data. <strong>Wajib</strong>
+                            disesuaikan (*matching*) dengan QoS di C++. (Dalam proyek: Radar memakai BEST_EFFORT,
+                            sedangkan Command memakai RELIABLE).</td>
                     </tr>
                     <tr>
                         <td><strong>History</strong></td>
-                        <td><code>history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 }</code><br><br><code>history: { kind: 'KEEP_ALL_HISTORY_QOS' }</code></td>
-                        <td>Menentukan berapa banyak sampel data yang ditahan di *buffer* memori *Gateway*. Sangat disarankan memakai <code>KEEP_LAST</code> dengan <code>depth</code> kecil (misal: 1 atau 10) guna mencegah kebocoran memori (*memory leak*) pada server Node.js.</td>
+                        <td><code>history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 }</code><br><br><code>history: { kind: 'KEEP_ALL_HISTORY_QOS' }</code>
+                        </td>
+                        <td>Menentukan berapa banyak sampel data yang ditahan di *buffer* memori *Gateway*. Sangat
+                            disarankan memakai <code>KEEP_LAST</code> dengan <code>depth</code> kecil (misal: 1 atau 10)
+                            guna mencegah kebocoran memori (*memory leak*) pada server Node.js.</td>
                     </tr>
                     <tr>
                         <td><strong>Durability</strong></td>
-                        <td><code>durability: { kind: 'VOLATILE_DURABILITY_QOS' }</code><br><br><code>durability: { kind: 'TRANSIENT_LOCAL_DURABILITY_QOS' }</code></td>
-                        <td>Menentukan umur riwayat data. Jika diset TRANSIENT_LOCAL, Gateway/C++ bisa menerima pesan "terakhir" yang dikirim meskipun penerima baru saja menyala. (Proyek ini menggunakannya untuk menjamin penyelarasan sinkronisasi *Command*).</td>
+                        <td><code>durability: { kind: 'VOLATILE_DURABILITY_QOS' }</code><br><br><code>durability: { kind: 'TRANSIENT_LOCAL_DURABILITY_QOS' }</code>
+                        </td>
+                        <td>Menentukan umur riwayat data. Jika diset TRANSIENT_LOCAL, Gateway/C++ bisa menerima pesan
+                            "terakhir" yang dikirim meskipun penerima baru saja menyala. (Proyek ini menggunakannya
+                            untuk menjamin penyelarasan sinkronisasi *Command*).</td>
                     </tr>
                 </tbody>
             </table>
-            
+
             <p style="margin-top: 1.5rem;"><strong>Contoh Format Objek QoS di <code>server.js</code>:</strong></p>
             <pre><code>// Definisi QoS diubah menjadi objek JSON biasa
 const qosObj = {

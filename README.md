@@ -8,7 +8,7 @@ Proyek ini terstruktur dalam desain *Monorepo* yang dibagi menjadi beberapa laya
 
 1. **[be-stream-odds-cpp](./be-stream-odds-cpp)** (Backend)
    *   Engine simulator radar berkinerja tinggi yang ditulis dalam bahasa C++.
-   *   Berperan sebagai *DataWriter* (Publisher) untuk koordinat target pesawat, dan sebagai *DataReader* (Subscriber) untuk menangkap perintah kontrol pengguna.
+   *   Berperan sebagai *DataWriter* (Publisher) untuk koordinat target objek, dan sebagai *DataReader* (Subscriber) untuk menangkap perintah kontrol pengguna.
    *   Mengandalkan protokol bawaan OpenDDS (RTPS/UDP) untuk distribusi data berkecepatan tinggi.
 
 2. **[gateway-ddsweb](./gateway-ddsweb)** (Gateway/Bridge)
@@ -19,7 +19,7 @@ Proyek ini terstruktur dalam desain *Monorepo* yang dibagi menjadi beberapa laya
 3. **[fe-webdds](./fe-webdds)** (Frontend)
    *   Aplikasi antarmuka pemantauan radar berbasis React & Rspack.
    *   Bertugas menangkap aliran WebSocket dan me-render puluhan ribu pergerakan objek secara halus di atas kanvas peta (OpenLayers/Mapbox).
-   *   Memberikan kontrol kepada operator untuk merubah pengaturan simulasi (misal: mengatur total target simulasi ke 5000 pesawat).
+   *   Memberikan kontrol kepada operator untuk merubah pengaturan simulasi (misal: mengatur total target simulasi ke 5000 objek).
 
 4. **[radarsimulator-dokumentasi](./radarsimulator-dokumentasi)** (Dokumentasi)
    *   Buku panduan ensiklopedi teoretis, struktur arsitektur (QoS), dan *troubleshooting* daftar pesan *error* (Segfault).
