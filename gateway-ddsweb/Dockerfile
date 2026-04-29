@@ -11,6 +11,7 @@ RUN apt-get update -y && \
         g++ \
         gcc \
         make \
+        perl \
         python3 \
         unzip \
         wget && \
@@ -41,13 +42,12 @@ RUN npm ci --omit=dev
 # Copy application files
 COPY server.js ./
 
-# Copy IDL directory, lalu resolve symlink agar .so tidak broken di container
+# Copy IDL directory, lalu compile ulang agar library .so cocok dengan glibc container
 COPY idl ./idl/
-RUN find /app/idl -type l -name "*.so" | while read link; do \
-        target=$(readlink -f "$link"); \
-        rm "$link"; \
-        cp "$target" "$link"; \
-    done
+RUN cd /app/idl/RadarTrack && \
+    $MPC_ROOT/mwc.pl -type gnuace && make clean && make && \
+    cd /app/idl/RadarCommand && \
+    $MPC_ROOT/mwc.pl -type gnuace && make clean && make
 
 EXPOSE 8080
 

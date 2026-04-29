@@ -12,7 +12,6 @@ services:
     networks:
       - radar-streaming-net
     volumes:
-      - ${OPENDDS_HOST_PATH:-/home/chandreu/opt/OpenDDS/OpenDDS-3.29.1}:/opt/OpenDDS
       - ./be-stream-odds-cpp/rtps.ini:/app/rtps.ini:ro
     environment:
       - LD_LIBRARY_PATH=/opt/OpenDDS/ACE_wrappers/lib:/opt/OpenDDS/lib
@@ -30,8 +29,6 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      # Kita tetap mount OpenDDS karena ini library besar yang sudah ada di host
-      - ${OPENDDS_HOST_PATH:-/home/chandreu/opt/OpenDDS/OpenDDS-3.29.1}:/opt/OpenDDS
       - ./be-stream-odds-cpp/rtps.ini:/app/rtps.ini:ro
     environment:
       - ACE_ROOT=/opt/OpenDDS/ACE_wrappers
@@ -56,6 +53,9 @@ services:
     environment:
       - VITE_DDS_GATEWAY_REST=http://localhost:8080/dds
       - VITE_DDS_GATEWAY_WS=ws://localhost:8080/dds
+    volumes:
+      - ./fe-webdds:/app
+      - /app/node_modules
     depends_on:
       - radar-gateway
 

@@ -74,6 +74,10 @@ RUN cmake --preset conan-release && \
 # ===== RUNTIME STAGE =====
 FROM ubuntu:22.04
 
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends libssl3 ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p /app/build/logs
 WORKDIR /app/build
 
