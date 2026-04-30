@@ -28,5 +28,5 @@ void ODDSOperator::check_status
 ) const
 {
     if (status != DDS::RETCODE_OK && status != DDS::RETCODE_NO_DATA)
-        LOG_ERROR("ODDS", "Error in " + std::string(info) + "with return code : " + this->ret_code_name_[status]);
+        LOG_ERROR("ODDS", "Kesalahan pada " + std::string(info) + "dengan kode return : " + this->ret_code_name_[status]);
 }

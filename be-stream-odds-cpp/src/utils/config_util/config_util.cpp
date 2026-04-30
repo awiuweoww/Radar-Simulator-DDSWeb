@@ -46,7 +46,7 @@ void ConfigUtil::set_config_individual(const char* key, const char* value) {
             set_config_value(it->second, key);
         }
     } else {
-        LOG_ERROR("Environment Variables Util", "Failed to set environment variable");
+        LOG_ERROR("Environment Variables Util", "Gagal mengatur variabel environment");
     }
 }
 
@@ -60,7 +60,7 @@ void ConfigUtil::set_config_value(ValueType &ref_value, const char* key) {
             } else if constexpr (std::is_same_v<T, std::string>) {
                 current_ref_value.get() = env_val ? env_val : "";
             } else {
-                LOG_ERROR("Environment Variables Util", "Unknown type");
+                LOG_ERROR("Environment Variables Util", "Tipe tidak dikenal");
             }
         },
         ref_value

@@ -29,5 +29,5 @@ void ODDSOperator::check_handle
 ) const
 {
     if (!handle)
-        LOG_ERROR("ODDS", "Error in " + static_cast<std::string>(info) + ": Creation failed: invalid handle");
+        LOG_ERROR("ODDS", "Kesalahan pada " + static_cast<std::string>(info) + ": Pembuatan gagal: handle tidak valid");
 }

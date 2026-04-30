@@ -22,7 +22,7 @@ double get_random(int index, double seed) {
 
 int main(int argc, char* argv[]) {
     try {
-        LOG_INFO("Main", " [Backend] Radar engine OpenDDS v1.1 - STREAMING MODE starting...");
+        LOG_INFO("Main", " [Backend] Mesin radar OpenDDS v1.1 - MODE STREAMING dimulai...");
 
         ConfigUtil::create_instance();
 
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
             params[i].classification = (uint8_t)(get_random(i, 6.6) > 0.6 ? 1 : 0);
         }
 
-        LOG_INFO("Main", "Pre-calculation complete. Starting simulation loop...");
+        LOG_INFO("Main", "Prakalkulasi selesai. Memulai perulangan simulasi...");
 
         while (true) {
             int currentCount = radar_handler.get_target_count();
@@ -102,10 +102,10 @@ int main(int argc, char* argv[]) {
         }
     }
     catch (const std::exception &err) {
-        LOG_ERROR("Main", std::string("Fatal Error (std): ") + err.what());
+        LOG_ERROR("Main", std::string("Kesalahan Fatal (std): ") + err.what());
     }
     catch (...) {
-        LOG_ERROR("Main", "Fatal Error: Unknown exception occurred (could be CORBA/DDS exception)");
+        LOG_ERROR("Main", "Kesalahan Fatal: Terjadi eksepsi tidak dikenal (kemungkinan eksepsi CORBA/DDS)");
     }
 
     return 0;

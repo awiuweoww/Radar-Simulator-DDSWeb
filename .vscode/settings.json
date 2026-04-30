@@ -56,5 +56,6 @@
   "C_Cpp_Runner.showCompilationTime": false,
   "C_Cpp_Runner.useLinkTimeOptimization": false,
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
-  "cmake.sourceDirectory": "/home/chandreu/stream-radar-webdds/be-stream-odds-cpp"
+  "cmake.sourceDirectory": "/home/chandreu/stream-radar-webdds/be-stream-odds-cpp",
+  "liveServer.settings.port": 5501
 }

@@ -41,7 +41,8 @@ source /opt/OpenDDS/setenv.sh
 ```bash
 cd gateway-ddsweb
 source /opt/OpenDDS/setenv.sh
-node server.js -DCPSConfigFile ../rtps.ini
+node server.js -DCPSConfigFile ./rtps.ini
+
 ```
 *(Catatan: Anda harus menunjuk ke `rtps.ini` yang sama, agar Gateway dapat masuk ke jaringan DDS Domain yang identik dengan Backend).*
 

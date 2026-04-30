@@ -22,6 +22,12 @@ console.log(' [SYSTEM] OMG DDS-WEB Gateway ...');
 
 const ddsArgs = ['node', ...process.argv.slice(2)];
 const factory = opendds.initialize.apply(opendds, ddsArgs);
+
+if (!factory) {
+    console.error(' [CRITICAL] Gagal menginisialisasi OpenDDS!');
+    console.error('            Pastikan path pada -DCPSConfigFile benar dan file tersebut ada.');
+    process.exit(1);
+}
 const participants = new Map();
 const writers = new Map();
 
@@ -29,7 +35,7 @@ const IDL_BIN_DIR = path.join(__dirname, 'idl');
 
 function getParticipant(domainId) {
     if (!participants.has(domainId)) {
-        console.log(` [DDS] Initializing Participant Domain ${domainId}...`);
+        console.log(` [DDS] Menginisialisasi Participant Domain ${domainId}...`);
         const participant = factory.create_participant(domainId);
         participants.set(domainId, participant);
     }
@@ -39,7 +45,7 @@ function getParticipant(domainId) {
 function getWriter(participant, topicName, typeName) {
     const key = `${topicName}:${typeName}`;
     if (!writers.has(key)) {
-        console.log(` [DDS] Establishing DataWriter for: ${topicName}`);
+        console.log(` [DDS] Membentuk DataWriter untuk: ${topicName}`);
         const qos = {
             DataWriterQos: {
                 reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
@@ -64,12 +70,12 @@ app.post(['/dds/domain/:domainId/topic/:topicName/data', '/domain/:domainId/topi
         const payload = req.body;
         if (payload.value !== undefined) payload.value = Math.floor(Number(payload.value));
 
-        console.log(` [REST] Forwarding to DDS: ${JSON.stringify(payload)}`);
+        console.log(` [REST] Meneruskan ke DDS: ${JSON.stringify(payload)}`);
         writer.write(payload);
 
         res.status(201).json({ status: "OK" });
     } catch (err) {
-        console.error(` [REST Error] ${err.message}`);
+        console.error(` [Kesalahan REST] ${err.message}`);
         res.status(500).json({ error: err.message });
     }
 });
@@ -87,25 +93,25 @@ wss.on('connection', (ws, req) => {
         const participant = getParticipant(domainId);
         const typeName = (topicName === 'RadarTrackTopic') ? 'RadarTrack::TrackData' : 'RadarCommand::Command';
 
-        console.log(` [WS] Subscribe to ${topicName}`);
-        
-        const subQos = (topicName === 'RadarTrackTopic') 
+        console.log(` [WS] Berlangganan ke ${topicName}`);
+
+        const subQos = (topicName === 'RadarTrackTopic')
             ? {
                 DataReaderQos: {
                     reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' },
                     history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 1 }
                 }
-              }
+            }
             : {
                 DataReaderQos: {
                     reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
                     history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 }
                 }
-              };
+            };
 
         const reader = participant.subscribe(topicName, typeName, subQos, (r, sampleInfo, sample) => {
             if (sampleInfo.valid_data && ws.readyState === ws.OPEN) {
-                if (ws.bufferedAmount > 512 * 1024) return; 
+                if (ws.bufferedAmount > 512 * 1024) return;
 
                 if (topicName === 'RadarTrackTopic') {
                     const fastJson = `{"trackId":${sample.trackId},"lat":${sample.lat},"lon":${sample.lon},"speed":${sample.speed},"timestamp":${sample.timestamp},"classification":${sample.classification}}`;
@@ -116,18 +122,18 @@ wss.on('connection', (ws, req) => {
             }
         });
 
-        
+
         ws.on('close', () => {
-            console.log(` [WS] Unsubscribe from ${topicName}`);
+            console.log(` [WS] Berhenti berlangganan dari ${topicName}`);
             try {
                 participant.unsubscribe(topicName, reader);
             } catch (err) {
-                console.error(` [WS Cleanup Warning] ${err.message}`);
+                console.error(` [Peringatan Pembersihan WS] ${err.message}`);
             }
         });
 
     } catch (err) {
-        console.error(` [WS Error]`, err.message);
+        console.error(` [Kesalahan WS]`, err.message);
         ws.close();
     }
 });
@@ -137,14 +143,14 @@ async function initializeDDS() {
     try {
         opendds.load(path.join(IDL_BIN_DIR, 'RadarTrack', 'libRadarTrack'));
         opendds.load(path.join(IDL_BIN_DIR, 'RadarCommand', 'libRadarCommand'));
-        console.log(' [DDS] Libraries Loaded (libRadarTrack & libRadarCommand). Waiting...');
+        console.log(' [DDS] Pustaka Dimuat (libRadarTrack & libRadarCommand). Menunggu...');
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         const p0 = getParticipant(0);
         getWriter(p0, 'CommandTopic', 'RadarCommand::Command');
-        console.log(' [DDS] CommandWriter Warm-up Started (Domain 0).');
+        console.log(' [DDS] Pemanasan CommandWriter Dimulai (Domain 0).');
     } catch (e) {
-        console.error(' [DDS Error] Initialization failed:', e.message);
+        console.error(' [Kesalahan DDS] Inisialisasi gagal:', e.message);
     }
 }
 

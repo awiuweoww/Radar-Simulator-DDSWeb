@@ -32,7 +32,7 @@ RadarTrackODDSPublisher::RadarTrackODDSPublisher(const DDS::DomainParticipant_va
     radar_writer_ = RadarTrack::TrackDataDataWriter::_narrow(writer);
     this->get_odds_operator_()->check_handle(&radar_writer_, "TrackDataDataWriter::_narrow() failed");
 
-    LOG_INFO("ODDS Publisher", "[RadarTrack] Per-sample Streaming mode ENABLED...");
+    LOG_INFO("ODDS Publisher", "[RadarTrack] Mode Streaming per-sampel AKTIF...");
 }
 
 void RadarTrackODDSPublisher::set_radar_data(const RadarTrackTransmitData &data) {

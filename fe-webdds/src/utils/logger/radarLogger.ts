@@ -47,11 +47,12 @@ class RadarLogger {
       const cleanLat = Math.max(0, rawLat - this.baseOffset);
       this.stats.totalLat += cleanLat;
 
-      if (track.trackId === 1) {
+      // Logika Audit: Cek ID 0 (Data ke-1) dan ID 99 (Data ke-100)
+      if (track.trackId === 0) {
         this.audit.t1_sent = track.timestamp;
         this.audit.t1_received = arrivalTime;
       }
-      if (track.trackId === 100) {
+      if (track.trackId === 99) {
         this.audit.t100_received = arrivalTime;
       }
     });
@@ -76,9 +77,9 @@ class RadarLogger {
     console.log(`Avg Latency      : %c${avgLatency.toFixed(2)}ms`, 'color: #22c55e; font-weight: bold');
     console.log(`Throughput       : ${throughput.toFixed(2)} KB/s`);
     console.log(`-------------------------------------------`);
-    console.log(`Waktu Kirim ID 1   : ${this.formatTime(this.audit.t1_sent)}`);
-    console.log(`Waktu Terima ID 100: ${this.formatTime(this.audit.t100_received)}`);
-    console.log(`%cDurasi Streaming 1 s/d 100: ${burstDuration.toFixed(2)}ms`, 'color: #f59e0b; font-weight: bold');
+    console.log(`Waktu Kirim ID 0 (Pertama) : ${this.formatTime(this.audit.t1_sent)}`);
+    console.log(`Waktu Terima ID 99 (ke-100): ${this.formatTime(this.audit.t100_received)}`);
+    console.log(`%cDurasi Streaming ID 0 s/d 99: ${burstDuration.toFixed(2)}ms`, 'color: #f59e0b; font-weight: bold');
     console.groupEnd();
   }
 
@@ -95,7 +96,6 @@ class RadarLogger {
     this.stats.startTime = now;
     this.baseOffset = null;
 
-    /** Reset audit */
     this.audit.t1_sent = 0;
     this.audit.t100_received = 0;
     this.audit.t1_received = 0;
@@ -118,6 +118,12 @@ class RadarLogger {
         this.integrity.maxObserved = currentCount;
         console.log(`%c Target ${targetCount} tercapai. Monitoring drop diaktifkan.`, 'color: #22c55e; font-weight: bold');
       }
+      return;
+    }
+
+    if (currentCount === 0) {
+      // Jika data benar-benar kosong, anggap simulasi berhenti/reset
+      this.integrity.targetReached = false;
       return;
     }
 

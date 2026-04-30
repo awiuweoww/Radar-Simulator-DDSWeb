@@ -15,22 +15,23 @@ RadarCommandODDSSubscriber::RadarCommandODDSSubscriber(const DDS::DomainParticip
 
     type_support = std::make_unique<RadarCommand::CommandTypeSupportImpl>().release();
     type_name = type_support->get_type_name();
-    LOG_INFO("ODDS Subscriber", "[RadarCommand] Registered Type Name: " + std::string(type_name));
+    LOG_INFO("ODDS Subscriber", "[RadarCommand] Mendaftarkan Nama Tipe: " + std::string(type_name));
     result = type_support->register_type(*this->get_participant_(), type_name);
     this->get_odds_operator_()->check_status(result, "register_type() RadarCommand failed");
 
-    /** setting QoS reliability */
+    /** setting QoS reliability and durability */
     this->get_r_qos_()->reliability.kind = DDS::RELIABLE_RELIABILITY_QOS;
+    this->get_r_qos_()->durability.kind = DDS::TRANSIENT_LOCAL_DURABILITY_QOS;
     this->set_topic(type_name, "CommandTopic", reader);
 
     radar_command_reader_ = RadarCommand::CommandDataReader::_narrow(reader);
     this->get_odds_operator_()->check_handle(&radar_command_reader_, "CommandDataReader::_narrow() failed");
 
-    LOG_INFO("ODDS Subscriber", "[RadarCommand] Ready to receive commands...");
+    LOG_INFO("ODDS Subscriber", "[RadarCommand] Siap menerima perintah...");
 }
 
 void RadarCommandODDSSubscriber::start() {
-    LOG_INFO("ODDS Subscriber", "[RadarCommand] Loop started...");
+    LOG_INFO("ODDS Subscriber", "[RadarCommand] Perulangan dimulai...");
 
     while (!this->get_is_stop_()) {
         this->result_ = this->radar_command_reader_->take(
@@ -44,7 +45,7 @@ void RadarCommandODDSSubscriber::start() {
 
         if (this->result_ == DDS::RETCODE_OK) {
             if (this->msg_list_.length() > 0) {
-                LOG_INFO("ODDS Subscriber", "[RadarCommand] Received " + std::to_string(this->msg_list_.length()) + " samples");
+                LOG_INFO("ODDS Subscriber", "[RadarCommand] Menerima " + std::to_string(this->msg_list_.length()) + " sampel");
             }
             for (CORBA::ULong i = 0; i < this->msg_list_.length(); i++) {
                 if (this->info_seq_[i].valid_data) {
@@ -53,8 +54,8 @@ void RadarCommandODDSSubscriber::start() {
                     this->command_receive_data_.action = this->msg_list_[i].action.in();
                     this->command_receive_data_.value = this->msg_list_[i].value;
 
-                    LOG_INFO("ODDS Subscriber", "[RadarCommand] Received: " + 
-                        this->command_receive_data_.action + " with value: " + 
+                    LOG_INFO("ODDS Subscriber", "[RadarCommand] Menerima: " + 
+                        this->command_receive_data_.action + " dengan nilai: " + 
                         std::to_string(this->command_receive_data_.value));
 
                     this->notify_observers();

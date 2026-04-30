@@ -20,7 +20,7 @@ body {
     background-color: var(--bg-main);
     color: var(--text-main);
     line-height: 1.6;
-    display: flex;
+    margin: 0;
 }
 
 /* Sidebar */
@@ -33,11 +33,13 @@ body {
     display: flex;
     flex-direction: column;
     padding: 2rem 0;
-    z-index: 1000; /* Pastikan di atas konten */
+    z-index: 1000;
+    /* Pastikan di atas konten */
 }
 
 .sidebar-header {
-    padding: 0 2rem;
+    padding: 0 2rem 0 2.5rem;
+    /* Tambah padding kiri agar tidak mepet */
     margin-bottom: 2.5rem;
     display: flex;
     align-items: center;
@@ -64,52 +66,86 @@ body {
 }
 
 .nav-group-title {
-    display: block;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-size: 0.85rem;
     font-weight: 800;
     text-transform: uppercase;
     color: var(--primary);
-    margin-bottom: 0.5rem;
-    padding: 0.6rem 1rem; /* Perbesar area klik */
+    margin-bottom: 0.25rem;
+    padding: 0.8rem 1rem;
     letter-spacing: 0.05em;
     text-decoration: none;
     border-radius: 0.5rem;
     transition: all 0.2s ease;
     cursor: pointer;
+    background: transparent;
+    border: none;
+    width: 100%;
 }
 
+.nav-group-title::after {
+    content: "❯";
+    font-size: 0.7rem;
+    transition: transform 0.3s ease;
+    opacity: 0.5;
+}
+
+.nav-group.expanded .nav-group-title::after {
+    transform: rotate(90deg);
+    opacity: 1;
+}
+
+/* Hover hanya muncul saat kursor mendekat */
 .nav-group-title:hover {
     background-color: #f1f5f9;
-    color: #1d4ed8;
 }
 
 .nav-link {
-    padding: 0.6rem 1rem;
-    color: var(--text-main);
-    /* Warna standar untuk subab */
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 1rem;
+    color: #000000;
     text-decoration: none;
     font-size: 0.85rem;
     border-radius: 0.5rem;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    margin-bottom: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 0;
     display: block;
     position: relative;
-    border-left: 3px solid transparent;
+    pointer-events: none;
 }
 
+.nav-group.expanded .nav-link {
+    max-height: 50px;
+    opacity: 1;
+    padding: 0.6rem 1rem;
+    margin-bottom: 2px;
+    pointer-events: auto;
+}
+
+/* Efek hover pada isi dropdown */
 .nav-link:hover {
-    background: #f8fafc;
-    color: var(--primary);
-    padding-left: 1.25rem;
-    border-left-color: var(--primary);
+    background-color: #f1f5f9;
+    color: #000000;
+}
+
+/* State aktif tetap hitam, tidak berubah jadi biru */
+.nav-link.active {
+    background: transparent;
+    color: #000000;
+    font-weight: 600;
+    /* Tetap tebal sedikit sebagai penanda pasif */
 }
 
 /* Main Content */
 .content {
     margin-left: var(--sidebar-width);
-    flex: 1;
     padding: 4rem 5rem;
-    max-width: 1400px;
+    max-width: 1400px; /* Diperlebar agar memenuhi layar */
+    min-height: 100vh;
 }
 
 .main-header {
@@ -301,7 +337,14 @@ pre code {
     margin: 2rem 0;
 }
 
-/* Fix Table Header Dark Mode */
+/* Fix Table Header Dark Mode & Scroll */
+.table-container {
+    overflow-x: auto;
+    margin: 2rem 0;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+}
+
 .simple-table thead tr th {
     background-color: #020617 !important;
     color: #ffffff !important;
@@ -309,6 +352,7 @@ pre code {
     padding: 1rem;
     border-bottom: 2px solid var(--border);
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .simple-table td {

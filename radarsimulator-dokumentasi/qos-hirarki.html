@@ -11,6 +11,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
+    <script src="script.js" defer></script>
 </head>
 
 <body>
@@ -165,7 +166,7 @@
                         <td>RadarTrackTopic<br>(C++ Pub)</td>
                         <td><code style="color: #047857; background: #ecfdf5;">radar_track_publisher.cpp</code>
                             (Baris 24)</td>
-                        <td>Kordinat pesawat yang macet > 3 detik akan otomatis dihancurkan oleh mesin DDS agar
+                        <td>Kordinat objek yang macet > 3 detik akan otomatis dihancurkan oleh mesin DDS agar
                             peta tidak merender data <i>zombie</i>.</td>
                     </tr>
                     <tr>
@@ -319,23 +320,152 @@
             </table>
         </section>
 
-        <section id="qos-gateway" style="margin-top: 4rem;">
-            <h2>Keterbatasan & Sintaks QoS pada Gateway (Node.js)</h2>
-            <p>Berbeda dengan C++ yang memiliki akses penuh ke matriks puluhan kebijakan QoS OpenDDS, <i>Gateway</i>
-                Node.js di proyek ini menggunakan <i>bindings</i> C++ (modul <code>opendds</code>) yang <strong>hanya
-                    mengekspos sebagian kecil</strong> konfigurasi QoS. Hal ini merupakan keterbatasan bawaan
-                (<i>limitation</i>) dari <i>library</i> Node.js OpenDDS itu sendiri.</p>
+        <section id="qos-testing" style="margin-top: 4rem;">
+            <h2>Skenario Pengujian QoS</h2>
+            <p>Berikut adalah skenario pengujian konkret untuk membuktikan efektivitas kebijakan QoS yang diterapkan
+                dalam
+                proyek ini (diambil dari materi presentasi dan ujicoba sistem):</p>
 
-            <div class="info-card alert"
-                style="border-left-color: #f59e0b; background-color: #fffbeb; margin-top: 1.5rem;">
-                <h3 style="color: #b45309;">Keterbatasan Akses QoS</h3>
-                <p style="margin-top: 0.5rem; color: #78350f;">Di JavaScript/Node.js, Anda <strong>tidak bisa</strong>
-                    menyetel pengaturan lanjutan seperti <code>Deadline</code>, <code>Liveliness</code>, atau ukuran
-                    <i>buffer</i> Transport secara dinamis. Anda secara praktis hanya diizinkan untuk mendefinisikan
-                    tiga parameter dasar: <strong>Reliability</strong>, <strong>History</strong>, dan
-                    <strong>Durability</strong>. Jika Anda memaksa memasukkan properti lain yang tidak didukung ke dalam
-                    objek JSON QoS, modul tersebut akan mengabaikannya atau bahkan memicu <i>Crash / Segmentation
-                        Fault</i> pada Gateway.
+            <div class="info-card"
+                style="border-left-color: var(--primary); background-color: #f8fafc; margin-bottom: 1.5rem;">
+                <h3 style="color: var(--text-dark);">1. Pengujian Durability (TRANSIENT_LOCAL)</h3>
+                <p><strong>Tujuan:</strong> Memastikan subscriber baru tetap menerima data terakhir yang dikirim sebelum
+                    subscriber tersebut aktif.</p>
+                <ul style="margin-top: 0.5rem; padding-left: 1.2rem; color: var(--text-main);">
+                    <li><strong>Langkah:</strong> Jalankan Gateway dan Frontend. Ubah <i>Target Count</i> menjadi 500
+                        dari UI. Setelah itu, baru jalankan aplikasi C++ Backend.</li>
+                    <li><strong>Hasil:</strong> Begitu aplikasi C++ menyala, ia langsung menerima perintah 500 target
+                        tersebut karena data ditahan oleh <i>Durability</i> di Gateway.</li>
+                </ul>
+            </div>
+
+            <div class="info-card"
+                style="border-left-color: var(--primary); background-color: #f8fafc; margin-bottom: 1.5rem;">
+                <h3 style="color: var(--text-dark);">2. Pengujian Reliability (Matching)</h3>
+                <p><strong>Tujuan:</strong> Memvalidasi mekanisme <i>matching</i> DDS dan penanganan <i>silent fail</i>
+                    pada Node.js.</p>
+                <ul style="margin-top: 0.5rem; padding-left: 1.2rem; color: var(--text-main);">
+                    <li><strong>Langkah:</strong> Sengaja buat kesalahan pengetikan (*typo*) pada JSON QoS di Node.js
+                        (misal: <code>relability</code>), sementara di C++ tetap <code>RELIABLE</code>.</li>
+                    <li><strong>Hasil:</strong> Terminal C++ akan memunculkan log peringatan sistem <b>"Offered
+                            Incompatible QoS"</b>
+                        (Ketidakcocokan QoS). Data tidak akan mengalir karena parameter antara Gateway dan Backend tidak
+                        sinkron.</li>
+                </ul>
+            </div>
+
+            <div class="info-card"
+                style="border-left-color: var(--primary); background-color: #f8fafc; margin-bottom: 1.5rem;">
+                <h3 style="color: var(--text-dark);">3. Pengujian History (KEEP_LAST vs KEEP_ALL)</h3>
+                <p><strong>Tujuan:</strong> Membuktikan kontrol penggunaan memori (RAM) pada Gateway.</p>
+                <ul style="margin-top: 0.5rem; padding-left: 1.2rem; color: var(--text-main);">
+                    <li><strong>Langkah:</strong> Kirim data radar dengan kecepatan sangat tinggi (1000+ titik/detik).
+                        Bandingkan penggunaan RAM saat menggunakan <code>KEEP_ALL</code> vs <code>KEEP_LAST</code>
+                        (depth 1).</li>
+                    <li><strong>Hasil:</strong> Pada <code>KEEP_ALL</code>, RAM melonjak hingga <i>crash</i>. Pada
+                        <code>KEEP_LAST</code>, penggunaan RAM stabil meskipun dibombardir data.
+                    </li>
+                </ul>
+            </div>
+
+            <div class="info-card"
+                style="border-left-color: var(--primary); background-color: #f8fafc; margin-bottom: 1.5rem;">
+                <h3 style="color: var(--text-dark);">4. Pengujian Lifespan</h3>
+                <p><strong>Tujuan:</strong> Memastikan data lama (stale) otomatis dibersihkan oleh sistem.</p>
+                <ul style="margin-top: 0.5rem; padding-left: 1.2rem; color: var(--text-main);">
+                    <li><strong>Langkah:</strong> Set <i>Lifespan</i> ke 3 detik. Hentikan pengiriman data dari C++
+                        namun
+                        biarkan Frontend tetap terbuka.</li>
+                    <li><strong>Hasil:</strong> Setelah tepat 3 detik, data objek di peta akan otomatis hilang karena
+                        dianggap kedaluwarsa oleh mesin DDS.</li>
+                </ul>
+            </div>
+
+            <div class="info-card"
+                style="border-left-color: var(--primary); background-color: #f8fafc; margin-bottom: 1.5rem;">
+                <h3 style="color: var(--text-dark);">5. Pengujian Liveliness (Heartbeat)</h3>
+                <p><strong>Tujuan:</strong> Mendeteksi kegagalan sistem secara otomatis.</p>
+                <ul style="margin-top: 0.5rem; padding-left: 1.2rem; color: var(--text-main);">
+                    <li><strong>Langkah:</strong> Hentikan proses C++ Backend secara paksa (*Kill Process*). Amati log
+                        pada Gateway.</li>
+                    <li><strong>Hasil:</strong> Dalam waktu maksimal 2 detik (<i>Lease Duration</i>), Gateway akan
+                        mendeteksi status "Liveliness Changed" dan mengetahui bahwa pengirim data telah mati.</li>
+                </ul>
+            </div>
+
+            <div class="info-card"
+                style="border-left-color: var(--primary); background-color: #f8fafc; margin-bottom: 1.5rem;">
+                <h3 style="color: var(--text-dark);">6. Pengujian Integritas (Data Drop Detection)</h3>
+                <p><strong>Tujuan:</strong> Mengamati perilaku <i>Best Effort</i> saat sistem mencapai beban maksimal.
+                </p>
+                <ul style="margin-top: 0.5rem; padding-left: 1.2rem; color: var(--text-main);">
+                    <li><strong>Langkah:</strong> Gunakan QoS <i>Best Effort</i> pada aliran radar. Tingkatkan jumlah
+                        target
+                        hingga 5.000+ objek. Buka konsol pengembang (<i>F12</i>) pada Frontend.</li>
+                    <li><strong>Hasil:</strong> <code>RadarLogger</code> pada Frontend akan memunculkan peringatan merah
+                        <b>"DATA DROP DETECTED!"</b>. Hal ini membuktikan bahwa pada mode <i>Best Effort</i>, sampel
+                        data akan dikorbankan demi menjaga latensi tetap rendah (< 20ms) daripada memaksakan semua data
+                            terkirim tapi menyebabkan antrean (lag).</li>
+                </ul>
+            </div>
+
+            <!-- Bagian Catatan Teknis Node.js -->
+            <div class="info-card" style="border-left-color: #f59e0b; background-color: #fffbeb; margin-top: 2rem;">
+                <h3 style="color: #b45309; margin-bottom: 0.5rem;">⚠️ Catatan Teknis: Penanganan "Silent Fail" pada
+                    Node.js</h3>
+                <p>Salah satu kelemahan *binding* OpenDDS pada Node.js adalah sifatnya yang <strong>abaikan
+                        (*ignore*)</strong> terhadap kesalahan pengetikan (*typo*) pada kunci QoS. Jika kita menulis
+                    <code>relability</code> (kurang huruf 'i'), Node.js tidak akan memberikan error, melainkan diam-diam
+                    menggunakan nilai default DDS.</p>
+
+                <p style="margin-top: 0.5rem;"><strong>Solusi Implementasi:</strong> Untuk mengatasi hal ini, proyek ini
+                    menerapkan strategi <i>"Warmup & Diagnostic Logging"</i> melalui fungsi
+                    <code>initializeDDS()</code>:</p>
+
+                <pre
+                    style="background: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 8px; font-size: 0.85rem; margin-top: 0.5rem; overflow-x: auto;">
+async function initializeDDS() {
+    try {
+        // 1. Load Pustaka IDL
+        opendds.load(path.join(IDL_BIN_DIR, 'RadarTrack', 'libRadarTrack'));
+        opendds.load(path.join(IDL_BIN_DIR, 'RadarCommand', 'libRadarCommand'));
+        
+        // 2. Jeda Inisialisasi (Discovery Gap)
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // 3. Verifikasi & Pemanasan (Warmup)
+        const p0 = getParticipant(0);
+        const writer = getWriter(p0, 'CommandTopic', 'RadarCommand::Command');
+        
+        if (writer) {
+            console.log(' [DDS] DataWriter CommandTopic berhasil dibentuk.');
+        }
+    } catch (e) {
+        console.error(' [Kesalahan DDS] Inisialisasi gagal:', e.message);
+    }
+}</pre>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Dengan memanggil fungsi ini saat *startup*, kita
+                    memaksa sistem melakukan pengecekan objek QoS sebelum ada permintaan dari user. Log
+                    <code>[DDS] DataWriter ... berhasil dibentuk</code> menjadi indikator utama bahwa konfigurasi JSON
+                    telah diterima dengan benar oleh <i>engine</i> biner OpenDDS.</p>
+            </div>
+        </section>
+
+        <section id="qos-gateway" style="margin-top: 4rem;">
+            <h2>Fleksibilitas & Sintaks QoS pada Gateway (Node.js)</h2>
+            <p>Sebagai <i>binding</i> langsung dari C++, <i>Gateway</i> Node.js di proyek ini memiliki akses luas
+                terhadap kebijakan QoS OpenDDS. Meskipun berjalan di lingkungan JavaScript, Anda dapat mengonfigurasi
+                parameter krusial untuk menjamin performa dan keandalan data radar.</p>
+
+            <div class="info-card"
+                style="border-left-color: var(--primary); background-color: #f8fafc; margin-top: 1.5rem;">
+                <h3 style="color: var(--text-dark);">Dukungan Kebijakan QoS</h3>
+                <p style="margin-top: 0.5rem; color: var(--text-main);">Di Node.js, Anda dapat mendefinisikan berbagai
+                    kebijakan seperti <strong>Reliability</strong>, <strong>History</strong>,
+                    <strong>Durability</strong>, <strong>Lifespan</strong>, hingga <strong>Liveliness</strong> melalui
+                    objek JSON. Hal terpenting adalah memastikan pengetikan kunci (<i>key</i>) dan nilai (<i>value</i>)
+                    sesuai dengan standar biner OpenDDS guna menghindari perilaku <i>Silent Fail</i> atau kegagalan
+                    inisialisasi entitas.
                 </p>
             </div>
 
@@ -356,36 +486,58 @@
                         <td><code>reliability: { kind: 'RELIABLE_RELIABILITY_QOS' }</code><br><br><code>reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' }</code>
                         </td>
                         <td>Menentukan apakah Gateway menuntut jaminan pengiriman data. <strong>Wajib</strong>
-                            disesuaikan (*matching*) dengan QoS di C++. (Dalam proyek: Radar memakai BEST_EFFORT,
-                            sedangkan Command memakai RELIABLE).</td>
+                            disesuaikan (*matching*) dengan QoS di C++.</td>
                     </tr>
                     <tr>
                         <td><strong>History</strong></td>
                         <td><code>history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 }</code><br><br><code>history: { kind: 'KEEP_ALL_HISTORY_QOS' }</code>
                         </td>
                         <td>Menentukan berapa banyak sampel data yang ditahan di *buffer* memori *Gateway*. Sangat
-                            disarankan memakai <code>KEEP_LAST</code> dengan <code>depth</code> kecil (misal: 1 atau 10)
-                            guna mencegah kebocoran memori (*memory leak*) pada server Node.js.</td>
+                            disarankan memakai <code>KEEP_LAST</code> guna mencegah *memory leak*.</td>
                     </tr>
                     <tr>
                         <td><strong>Durability</strong></td>
                         <td><code>durability: { kind: 'VOLATILE_DURABILITY_QOS' }</code><br><br><code>durability: { kind: 'TRANSIENT_LOCAL_DURABILITY_QOS' }</code>
                         </td>
-                        <td>Menentukan umur riwayat data. Jika diset TRANSIENT_LOCAL, Gateway/C++ bisa menerima pesan
-                            "terakhir" yang dikirim meskipun penerima baru saja menyala. (Proyek ini menggunakannya
-                            untuk menjamin penyelarasan sinkronisasi *Command*).</td>
+                        <td>Menentukan umur riwayat data. <code>TRANSIENT_LOCAL</code> memungkinkan pengiriman data
+                            terakhir kepada subscriber yang baru bergabung.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lifespan</strong></td>
+                        <td><code>lifespan: { duration: { sec: 3, nanosec: 0 } }</code></td>
+                        <td>Mengatur masa kedaluwarsa data. Setelah waktu terlampaui, data akan otomatis dihapus dari
+                            <i>cache</i> subscriber.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Liveliness</strong></td>
+                        <td><code>liveliness: { kind: 'AUTOMATIC_LIVELINESS_QOS', lease_duration: { sec: 2, nanosec: 0 } }</code>
+                        </td>
+                        <td>Mengatur deteksi "detak jantung" (*heartbeat*). Jika dalam waktu tertentu tidak ada kabar,
+                            entitas dianggap mati.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Deadline</strong></td>
+                        <td><code>deadline: { period: { sec: 1, nanosec: 0 } }</code></td>
+                        <td>Kebijakan yang menuntut pengiriman data dalam interval waktu tertentu. Jika meleset, sistem
+                            akan memicu peringatan.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ownership</strong></td>
+                        <td><code>ownership: { kind: 'EXCLUSIVE_OWNERSHIP_QOS' }</code><br><br><code>ownership: { kind: 'SHARED_OWNERSHIP_QOS' }</code>
+                        </td>
+                        <td>Mengatur apakah satu *topic* hanya boleh ditulis oleh satu *writer* utama (Exclusive) atau
+                            berbagi (Shared).</td>
                     </tr>
                 </tbody>
             </table>
 
             <p style="margin-top: 1.5rem;"><strong>Contoh Format Objek QoS di <code>server.js</code>:</strong></p>
-            <pre><code>// Definisi QoS diubah menjadi objek JSON biasa
+            <pre><code>// Definisi QoS di Node.js (Format FLAT - Tanpa pembungkus DataWriterQos)
 const qosObj = {
-    DataWriterQos: {
-        reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
-        history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 },
-        durability: { kind: 'TRANSIENT_LOCAL_DURABILITY_QOS' }
-    }
+    reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
+    history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 },
+    durability: { kind: 'TRANSIENT_LOCAL_DURABILITY_QOS' }
 };
 
 // Disuntikkan sebagai argumen ketiga
@@ -408,6 +560,50 @@ const writer = participant.create_datawriter(topicName, typeName, qosObj);</code
                 <li><a href="https://docs.google.com/spreadsheets/d/1cO2I6nhOQaOsNUSKU6gVXKoZMfKQvM_2Ou0PO9yaQF0/edit?usp=sharing"
                         target="_blank">Daftar Lengkap QoS WebDDS</a></li>
             </ul>
+        </section>
+
+        <section id="qos-mapping" style="margin-top: 4rem;">
+            <h2>Pemetaan QoS: Web ke DDS</h2>
+            <p>Penting untuk dipahami bahwa protokol Web (HTTP/WebSocket) tidak mendukung kebijakan QoS DDS secara asli.
+                Berikut adalah bagaimana strategi QoS diterapkan di setiap lapisan:</p>
+
+            <div class="info-card"
+                style="border-left-color: var(--primary); background-color: #f8fafc; margin-top: 1.5rem;">
+                <table class="simple-table">
+                    <thead>
+                        <tr>
+                            <th>Lapisan</th>
+                            <th>Protokol</th>
+                            <th>Karakteristik QoS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Frontend (React)</strong></td>
+                            <td>HTTP / WS (TCP)</td>
+                            <td><strong>Implicit:</strong> Hanya mengandalkan keandalan TCP. Tidak ada kontrol
+                                <i>Durability</i> atau <i>Liveliness</i> di level protokol browser.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gateway (Node.js)</strong></td>
+                            <td>Bridge / Proxy</td>
+                            <td><strong>The Translator:</strong> Mengambil paket JSON dari Web dan membungkusnya ke
+                                dalam entitas DDS yang memiliki QoS lengkap.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Backend (C++)</strong></td>
+                            <td>RTPS (UDP)</td>
+                            <td><strong>Full Native QoS:</strong> Menggunakan seluruh spektrum kebijakan QoS OpenDDS
+                                untuk manajemen data tingkat tinggi.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p style="margin-top: 1.5rem;"><strong>Kesimpulan:</strong> React tidak menyetel QoS, ia "menikmati" manfaat
+                QoS yang dikonfigurasi di Gateway. Misalnya, jika Gateway disetel <code>TRANSIENT_LOCAL</code>, React
+                akan otomatis menerima data terakhir saat terkoneksi ke WebSocket tanpa perlu meminta ulang
+                (<i>request</i>) secara manual.</p>
         </section>
 
         <footer class="footer">

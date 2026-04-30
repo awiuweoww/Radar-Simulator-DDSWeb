@@ -44,12 +44,12 @@ export function useRadarSimulation(
   const targetCount = useSimulationStore(state => state.targetCount);
   const setStats = useSimulationStore(state => state.setStats);
   const setPopupData = useSimulationStore(state => state.setSelectedTrack);
-  
+
   const vectorSourceRef = useRef<VectorSource>(new VectorSource());
   const animationRef = useRef<number>();
   const lastStateUpdateTime = useRef<number>(0);
-  const currentSessionId = useRef<number>(0); 
-  
+  const currentSessionId = useRef<number>(0);
+
   const livePoolRef = useRef<Map<number, TrackData>>(new Map());
   const featureMap = useRef<Map<number, Feature<Point>>>(new Map());
 
@@ -71,7 +71,7 @@ export function useRadarSimulation(
       if (map) map.removeLayer(pointsLayer);
     };
   }, [mapInstanceRef.current]);
- 
+
   /**
    * Manajemen Koneksi dengan Session Guard
    */
@@ -93,69 +93,69 @@ export function useRadarSimulation(
         const newFeatures: Feature<Point>[] = [];
 
         data.forEach(t => {
-           if (t.trackId >= targetCount) return;
-           pool.set(t.trackId, t);
-           
-           let feature = features.get(t.trackId);
-           const coords = fromLonLat([t.lon, t.lat]);
+          if (t.trackId >= targetCount) return;
+          pool.set(t.trackId, t);
 
-           if (!feature) {
-              feature = new Feature({ geometry: new Point(coords) });
-              feature.set('classification', t.classification);
-              feature.set('trackData', t);
-              features.set(t.trackId, feature);
-              newFeatures.push(feature);
-           } else {
-              feature.getGeometry()?.setCoordinates(coords);
-              feature.set('trackData', t);
-           }
+          let feature = features.get(t.trackId);
+          const coords = fromLonLat([t.lon, t.lat]);
 
-           if (selectedTrackId.current !== null && selectedTrackId.current === t.trackId) {
-              setPopupData(t);
-              popupInstanceRef.current?.setPosition(coords);
-           }
+          if (!feature) {
+            feature = new Feature({ geometry: new Point(coords) });
+            feature.set('classification', t.classification);
+            feature.set('trackData', t);
+            features.set(t.trackId, feature);
+            newFeatures.push(feature);
+          } else {
+            feature.getGeometry()?.setCoordinates(coords);
+            feature.set('trackData', t);
+          }
+
+          if (selectedTrackId.current !== null && selectedTrackId.current === t.trackId) {
+            setPopupData(t);
+            popupInstanceRef.current?.setPosition(coords);
+          }
         });
 
         if (newFeatures.length > 0) {
-            source.addFeatures(newFeatures);
+          source.addFeatures(newFeatures);
         }
         if (pool.size > targetCount) {
-            pool.forEach((_, id) => {
-                if (id >= targetCount) {
-                    pool.delete(id);
-                    const f = features.get(id);
-                    if (f) {
-                        source.removeFeature(f);
-                        features.delete(id);
-                    }
-                }
-            });
+          pool.forEach((_, id) => {
+            if (id >= targetCount) {
+              pool.delete(id);
+              const f = features.get(id);
+              if (f) {
+                source.removeFeature(f);
+                features.delete(id);
+              }
+            }
+          });
         }
       };
 
       radarApi.connect(targetCount, dataHandler);
       radarApi.updateTargetCount(targetCount);
     } else {
-      currentSessionId.current = 0; 
+      currentSessionId.current = 0;
       radarApi.disconnect();
       livePoolRef.current.clear();
       vectorSourceRef.current.clear();
       featureMap.current.clear();
     }
-    
+
     return () => {
       currentSessionId.current = 0;
       radarApi.disconnect();
     };
-  }, [isActive, targetCount]); 
+  }, [isActive, targetCount]);
 
   /**
    * Fungsi statistik dengan proteksi Jitter
    */
   useEffect(() => {
     if (!isActive) {
-       setStats(0, 0);
-       return; 
+      setStats(0, 0);
+      return;
     }
 
     let lastTime = performance.now();
@@ -166,14 +166,14 @@ export function useRadarSimulation(
 
       if (isActive) {
         if (time - lastStateUpdateTime.current > 500) {
-            const rawFps = dt > 0 ? 1000 / dt : 60;
-            const finalFps = (rawFps > 0 && rawFps < 200) ? rawFps : 60.1;
-            
-            const currentTotal = livePoolRef.current.size;
-            setStats(finalFps, currentTotal);
-            
-            radarLogger.logDataDrop(currentTotal, targetCount);
-            lastStateUpdateTime.current = time;
+          const rawFps = dt > 0 ? 1000 / dt : 60;
+          const finalFps = (rawFps > 0 && rawFps < 200) ? rawFps : 60.1;
+
+          const currentTotal = livePoolRef.current.size;
+          setStats(finalFps, currentTotal);
+
+          radarLogger.logDataDrop(currentTotal, targetCount);
+          lastStateUpdateTime.current = time;
         }
       }
       animationRef.current = requestAnimationFrame(animate);

@@ -34,7 +34,11 @@ Jika Anda ingin menambah tipe data baru:
 1.  Buat folder baru di `idl/` (misal: `idl/Weather/`).
 2.  Letakkan file `.idl` Anda di sana.
 3.  Buat file `.mpc` (copy-paste dari folder lain dan sesuaikan namanya).
-4.  Daftarkan folder baru tersebut di `idl/gateway_idl.mwc`.
+4.  Daftarkan folder baru tersebut di `idl/gateway_idl.mwc`. *Jika file gateway_idl.mwc tidak ada, buat file baru dengan isi template dari file existing*
+workspace {
+  idl/RadarCommand/RadarCommand.mpc
+  idl/RadarTrack/RadarTrack.mpc
+}
 5.  Jalankan `npm run build:idl`.
 
 ## 4. Penggunaan di Server Gateway

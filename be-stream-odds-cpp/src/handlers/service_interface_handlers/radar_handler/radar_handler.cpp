@@ -11,7 +11,7 @@ void RadarHandler::update_data() {
     
     if (data.action == "UPDATE_TARGET_COUNT" || data.action == "START") {
         current_target_count_ = data.value;
-        LOG_INFO("Radar Handler", "Updated Target Count to: " + std::to_string(current_target_count_));
+        LOG_INFO("Radar Handler", "Memperbarui Jumlah Target menjadi: " + std::to_string(current_target_count_));
     }
 }
 
