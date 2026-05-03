@@ -95,20 +95,13 @@ wss.on('connection', (ws, req) => {
 
         console.log(` [WS] Berlangganan ke ${topicName}`);
 
-        const subQos = (topicName === 'RadarTrackTopic')
-            ? {
+        const subQos = 
+            {
                 DataReaderQos: {
                     reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' },
                     history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 1 }
                 }
-            }
-            : {
-                DataReaderQos: {
-                    reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
-                    history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 }
-                }
             };
-
         const reader = participant.subscribe(topicName, typeName, subQos, (r, sampleInfo, sample) => {
             if (sampleInfo.valid_data && ws.readyState === ws.OPEN) {
                 if (ws.bufferedAmount > 512 * 1024) return;

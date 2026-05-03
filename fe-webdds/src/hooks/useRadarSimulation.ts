@@ -52,6 +52,7 @@ export function useRadarSimulation(
 
   const livePoolRef = useRef<Map<number, TrackData>>(new Map());
   const featureMap = useRef<Map<number, Feature<Point>>>(new Map());
+  const lastUpdateMap = useRef<Map<number, number>>(new Map());
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -83,6 +84,7 @@ export function useRadarSimulation(
       livePoolRef.current.clear();
       vectorSourceRef.current.clear();
       featureMap.current.clear();
+      lastUpdateMap.current.clear();
 
       const dataHandler: RadarUpdateCallback = (data) => {
         if (currentSessionId.current !== sessionId) return;
@@ -95,6 +97,7 @@ export function useRadarSimulation(
         data.forEach(t => {
           if (t.trackId >= targetCount) return;
           pool.set(t.trackId, t);
+          lastUpdateMap.current.set(t.trackId, Date.now());
 
           let feature = features.get(t.trackId);
           const coords = fromLonLat([t.lon, t.lat]);
@@ -141,6 +144,7 @@ export function useRadarSimulation(
       livePoolRef.current.clear();
       vectorSourceRef.current.clear();
       featureMap.current.clear();
+      lastUpdateMap.current.clear();
     }
 
     return () => {
@@ -168,9 +172,26 @@ export function useRadarSimulation(
         if (time - lastStateUpdateTime.current > 500) {
           const rawFps = dt > 0 ? 1000 / dt : 60;
           const finalFps = (rawFps > 0 && rawFps < 200) ? rawFps : 60.1;
-
           const currentTotal = livePoolRef.current.size;
-          setStats(finalFps, currentTotal);
+
+          // Global BE Death Detection
+          const now = Date.now();
+          const GLOBAL_TIMEOUT_MS = 5000; 
+          const lastGlobalUpdate = Array.from(lastUpdateMap.current.values())
+            .reduce((max, val) => Math.max(max, val), 0);
+
+          const isBeAlive = lastGlobalUpdate > 0 && (now - lastGlobalUpdate <= GLOBAL_TIMEOUT_MS);
+          const displayedFps = isBeAlive ? finalFps : 0;
+
+          setStats(displayedFps, currentTotal);
+
+          if (lastGlobalUpdate > 0 && !isBeAlive) {
+            console.warn("[OMG WebDDS] BE detected DEAD. Clearing UI...");
+            livePoolRef.current.clear();
+            lastUpdateMap.current.clear();
+            vectorSourceRef.current.clear();
+            featureMap.current.clear();
+          }
 
           radarLogger.logDataDrop(currentTotal, targetCount);
           lastStateUpdateTime.current = time;
