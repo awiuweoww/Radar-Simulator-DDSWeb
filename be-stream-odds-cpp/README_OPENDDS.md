@@ -95,7 +95,7 @@ Berikut adalah urutan langkah jika ingin membangun service baru seperti `simple-
 
 ---
 
-## 5. Panduan Implementasi (Untuk Developer/AI)
+## 5. Panduan Implementasi (Untuk Developer)
 
 ### Tahap 1: Definisi Data
 1. Buat/Update `.idl` di folder `idl/`.

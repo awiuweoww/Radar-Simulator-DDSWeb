@@ -1,7 +1,8 @@
 /**
  * @file radarApi.ts
- * @description OMG DDS-WEB Standard Radar API.
- * Menghilangkan parsing biner manual karena Standar OMG otomatis mengirimkan JSON.
+ * @description Layer API Radar khusus yang dibangun di atas standar OMG DDS-WEB.
+ * File ini mengelola langganan ke track radar dan pengiriman perintah kontrol,
+ * berfungsi sebagai jembatan antara komponen React dan Gateway DDS-WEB.
  */
 
 import { TrackData } from '../../types/RadarTrack';
@@ -55,6 +56,8 @@ class RadarSubscriber {
       } else if (Array.isArray(data)) {
         tracks = data;
       }
+
+      console.log(`[OMG WebDDS] Received ${tracks} row data ${data}`);
 
       if (tracks.length > 0) {
         radarLogger.logIncomingPackets(data, tracks, rawLength);

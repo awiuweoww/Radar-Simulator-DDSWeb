@@ -1,3 +1,9 @@
+/**
+ * @file webdds.ts
+ * @description Implementasi inti standar OMG DDS-WEB untuk Frontend.
+ * File ini menyediakan abstraksi untuk entitas DDS (Participant, Topic, DataReader, DataWriter)
+ * menggunakan protokol native Web (WebSocket untuk Subscribe, REST/HTTP untuk Publish).
+ */
 
 /**
  * Representasi Topik DDS di sisi Web

@@ -98,7 +98,7 @@ wss.on('connection', (ws, req) => {
         const subQos = 
             {
                 DataReaderQos: {
-                    reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' },
+                    reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
                     history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 1 }
                 }
             };
@@ -108,6 +108,12 @@ wss.on('connection', (ws, req) => {
 
                 if (topicName === 'RadarTrackTopic') {
                     const fastJson = `{"trackId":${sample.trackId},"lat":${sample.lat},"lon":${sample.lon},"speed":${sample.speed},"timestamp":${sample.timestamp},"classification":${sample.classification}}`;
+                    
+                     
+                    if (sample.trackId % 100 === 0) {
+                        console.log(` [STREAM] Forwarding Track: ${sample.trackId} | Pos: ${sample.lat.toFixed(4)}, ${sample.lon.toFixed(4)}`);
+                    }
+                    
                     ws.send(fastJson);
                 } else {
                     ws.send(JSON.stringify(sample));

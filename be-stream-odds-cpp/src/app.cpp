@@ -94,6 +94,11 @@ int main(int argc, char* argv[]) {
 
                 radar_publisher.set_radar_data(t);
             }
+            
+            if (currentCount > 0) {
+                LOG_INFO("Main", "Simulation Cycle: Published " + std::to_string(currentCount) + " tracks (ID: 0 - " + std::to_string(currentCount - 1) + ")");
+            }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
 

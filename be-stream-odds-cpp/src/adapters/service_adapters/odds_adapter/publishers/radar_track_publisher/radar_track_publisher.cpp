@@ -20,7 +20,7 @@ RadarTrackODDSPublisher::RadarTrackODDSPublisher(const DDS::DomainParticipant_va
     this->get_odds_operator_()->check_status(result, "register_type() RadarTrack::TrackData failed");
 
     /** setting QoS reliability, lifespan, and liveliness */
-    this->get_w_qos_()->reliability.kind = DDS::BEST_EFFORT_RELIABILITY_QOS;
+    this->get_w_qos_()->reliability.kind = DDS::RELIABLE_RELIABILITY_QOS;
     this->get_w_qos_()->lifespan.duration.sec = 3; 
     this->get_w_qos_()->lifespan.duration.nanosec = 0;
     

@@ -3,19 +3,8 @@
  * Source: RadarCommand.idl
  */
 
-import { CDRReader } from '../utils/CDRReader';
-
 export interface Command {
   action: string;
   value: number;
-}
-
-export class CommandCodec {
-  static decode(reader: CDRReader): Command {
-    return {
-      action: reader.readString(),
-      value: reader.readInt32(),
-    };
-  }
 }
 
