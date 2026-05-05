@@ -22,7 +22,13 @@ public:
      */
     int get_target_count() const;
 
+    /**
+     * @return Timestamp saat BE menerima command terakhir (ms epoch).
+     */
+    int64_t get_command_received_at() const;
+
 private:
     RadarCommandODDSSubscriber* subscriber_;
-    std::atomic<int> current_target_count_{100};
+    std::atomic<int> current_target_count_{0};
+    std::atomic<int64_t> command_received_at_{0};
 };

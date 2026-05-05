@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import './utils/logger/clockSync';
 import { Layout } from './components/layout/Layout';
 import { RadarMap } from './components/map/RadarMap';
 import { PerformanceStats } from './components/dashboard/PerformanceStats';

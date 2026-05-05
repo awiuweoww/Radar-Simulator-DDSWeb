@@ -29,7 +29,7 @@
 #ifdef OPENDDS_IDL_FILE_SPECIFIC
 #  undef OPENDDS_IDL_FILE_SPECIFIC
 #endif
-#define OPENDDS_IDL_FILE_SPECIFIC(base, index) opendds_idl_generated_radartracktypesupportimpl_cpp_tx38me##_##base##index
+#define OPENDDS_IDL_FILE_SPECIFIC(base, index) opendds_idl_generated_radartracktypesupportimpl_cpp_10rhaj##_##base##index
 
 
 
@@ -53,7 +53,7 @@ template<> const XTypes::TypeIdentifier& getMinimalTypeIdentifier<RadarTrack_Tra
   static XTypes::TypeIdentifier ti;
   ACE_GUARD_RETURN(ACE_Thread_Mutex, guard, TheServiceParticipant->get_static_xtypes_lock(), ti);
   if (ti.kind() == XTypes::TK_NONE) {
-    ti = XTypes::TypeIdentifier(XTypes::EK_MINIMAL, XTypes::EquivalenceHashWrapper(151, 207, 25, 253, 200, 72, 87, 152, 128, 45, 46, 79, 142, 105));
+    ti = XTypes::TypeIdentifier(XTypes::EK_MINIMAL, XTypes::EquivalenceHashWrapper(89, 19, 75, 39, 113, 84, 21, 26, 44, 28, 55, 66, 54, 199));
   }
   return ti;
 }
@@ -70,7 +70,7 @@ template<> const XTypes::TypeIdentifier& getCompleteTypeIdentifier<RadarTrack_Tr
   static XTypes::TypeIdentifier ti;
   ACE_GUARD_RETURN(ACE_Thread_Mutex, guard, TheServiceParticipant->get_static_xtypes_lock(), ti);
   if (ti.kind() == XTypes::TK_NONE) {
-    ti = XTypes::TypeIdentifier(XTypes::EK_COMPLETE, XTypes::EquivalenceHashWrapper(149, 21, 131, 37, 46, 61, 57, 35, 155, 64, 170, 197, 18, 203));
+    ti = XTypes::TypeIdentifier(XTypes::EK_COMPLETE, XTypes::EquivalenceHashWrapper(65, 189, 210, 116, 175, 53, 156, 27, 104, 137, 30, 139, 252, 141));
   }
   return ti;
 }
@@ -90,7 +90,7 @@ bool vread(OpenDDS::DCPS::ValueReader& value_reader,  ::RadarTrack::TrackData& v
 {
   ACE_UNUSED_ARG(value_reader);
   ACE_UNUSED_ARG(value);
-  static const ListMemberHelper::Pair pairs[] = {{"trackId",0},{"lat",1},{"lon",2},{"speed",3},{"timestamp",4},{"classification",5},{0,0}};
+  static const ListMemberHelper::Pair pairs[] = {{"trackId",0},{"lat",1},{"lon",2},{"speed",3},{"timestamp",4},{"classification",5},{"commandReceivedAt",6},{0,0}};
   ListMemberHelper helper(pairs);
   if (!value_reader.begin_struct(OpenDDS::DCPS::APPENDABLE)) return false;
   XTypes::MemberId member_id;
@@ -119,6 +119,10 @@ bool vread(OpenDDS::DCPS::ValueReader& value_reader,  ::RadarTrack::TrackData& v
     }
     case 5: {
       if (!value_reader.read_byte(value.classification)) return false;
+      break;
+    }
+    case 6: {
+      if (!value_reader.read_int64(value.commandReceivedAt)) return false;
       break;
     }
     }
@@ -281,6 +285,22 @@ bool vwrite(OpenDDS::DCPS::ValueWriter& value_writer, const  ::RadarTrack::Track
       return false;
     }
   }
+  {
+    MemberParam param(6, false, "commandReceivedAt", 0, true);
+    if (!value_writer.begin_struct_member(param)) {
+      return false;
+    }
+    if (param.present) {
+      if (!value_writer.write_int64(value.commandReceivedAt)) {
+        return false;
+      }
+    } else {
+      value_writer.write_absent_value();
+    }
+    if (!value_writer.end_struct_member()) {
+      return false;
+    }
+  }
   return value_writer.end_struct();
 }
 
@@ -351,6 +371,7 @@ template<> void set_default( ::RadarTrack::TrackData& stru)
   stru.speed = 0;
   stru.timestamp = 0;
   stru.classification = 0;
+  stru.commandReceivedAt = 0;
 }
 
 void serialized_size(const Encoding& encoding, size_t& size, const ::RadarTrack::TrackData& stru)
@@ -367,6 +388,7 @@ void serialized_size(const Encoding& encoding, size_t& size, const ::RadarTrack:
   primitive_serialized_size(encoding, size, stru.speed);
   primitive_serialized_size(encoding, size, stru.timestamp);
   primitive_serialized_size(encoding, size, ACE_OutputCDR::from_octet(stru.classification));
+  primitive_serialized_size(encoding, size, stru.commandReceivedAt);
 }
 
 bool operator<<(Serializer& strm, const ::RadarTrack::TrackData& stru)
@@ -387,7 +409,8 @@ bool operator<<(Serializer& strm, const ::RadarTrack::TrackData& stru)
     && (strm << stru.lon)
     && (strm << stru.speed)
     && (strm << stru.timestamp)
-    && (strm << ACE_OutputCDR::from_octet(stru.classification));
+    && (strm << ACE_OutputCDR::from_octet(stru.classification))
+    && (strm << stru.commandReceivedAt);
 }
 
 bool operator>>(Serializer& strm,  ::RadarTrack::TrackData& stru)
@@ -451,6 +474,14 @@ bool operator>>(Serializer& strm,  ::RadarTrack::TrackData& stru)
     stru.classification = 0;
   } else {
     if (!(strm >> ACE_InputCDR::to_octet(stru.classification))) {
+      return false;
+    }
+  }
+  reached_end_of_struct |= (encoding.xcdr_version() == Encoding::XCDR_VERSION_2 && strm.rpos() >= end_of_struct);
+  if (reached_end_of_struct) {
+    stru.commandReceivedAt = 0;
+  } else {
+    if (!(strm >> stru.commandReceivedAt)) {
       return false;
     }
   }
@@ -792,6 +823,9 @@ struct MetaStructImpl< ::RadarTrack::TrackData> : MetaStruct {
     if (std::strcmp(field, "classification") == 0) {
       return typed.classification;
     }
+    if (std::strcmp(field, "commandReceivedAt") == 0) {
+      return typed.commandReceivedAt;
+    }
     throw std::runtime_error("Field " + OPENDDS_STRING(field) + " not found or its type is not supported (in struct ::RadarTrack::TrackData)");
   }
 
@@ -878,6 +912,17 @@ struct MetaStructImpl< ::RadarTrack::TrackData> : MetaStruct {
         throw std::runtime_error("Field 'classification' could not be skipped");
       }
     }
+    if (base_field == "commandReceivedAt") {
+      ACE_CDR::LongLong val;
+      if (!(strm >> val)) {
+        throw std::runtime_error("Field 'commandReceivedAt' could not be deserialized");
+      }
+      return val;
+    } else {
+      if (!strm.skip(1,  8 )) {
+        throw std::runtime_error("Field 'commandReceivedAt' could not be skipped");
+      }
+    }
     if (!field[0]) {
       return 0;
     }
@@ -905,13 +950,16 @@ struct MetaStructImpl< ::RadarTrack::TrackData> : MetaStruct {
     if (std::strcmp(field, "classification") == 0) {
       return make_field_cmp(&T::classification, next);
     }
+    if (std::strcmp(field, "commandReceivedAt") == 0) {
+      return make_field_cmp(&T::commandReceivedAt, next);
+    }
     throw std::runtime_error("Field " + OPENDDS_STRING(field) + " not found or its type is not supported (in struct ::RadarTrack::TrackData)");
   }
 
 #ifndef OPENDDS_NO_MULTI_TOPIC
   const char** getFieldNames() const
   {
-    static const char* names[] = {"trackId", "lat", "lon", "speed", "timestamp", "classification", 0};
+    static const char* names[] = {"trackId", "lat", "lon", "speed", "timestamp", "classification", "commandReceivedAt", 0};
     return names;
   }
 
@@ -934,6 +982,9 @@ struct MetaStructImpl< ::RadarTrack::TrackData> : MetaStruct {
     }
     if (std::strcmp(field, "classification") == 0) {
       return &static_cast<const T*>(stru)->classification;
+    }
+    if (std::strcmp(field, "commandReceivedAt") == 0) {
+      return &static_cast<const T*>(stru)->commandReceivedAt;
     }
     throw std::runtime_error("Field " + OPENDDS_STRING(field) + " not found or its type is not supported (in struct ::RadarTrack::TrackData)");
   }
@@ -970,6 +1021,10 @@ struct MetaStructImpl< ::RadarTrack::TrackData> : MetaStruct {
       static_cast<T*>(lhs)->classification = *static_cast<const  ::CORBA::Octet*>(rhsMeta.getRawField(rhs, rhsFieldSpec));
       return;
     }
+    if (std::strcmp(field, "commandReceivedAt") == 0) {
+      static_cast<T*>(lhs)->commandReceivedAt = *static_cast<const  ::CORBA::LongLong*>(rhsMeta.getRawField(rhs, rhsFieldSpec));
+      return;
+    }
     throw std::runtime_error("Field " + OPENDDS_STRING(field) + " not found or its type is not supported (in struct ::RadarTrack::TrackData)");
   }
 
@@ -995,6 +1050,9 @@ struct MetaStructImpl< ::RadarTrack::TrackData> : MetaStruct {
     }
     if (std::strcmp(field, "classification") == 0) {
       return static_cast<const T*>(lhs)->classification == static_cast<const T*>(rhs)->classification;
+    }
+    if (std::strcmp(field, "commandReceivedAt") == 0) {
+      return static_cast<const T*>(lhs)->commandReceivedAt == static_cast<const T*>(rhs)->commandReceivedAt;
     }
     throw std::runtime_error("Field " + OPENDDS_STRING(field) + " not found or its type is not supported (in struct ::RadarTrack::TrackData)");
   }
@@ -1050,7 +1108,7 @@ public:
 
   DDS::UInt32 get_item_count()
   {
-    return 6;
+    return 7;
   }
 
   bool serialized_size(const OpenDDS::DCPS::Encoding& enc, size_t& size, OpenDDS::DCPS::Sample::Extent ext) const
@@ -1110,6 +1168,10 @@ protected:
       {
         return get_simple_raw_value(method, dest, tk, value_.classification, id);
       }
+    case 6:
+      {
+        return get_simple_raw_value(method, dest, tk, value_.commandReceivedAt, id);
+      }
     default:
       return invalid_id(method, id);
     }
@@ -1145,6 +1207,10 @@ protected:
     case 5:
       {
         return set_simple_raw_value(method, value_.classification, id, source, tk);
+      }
+    case 6:
+      {
+        return set_simple_raw_value(method, value_.commandReceivedAt, id, source, tk);
       }
     default:
       return invalid_id(method, id);
@@ -1210,7 +1276,7 @@ namespace OpenDDS { namespace DCPS {
 namespace {
 XTypes::TypeObject OPENDDS_IDL_FILE_SPECIFIC(minimal_to, 0)()
 {
-  static const unsigned char to_bytes[] = { 115, 0, 0, 0, 241, 81, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 99, 0, 0, 0, 6, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 33, 0, 4, 172, 242, 205, 176, 0, 11, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 64, 115, 212, 27, 0, 11, 0, 0, 0, 2, 0, 0, 0, 1, 0, 10, 167, 188, 26, 209, 0, 11, 0, 0, 0, 3, 0, 0, 0, 1, 0, 9, 206, 78, 243, 236, 0, 11, 0, 0, 0, 4, 0, 0, 0, 1, 0, 5, 215, 230, 213, 91, 0, 11, 0, 0, 0, 5, 0, 0, 0, 1, 0, 2, 99, 246, 156, 127  };
+  static const unsigned char to_bytes[] = { 131, 0, 0, 0, 241, 81, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 115, 0, 0, 0, 7, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 33, 0, 4, 172, 242, 205, 176, 0, 11, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 64, 115, 212, 27, 0, 11, 0, 0, 0, 2, 0, 0, 0, 1, 0, 10, 167, 188, 26, 209, 0, 11, 0, 0, 0, 3, 0, 0, 0, 1, 0, 9, 206, 78, 243, 236, 0, 11, 0, 0, 0, 4, 0, 0, 0, 1, 0, 5, 215, 230, 213, 91, 0, 11, 0, 0, 0, 5, 0, 0, 0, 1, 0, 2, 99, 246, 156, 127, 0, 11, 0, 0, 0, 6, 0, 0, 0, 1, 0, 5, 132, 83, 252, 99  };
   XTypes::TypeObject to;
   if (!to_type_object(to_bytes, sizeof(to_bytes), to)) {
     throw std::runtime_error("Could not deserialize minimal Type Object 0");
@@ -1221,14 +1287,14 @@ XTypes::TypeObject OPENDDS_IDL_FILE_SPECIFIC(minimal_to, 0)()
 XTypes::TypeMap OPENDDS_IDL_FILE_SPECIFIC(get_minimal_type_map_private, 0)()
 {
   XTypes::TypeMap tm;
-  tm[XTypes::TypeIdentifier(XTypes::EK_MINIMAL, XTypes::EquivalenceHashWrapper(151, 207, 25, 253, 200, 72, 87, 152, 128, 45, 46, 79, 142, 105))] = OPENDDS_IDL_FILE_SPECIFIC(minimal_to, 0)();
+  tm[XTypes::TypeIdentifier(XTypes::EK_MINIMAL, XTypes::EquivalenceHashWrapper(89, 19, 75, 39, 113, 84, 21, 26, 44, 28, 55, 66, 54, 199))] = OPENDDS_IDL_FILE_SPECIFIC(minimal_to, 0)();
   return tm;
 }
 
 XTypes::TypeObject OPENDDS_IDL_FILE_SPECIFIC(complete_to, 0)()
 {
   const unsigned char to_bytes[] = {
-209, 0, 0, 0, 242, 81, 2, 0, 30, 0, 0, 0, 0, 0, 0, 0, 22, 0, 0, 0, 82, 97, 100, 97, 114, 84, 114, 97, 99, 107, 58, 58, 84, 114, 97, 99, 107, 68, 97, 116, 97, 0, 0, 0, 165, 0, 0, 0, 6, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 33, 0, 4, 0, 8, 0, 0, 0, 116, 114, 97, 99, 107, 73, 100, 0, 0, 0, 0, 0, 18, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0, 4, 0, 0, 0, 108, 97, 116, 0, 0, 0, 0, 0, 18, 0, 0, 0, 2, 0, 0, 0, 1, 0, 10, 0, 4, 0, 0, 0, 108, 111, 110, 0, 0, 0, 0, 0, 20, 0, 0, 0, 3, 0, 0, 0, 1, 0, 9, 0, 6, 0, 0, 0, 115, 112, 101, 101, 100, 0, 0, 0, 24, 0, 0, 0, 4, 0, 0, 0, 1, 0, 5, 0, 10, 0, 0, 0, 116, 105, 109, 101, 115, 116, 97, 109, 112, 0, 0, 0, 29, 0, 0, 0, 5, 0, 0, 0, 1, 0, 2, 0, 15, 0, 0, 0, 99, 108, 97, 115, 115, 105, 102, 105, 99, 97, 116, 105, 111, 110, 0, 0, 0  };
+248, 0, 0, 0, 242, 81, 2, 0, 30, 0, 0, 0, 0, 0, 0, 0, 22, 0, 0, 0, 82, 97, 100, 97, 114, 84, 114, 97, 99, 107, 58, 58, 84, 114, 97, 99, 107, 68, 97, 116, 97, 0, 0, 0, 204, 0, 0, 0, 7, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 33, 0, 4, 0, 8, 0, 0, 0, 116, 114, 97, 99, 107, 73, 100, 0, 0, 0, 0, 0, 18, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0, 4, 0, 0, 0, 108, 97, 116, 0, 0, 0, 0, 0, 18, 0, 0, 0, 2, 0, 0, 0, 1, 0, 10, 0, 4, 0, 0, 0, 108, 111, 110, 0, 0, 0, 0, 0, 20, 0, 0, 0, 3, 0, 0, 0, 1, 0, 9, 0, 6, 0, 0, 0, 115, 112, 101, 101, 100, 0, 0, 0, 24, 0, 0, 0, 4, 0, 0, 0, 1, 0, 5, 0, 10, 0, 0, 0, 116, 105, 109, 101, 115, 116, 97, 109, 112, 0, 0, 0, 29, 0, 0, 0, 5, 0, 0, 0, 1, 0, 2, 0, 15, 0, 0, 0, 99, 108, 97, 115, 115, 105, 102, 105, 99, 97, 116, 105, 111, 110, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 6, 0, 0, 0, 1, 0, 5, 0, 18, 0, 0, 0, 99, 111, 109, 109, 97, 110, 100, 82, 101, 99, 101, 105, 118, 101, 100, 65, 116, 0, 0, 0  };
   XTypes::TypeObject to;
   if (!to_type_object(to_bytes, sizeof(to_bytes), to)) {
     throw std::runtime_error("Could not deserialize complete Type Object 0");
@@ -1239,7 +1305,7 @@ XTypes::TypeObject OPENDDS_IDL_FILE_SPECIFIC(complete_to, 0)()
 XTypes::TypeMap OPENDDS_IDL_FILE_SPECIFIC(get_complete_type_map_private, 0)()
 {
   XTypes::TypeMap tm;
-  tm[XTypes::TypeIdentifier(XTypes::EK_COMPLETE, XTypes::EquivalenceHashWrapper(149, 21, 131, 37, 46, 61, 57, 35, 155, 64, 170, 197, 18, 203))] = OPENDDS_IDL_FILE_SPECIFIC(complete_to, 0)();
+  tm[XTypes::TypeIdentifier(XTypes::EK_COMPLETE, XTypes::EquivalenceHashWrapper(65, 189, 210, 116, 175, 53, 156, 27, 104, 137, 30, 139, 252, 141))] = OPENDDS_IDL_FILE_SPECIFIC(complete_to, 0)();
   return tm;
 }
 }

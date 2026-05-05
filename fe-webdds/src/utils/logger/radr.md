@@ -1,238 +1,133 @@
-# Review Variabel Performa `radarLogger.ts`
+# Dokumentasi Teknis Performa Radar WebDDS
 
-> Jam WSL dan Windows sudah sinkron (selisih ~225ms). Review ini berdasarkan kode versi terkini.
-
----
-
-## 1. `Packets Processed` 
-
-### Lokasi Kode
-```typescript
-// baris 36
-this.stats.count += tracks.length;
-```
-
-### Rumus
-```
-Packets Processed = Total semua track yang diterima selama periode 5 detik
-```
-
-### Contoh
-- Backend mengirim **3000 track** per siklus, setiap **1 detik**
-- Dalam 5 detik → 5 siklus × 3000 = **15.000 paket** (idealnya)
-- Karena QoS `BEST_EFFORT`, sebagian paket hilang → angka sebenarnya lebih rendah (misal ~6000-8000)
-
+Dokumen ini menjelaskan sumber data, rumus, dan contoh penghitungan untuk semua log performa yang muncul di Console Browser.
 
 ---
 
-## 2. `Avg Latency` 
+## 1. Aliran Kendali [ FE > gateway > BE ]
+*Log ini muncul saat Anda menekan tombol "Start" atau mengubah jumlah track.*
 
-### Lokasi Kode
-```typescript
-// baris 42-48
-const rawLat = arrivalTime - track.timestamp;         // Selisih mentah
-if (this.baseOffset === null || rawLat < this.baseOffset) {
-  this.baseOffset = rawLat;                            // Cari selisih terkecil
-}
-const cleanLat = Math.max(0, rawLat - this.baseOffset); // Latensi terkalibrasi
+### A. Payload Size
+- **Asal Data**: Panjang string JSON yang dikirim melalui WebSocket.
+- **Rumus**: `JSON.stringify({ action, value }).length` (dalam satuan Bytes).
+- **Contoh**: Jika mengirim `{"action":"START","value":3000}`, panjangnya adalah **31 bytes**.
 
-// baris 69
-const avgLatency = this.stats.count > 0 ? (this.stats.totalLat / this.stats.count) : 0;
-```
+### B. Throughput (Est)
+- **Asal Data**: Hasil bagi antara ukuran data dan waktu tempuh.
+- **Rumus**: `PayloadSize (Bytes) / Latency (ms)`
+- **Contoh**: Payload **31 bytes**, Latensi **19.2ms**.
+  - Hitung: `31 / 19.2 = 1.61 KB/s`.
+  - *(Catatan: Bytes/ms secara matematis sama nilainya dengan KB/s).*
 
-### Rumus
-```
-rawLat        = Waktu_Terima [Browser] − Waktu_Kirim [Backend]
-baseOffset    = Nilai rawLat terkecil yang ditemukan dalam 5 detik
-cleanLat      = rawLat − baseOffset
-Avg Latency   = Total cleanLat / Total jumlah_paket
-```
-
-### Contoh Perhitungan (jam sudah sinkron, selisih ~225ms)
-| Track | timestamp (BE) | arrivalTime (FE) | rawLat | baseOffset | cleanLat |
-|-------|---------------|-------------------|--------|------------|----------|
-| ID 0  | 1777865916000 | 1777865916230     | 230ms  | 230ms (baru) | **0ms** |
-| ID 1  | 1777865916001 | 1777865916235     | 234ms  | 230ms      | **4ms** |
-| ID 99 | 1777865916050 | 1777865916320     | 270ms  | 230ms      | **40ms** |
-| ID 500| 1777865916100 | 1777865916450     | 350ms  | 230ms      | **120ms** |
-
-```
-Avg Latency = (0 + 4 + 40 + 120) / 4 = 41ms
-```
-
-### Apa yang diukur?
-- **Bukan** delay jaringan absolut (karena sudah dikurangi baseOffset)
-- **Yang diukur**: Variasi waktu antar paket — seberapa besar "jitter" atau antrean yang terjadi di Gateway & Browser
-- Paket tercepat = 0ms (menjadi baseline), paket lain diukur relatif terhadap baseline
-
-### Catatan
-- `baseOffset` di-reset setiap 5 detik (`resetStats`), sehingga kalibrasi dimulai ulang tiap periode
-- Ini berarti paket pertama di setiap periode selalu memiliki cleanLat = 0, yang sedikit menurunkan rata-rata
-- **Dampaknya kecil** jika jumlah paket besar (ribuan), jadi secara keseluruhan masih akurat
-
+### C. Durasi Pengiriman (Latency)
+- **Asal Data**: Selisih antara waktu kirim di FE dan waktu tiba di BE.
+- **Rumus**: `(Waktu_Terima_BE + Drift) - Waktu_Kirim_FE`
+- **Contoh**:
+  - FE Kirim: `17:10:00.000`
+  - BE Terima (Normal): `17:10:00.015`
+  - Hasil: **15.00 ms**.
 
 ---
 
-## 3. `Throughput` 
+## 2. Aliran Data Radar [ BE > gateway > FE ]
+*Log ini muncul secara periodik setiap 5 detik (Radar Periodic Report).*
 
-### Lokasi Kode
-```typescript
-// baris 38-39
-const byteSize = rawLength ?? (tracks.length * 150);  // rawLength dari WebSocket
-this.stats.totalBytes += byteSize;
+### A. Packets (5s window)
+- **Asal Data**: Counter internal di `radarLogger.ts` yang bertambah setiap ada track baru masuk.
+- **Rumus**: `count = count + tracks.length`
+- **Contoh**: Jika interval BE adalah **1000ms** (1 detik) dan mengirim **3000 track** per siklus:
+  - Dalam 5 detik akan diterima **5 siklus** data.
+  - Total paket: `5 siklus x 3000 track = 15.000 paket`.
 
-// baris 68
-const throughput = (this.stats.totalBytes / 1024) / duration;
-```
+### B. Avg Latency
+- **Asal Data**: Rata-rata selisih waktu semua paket setelah dikompensasi Drift.
+- **Rumus**: `Sum(Waktu_Terima_FE - (Waktu_Kirim_BE + Drift)) / Total_Packets`
+- **Contoh**: Jika total akumulasi latensi adalah `4.135.000 ms` dari `3.917` paket.
+  - Hitung: `4.135.000 / 3.917 = 1055.65 ms`.
 
-### Rumus
-```
-Throughput (KB/s) = (Total Bytes diterima / 1024) / Durasi (detik)
-```
-
-### Contoh
-- Dalam 5 detik, diterima 6000 paket
-- Setiap paket JSON radar ≈ 95 byte (`rawLength` dari `event.data.length`)
-- Total: 6000 × 95 = 570.000 byte
-- Throughput: (570.000 / 1024) / 5 = **111.33 KB/s**
-
-### Catatan
-- `rawLength` **sudah diisi** oleh `webdds.ts` (baris 49: `event.data.length`), jadi fallback 150 byte jarang dipakai
-- Yang diukur adalah ukuran **string JSON**, bukan byte di jaringan (yang bisa lebih kecil karena kompresi TCP)
-
-### 
-
----
-
-## 4. `Waktu Kirim ID 0` 
-
-### Lokasi Kode
-```typescript
-// baris 51-53
-if (track.trackId === 0) {
-  this.audit.t1_sent = track.timestamp;   // Jam WSL/Backend
-  this.audit.t1_received = arrivalTime;   // Jam Windows/Browser
-}
-
-// baris 80
-console.log(`Waktu Kirim ID 0 (Pertama) : ${this.formatTime(this.audit.t1_sent)}`);
-```
-
-### Rumus
-```
-Waktu Kirim = new Date(track.timestamp)  → diformat ke "HH:mm:ss"
-```
-
-### Contoh
-- Backend mengirim track ID 0 pada `timestamp = 1777865916000`
-- `new Date(1777865916000)` → `10:38:36` (jam WSL)
-- Ditampilkan di log: `Waktu Kirim ID 0 (Pertama) : 10:38:36`
-
-### Catatan
-- Ini menampilkan **jam WSL mentah** (sumber: `track.timestamp`)
-- Sekarang jam sudah sinkron (~225ms), jadi tampilan ini akan terlihat logis
-- Jika jam WSL drift lagi di masa depan, angka ini bisa terlihat aneh dibandingkan jam browser
-
-### 
+### C. Throughput (Radar)
+- **Asal Data**: Ukuran asli string JSON yang diterima melalui WebSocket.
+- **Lokasi Pengambilan**: 
+  1.  **`src/utils/api/webdds.ts`**: Di sini sistem menangkap event WebSocket mentah. Ukuran data diambil menggunakan `event.data.length` (jumlah karakter dalam string JSON).
+  2.  **`src/utils/api/radarApi.ts`**: Menerima ukuran tersebut (`rawLength`) dan meneruskannya ke fungsi `logIncomingPackets`.
+- **Rumus**: `Throughput = (Total_Accumulated_Bytes / 1024) / 5 detik`
+- **Contoh**:
+  - Diterima 1 siklus data berisi 3000 track.
+  - Panjang string JSON gabungan tersebut adalah **450.000 bytes** (sekitar 440 KB).
+  - Jika dalam 5 detik ada 5 siklus: `Total = 450.000 x 5 = 2.250.000 bytes`.
+  - Hitung: `(2.250.000 / 1024) / 5 = 439.45 KB/s`.
 
 ---
 
-## 5. `Waktu Terima ID 99` 
+## 3. Audit Siklus (Burst Audit)
+*Log ini menggunakan data dari siklus lengkap terakhir (ID 0 s/d ID Terakhir).*
 
-### Lokasi Kode
-```typescript
-// baris 55-56
-if (track.trackId === 99) {
-  this.audit.t100_received = arrivalTime;  // Jam Windows/Browser
-}
+### A. Waktu Kirim ID 0 (Pertama)
+- **Rumus**: `Normalize(Track0.timestamp)` → `Track0.timestamp + Drift`
+- **Contoh**: `17:17:23.680 (Mentah) + 2324.30ms (Drift) = 17:17:26.004`.
 
-// baris 81
-console.log(`Waktu Terima ID 99 (ke-100): ${this.formatTime(this.audit.t100_received)}`);
-```
+### B. Latensi Murni ID 0
+- **Rumus**: `Waktu_Terima_ID0_FE - Normalized_Kirim_ID0_BE`
+- **Contoh**:
+  - Terima: `17:17:25.714`
+  - Kirim (Norm): `17:17:26.004`
+  - Hitung: `...714 - ...004 = -290.00 ms`.
+  - *(Catatan: Jika minus, berarti Drift Adaptif sedang mengejar perubahan jam yang drastis).*
 
-### Rumus
-```
-Waktu Terima = new Date(Date.now() saat ID 99 tiba)  → diformat ke "HH:mm:ss"
-```
-
-### 
-
----
-
-## 6. `Durasi Streaming ID 0 s/d 99` 
-
-### Lokasi Kode
-```typescript
-// baris 71-73
-const burstDuration = this.audit.t100_received > 0 && this.audit.t1_sent > 0
-  ? Math.max(10, this.audit.t100_received - this.audit.t1_sent - (this.baseOffset || 0))
-  : 0;
-```
-
-### Rumus
-```
-burstDuration = max(10, t100_received − t1_sent − baseOffset)
-              = max(10, (jam Browser saat ID 99 tiba) − (jam Backend saat ID 0 dikirim) − baseOffset)
-```
-
-### Contoh (jam sinkron, baseOffset = 225ms)
-- Backend kirim ID 0: `t1_sent = 1777865916000`
-- Browser terima ID 99: `t100_received = 1777865916350`
-- `burstDuration = max(10, 1777865916350 - 1777865916000 - 225) = max(10, 125) = 125ms`
-
-### Apa yang diukur?
-Waktu yang dibutuhkan untuk 100 track pertama (ID 0 sampai ID 99) menempuh perjalanan dari Backend hingga sampai di Browser. Ini mencakup:
-- Waktu serialisasi di Backend
-- Waktu transmisi DDS (RTPS)
-- Waktu proses di Gateway (JSON conversion + WebSocket send)
-- Waktu parsing di Browser
-
-### Catatan
-- **Mencampur dua sumber waktu** (Backend + Browser), dikompensasi oleh `baseOffset`
-- `Math.max(10, ...)` memaksa minimum 10ms — ini menyembunyikan kasus di mana data sampai sangat cepat
-- Karena audit values **tidak di-reset saat ID 0 datang**, ada potensi `t100_received` dari siklus lama jika ID 99 hilang (packet loss) → angka bisa tidak akurat
-- Namun dengan jam yang sudah sinkron dan `baseOffset` yang di-reset tiap 5 detik, hasilnya **cukup akurat** untuk penggunaan monitoring
-
-### Status: 
+### C. Durasi Streaming (End-to-End)
+- **Rumus**: `Waktu_Terima_ID_Terakhir_FE - Normalized_Kirim_ID0_BE`
+- **Contoh**:
+  - Terima ID 2999: `17:17:25.724`
+  - Kirim ID 0 (Norm): `17:17:26.004`
+  - Hitung: `...724 - ...004 = -280 ms` (dibulatkan ke `0.00ms` oleh `Math.max(0,...)`).
 
 ---
 
-## 7. `Data Drop Detection` 
+## 4. Simulasi Lengkap Clock Drift (Plus vs Mines)
 
-### Lokasi Kode
-```typescript
-// baris 107-142
-public logDataDrop(currentCount: number, targetCount: number): void { ... }
-```
+Asumsi:
+- **Interval Pengiriman di BE**: 20ms (Waktu dari ID 0 ke ID terakhir).
+- **Latensi Jaringan Asli**: 5ms.
 
-### Logika
-```
-1. Jika targetCount berubah → reset monitoring
-2. Tunggu sampai currentCount >= targetCount (data lengkap pertama kali)
-3. Setelah itu, jika currentCount < targetCount → LOG "DATA DROP DETECTED!"
-4. Rate-limit: hanya log sekali per detik (mencegah spam)
-5. Jika currentCount === 0 → anggap BE mati/reset, matikan monitoring
-```
+### Skenario A: Drift PLUS (+100ms)
+*Artinya: Jam Windows 100ms lebih CEPAT dari jam WSL.*
 
-### Contoh
-- Target: 3000 track
-- Siklus 1-3: `currentCount` naik perlahan dari 0 → 1000 → 2500 → 3000 Target tercapai
-- Siklus 4: `currentCount = 2850` → DATA DROP DETECTED! Missing: 150
-- Siklus 5: `currentCount = 0` → BE mati, reset monitoring
+| Metrik | Proses / Rumus | Hasil Simulasi |
+| :--- | :--- | :--- |
+| **Waktu Kirim BE (ID 0)** | Data lahir di WSL | `09:00:00.000` |
+| **Waktu Kirim BE (ID Akhir)**| Data lahir di WSL | `09:00:00.020` |
+| **Waktu Terima FE (ID 0)** | 5ms Jaringan + 100ms Selisih Jam | `09:00:00.105` |
+| **Waktu Terima FE (ID Akhir)**| 5ms Jaringan + 100ms Selisih Jam | `09:00:00.125` |
+| **Clock Drift Terdeteksi** | `T_terima - T_kirim` (min) | `+100.00 ms` |
+| **Normalized Kirim ID 0** | `000 + 100` | `09:00:00.100` |
+| **Latensi Murni ID 0** | `105 - 100` | **5.00 ms** |
+| **Durasi Streaming** | `125 (Terima Akhir) - 100 (Kirim 0 Norm)` | **25.00 ms** |
 
 ---
 
-## Ringkasan
+### Skenario B: Drift MINES (-100ms)
+*Artinya: Jam Windows 100ms lebih LAMBAT dari jam WSL.*
 
-| # | Variabel | Rumus | Status |
-|---|----------|-------|--------|
-| 1 | Packets Processed | Total track yang diterima |
-| 2 | Avg Latency | (Total Latensi / Total Paket) |
-| 3 | Throughput | (Total KB / Durasi Detik) |
-| 4 | Waktu Kirim ID 0 | Jam dari Backend (WSL) | 
-| 5 | Waktu Terima ID 99 | Jam dari Browser (Windows) |
-| 6 | Durasi Streaming | Selisih Terima ID 99 vs Kirim ID 0 |
-| 7 | Data Drop | Deteksi jika data berkurang |
+| Metrik | Proses / Rumus | Hasil Simulasi |
+| :--- | :--- | :--- |
+| **Waktu Kirim BE (ID 0)** | Data lahir di WSL | `09:00:00.100` |
+| **Waktu Kirim BE (ID Akhir)**| Data lahir di WSL | `09:00:00.120` |
+| **Waktu Terima FE (ID 0)** | 5ms Jaringan - 100ms Selisih Jam | `09:00:00.005` |
+| **Waktu Terima FE (ID Akhir)**| 5ms Jaringan - 100ms Selisih Jam | `09:00:00.025` |
+| **Clock Drift Terdeteksi** | `T_terima - T_kirim` (min) | `-100.00 ms` |
+| **Normalized Kirim ID 0** | `100 + (-100)` | `09:00:00.000` |
+| **Latensi Murni ID 0** | `005 - 000` | **5.00 ms** |
+| **Durasi Streaming** | `025 (Terima Akhir) - 000 (Kirim 0 Norm)` | **25.00 ms** |
+
+---
+
+## 5. Ringkasan Tugas Performa
+
+| Pengukuran | Komponen Terlibat | Siapa yang Menghitung? |
+| :--- | :--- | :--- |
+| **FE > BE** | Browser -> Gateway -> C++ | `commandLogger.ts` |
+| **BE > FE** | C++ -> Gateway -> Browser | `radarLogger.ts` |
+| **Clock Sync** | Windows Clock & WSL Clock | `driftManager.ts` |
 
 > [!TIP]
-> Dengan jam yang sudah tersinkron (~225ms), **semua variabel akan menampilkan angka yang akurat dan masuk akal**. Tidak ada perubahan kode yang wajib dilakukan saat ini.
+> Jika Anda melihat **Latensi Murni** bernilai minus yang besar (seperti `-289ms`), itu tandanya beban CPU sangat tinggi sehingga jam WSL melambat secara ekstrem. Segera lakukan `wsl --shutdown` untuk mereset kondisi kernel.

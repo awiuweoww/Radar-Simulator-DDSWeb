@@ -36,7 +36,10 @@ class RadarSubscriber {
   /**
    * Semantik WebDDS: Connect & Subscribe
    */
+  private currentTargetCount: number = 0;
+
   public connect(targetCount: number, callback: RadarUpdateCallback) {
+    this.currentTargetCount = targetCount;
     if (this.participant) return;
 
     const dds = new WebDDS(this.restUrl, this.wsUrl);
@@ -57,10 +60,9 @@ class RadarSubscriber {
         tracks = data;
       }
 
-      console.log(`[OMG WebDDS] Received ${tracks} row data ${data}`);
 
       if (tracks.length > 0) {
-        radarLogger.logIncomingPackets(data, tracks, rawLength);
+        radarLogger.logIncomingPackets(data, tracks, this.currentTargetCount, rawLength);
         callback(tracks);
       }
     });
@@ -84,8 +86,17 @@ class RadarSubscriber {
    * Mengirim statistik/perintah ke Simulator C++ 
    */
   public updateTargetCount(count: number): void {
+    this.currentTargetCount = count;
     if (this.commandWriter) {
-      this.commandWriter.write({ action: 'START', value: count });
+      radarLogger.logFeToBeSend(count);
+      const action = count > 0 ? 'START' : 'STOP';
+      this.commandWriter.write({ action, value: count });
+    }
+  }
+
+  public stop(): void {
+    if (this.commandWriter) {
+      this.commandWriter.write({ action: 'STOP', value: 0 });
     }
   }
 }

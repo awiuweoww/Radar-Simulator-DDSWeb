@@ -19,8 +19,10 @@ RadarTrackODDSPublisher::RadarTrackODDSPublisher(const DDS::DomainParticipant_va
     result = type_support->register_type(*this->get_participant_(), type_name);
     this->get_odds_operator_()->check_status(result, "register_type() RadarTrack::TrackData failed");
 
-    /** setting QoS reliability, lifespan, and liveliness */
+    /** setting QoS reliability, history, lifespan, and liveliness */
     this->get_w_qos_()->reliability.kind = DDS::RELIABLE_RELIABILITY_QOS;
+    this->get_w_qos_()->history.kind = DDS::KEEP_ALL_HISTORY_QOS;
+    
     this->get_w_qos_()->lifespan.duration.sec = 3; 
     this->get_w_qos_()->lifespan.duration.nanosec = 0;
     
@@ -43,6 +45,7 @@ void RadarTrackODDSPublisher::set_radar_data(const RadarTrackTransmitData &data)
     radar_msg_.speed = data.speed;
     radar_msg_.timestamp = data.timestamp;
     radar_msg_.classification = data.classification;
+    radar_msg_.commandReceivedAt = data.commandReceivedAt;
 
     this->send_message();
 }

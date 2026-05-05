@@ -140,6 +140,7 @@ export function useRadarSimulation(
       radarApi.updateTargetCount(targetCount);
     } else {
       currentSessionId.current = 0;
+      radarApi.stop();
       radarApi.disconnect();
       livePoolRef.current.clear();
       vectorSourceRef.current.clear();

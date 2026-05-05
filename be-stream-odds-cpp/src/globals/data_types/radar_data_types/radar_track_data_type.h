@@ -13,4 +13,5 @@ struct RadarTrackTransmitData {
     float speed;
     int64_t timestamp;
     uint8_t classification;
+    int64_t commandReceivedAt;
 };

@@ -13,6 +13,7 @@ module RadarTrack {
         float speed;
         long long timestamp; 
         octet classification; 
+        long long commandReceivedAt;
     };
 
 };

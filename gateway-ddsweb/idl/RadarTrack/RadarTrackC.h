@@ -25,8 +25,8 @@
 // TAO_IDL - Generated from
 // /opt/odds3291-java/OpenDDS-3.29.1/ACE_wrappers/TAO/TAO_IDL/be/be_codegen.cpp:148
 
-#ifndef _TAO_IDL_RADARTRACKC_JOBB2D_H_
-#define _TAO_IDL_RADARTRACKC_JOBB2D_H_
+#ifndef _TAO_IDL_RADARTRACKC_LQEX0L_H_
+#define _TAO_IDL_RADARTRACKC_LQEX0L_H_
 
 #include /**/ "ace/pre.h"
 
@@ -97,6 +97,7 @@ namespace RadarTrack
     ::CORBA::Float speed;
     ::CORBA::LongLong timestamp;
     ::CORBA::Octet classification;
+    ::CORBA::LongLong commandReceivedAt;
   };
 
 

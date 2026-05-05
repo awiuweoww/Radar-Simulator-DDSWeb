@@ -31,13 +31,27 @@ export function formatLongitude(lon: number): string {
  */
 export function getClassificationTailwindClass(classification: number): string {
   switch (classification) {
-    case 0: // FRIEND
+    case 0: 
       return 'bg-success';
-    case 1: // HOSTILE
+    case 1: 
       return 'bg-danger';
-    case 3: // NEUTRAL
+    case 3: 
       return 'bg-yellow-400';
     default:
       return 'bg-cyan-400';
   }
+}
+
+/**
+ * Format timestamp milidetik ke string waktu dengan milidetik (HH:mm:ss.SSS)
+ * Khusus digunakan untuk logging performa.
+ */
+export function formatLoggerTime(ts: number): string {
+  if (!ts) return "N/A";
+  const d = new Date(ts);
+  const h = String(d.getHours()).padStart(2, '0');
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const s = String(d.getSeconds()).padStart(2, '0');
+  const ms = String(d.getMilliseconds()).padStart(3, '0');
+  return `${h}:${m}:${s}.${ms}`;
 }

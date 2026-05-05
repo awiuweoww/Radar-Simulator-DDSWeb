@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_ENV=development rspack serve --config rspack.config.ts",
+    "sync-clock": "./src/utils/logger/sync-clock.sh",
+    "dev": "./src/utils/logger/sync-clock.sh && cross-env NODE_ENV=development rspack serve --config rspack.config.ts",
     "build": "cross-env NODE_ENV=production rspack build --config rspack.config.ts",
     "lint": "eslint src --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",

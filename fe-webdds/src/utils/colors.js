@@ -1,18 +1,9 @@
 /**
- * Created Date       : 11-04-2026
- * Description        : File konfigurasi Token Warna (Design System) pusat.
- *                      Fokus utama: Menstandarkan palet UI komponen dan dikonsumsi langsung oleh konfigurasi Tailwind.
- *
- * Arsitektur:
- *   Desainer ──► colors.js ──► tailwind.config.js & Komponen TSX
- *
- * Changelog:
- *   - 0.1.0 (11-04-2026): Penyesuaian palet neon (Cyan) dan sentralisasi token surface gelap.
+ * @file colors.js
+ * @description File konfigurasi Token Warna (Design System) pusat.
  */
-/** @type {Record<string, string | Record<string, string>>} */
 
-module.exports = {
-	
+const colors = {
 	surface: {
 		50: "#f2f4f6",
 		100: "#d9dde3",
@@ -39,3 +30,25 @@ module.exports = {
 		DEFAULT: "#00d8ff"
 	}
 };
+
+/** Gaya Log Konsol */
+export const LOGGER_STYLES = {
+    header: 'color: #a78bfa; font-weight: bold; font-size: 11px',
+    commandHeader: 'color: #fb923c; font-weight: bold; font-size: 11px',
+    section: 'color: #facc15; font-weight: bold',
+    label: 'color: #d1d5db',
+    value: 'color: #34d399; font-weight: bold',
+    separator: 'color: #4b5563',
+    duration: 'color: #f59e0b; font-weight: bold',
+    sepLine: '-------------------------------------------'
+};
+
+export const getTimeHeader = () => new Date().toLocaleTimeString('en-GB', { hour12: false });
+
+export { colors };
+
+export default colors;
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = colors;
+}

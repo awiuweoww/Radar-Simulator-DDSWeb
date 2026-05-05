@@ -1,17 +1,33 @@
 /**
  * @file radarLogger.ts
- * @description Auditor performa radar dengan akurasi tinggi.
+ * @description Auditor performa Web DDS Radar.
  * Menghitung latensi end-to-end (Backend-to-Frontend) secara real-time.
  */
 
 import { TrackData } from '../../types/RadarTrack';
+import { commandLogger } from './commandLogger';
+import { driftManager } from './driftManager';
+import { formatLoggerTime } from '../formatters';
+import { integrityManager } from './integrityManager';
+import { LOGGER_STYLES, getTimeHeader } from '../colors';
 
 class RadarLogger {
-  private baseOffset: number | null = null;
+  private enabled: boolean = true;
+
   private audit = {
-    t1_sent: 0,
-    t100_received: 0,
-    t1_received: 0
+    t_be_command_received: 0,
+    // Data dari siklus terakhir yang lengkap (ID 0 s/d ID Terakhir)
+    lastCompletedCycle: {
+      t0_sent: 0,
+      t0_received: 0,
+      tLast_received: 0,
+      isValid: false
+    }
+  };
+
+  private activeCycle = {
+    t0_sent: 0,
+    t0_received: 0,
   };
 
   private stats = {
@@ -21,72 +37,137 @@ class RadarLogger {
     startTime: performance.now(),
   };
 
-  private integrity = {
-    targetReached: false,
-    maxObserved: 0,
-    lastDropLog: 0,
-    lastTargetCount: 0
-  };
+  /** Track IDs yang diterima dalam siklus ini untuk verifikasi */
+  private receivedIds = new Set<number>();
 
-  /**
-   * Mencatat paket masuk dengan perhitungan latensi yang disinkronisasi. 
-   */
-  public logIncomingPackets(data: unknown, tracks: TrackData[], rawLength?: number): void {
-    const arrivalTime = Date.now();
+  public logIncomingPackets(data: unknown, tracks: TrackData[], targetCount: number, rawLength?: number): void {
     this.stats.count += tracks.length;
 
     const byteSize = rawLength ?? (tracks.length * 150);
     this.stats.totalBytes += byteSize;
 
+    const arrivalTime = driftManager.now();
+    
+    // Sinkronisasi Jam (Clock Drift) dilakukan sekali per batch 
+    if (tracks.length > 0) {
+      const firstRawLat = arrivalTime - tracks[0].timestamp;
+      driftManager.updateDrift(firstRawLat);
+    }
+
     tracks.forEach(track => {
       const rawLat = arrivalTime - track.timestamp;
-      if (this.baseOffset === null || rawLat < this.baseOffset) {
-        this.baseOffset = rawLat;
-      }
+      const cleanLat = rawLat - driftManager.getDrift();
+      this.stats.totalLat += Math.max(0, cleanLat);
 
-      const cleanLat = Math.max(0, rawLat - this.baseOffset);
-      this.stats.totalLat += cleanLat;
 
-      // Logika Audit: Cek ID 0 (Data ke-1) dan ID 99 (Data ke-100)
+      // Kumpulkan ID yang diterima
+      this.receivedIds.add(track.trackId);
+
+      // Logika Audit Cycle-Aware
       if (track.trackId === 0) {
-        this.audit.t1_sent = track.timestamp;
-        this.audit.t1_received = arrivalTime;
+        // Mulai siklus baru
+        this.activeCycle.t0_sent = track.timestamp;
+        this.activeCycle.t0_received = arrivalTime;
+        this.audit.t_be_command_received = track.commandReceivedAt;
+
+        commandLogger.logCommandArrival(track.commandReceivedAt);
       }
-      if (track.trackId === 99) {
-        this.audit.t100_received = arrivalTime;
+
+      const lastExpectedId = targetCount - 1;
+      if (track.trackId === lastExpectedId && track.trackId !== 0) {
+        // Siklus lengkap! Simpan ke audit untuk laporan
+        this.audit.lastCompletedCycle = {
+          t0_sent: this.activeCycle.t0_sent,
+          t0_received: this.activeCycle.t0_received,
+          tLast_received: arrivalTime,
+          isValid: true
+        };
       }
     });
+
     const now = performance.now();
     if (now - this.stats.startTime > 5000) {
-      this.printSummary();
+      this.printSummary(targetCount);
       this.resetStats(now);
     }
   }
 
-  private printSummary(): void {
+  /**
+   * Mencatat waktu pengiriman command dari FE ke BE.
+   * Delegasi ke commandLogger.
+   */
+  public logFeToBeSend(targetCount: number): void {
+    commandLogger.logCommandSend(targetCount);
+  }
+
+  private printSummary(targetCount: number): void {
+    if (!this.enabled) return;
     const duration = (performance.now() - this.stats.startTime) / 1000;
     const throughput = (this.stats.totalBytes / 1024) / duration;
     const avgLatency = this.stats.count > 0 ? (this.stats.totalLat / this.stats.count) : 0;
 
-    const burstDuration = this.audit.t100_received > 0 && this.audit.t1_sent > 0
-      ? Math.max(10, this.audit.t100_received - this.audit.t1_sent - (this.baseOffset || 0))
+    const cycle = this.audit.lastCompletedCycle;
+    
+    const burstDuration = cycle.isValid
+      ? Math.max(0, cycle.tLast_received - driftManager.normalize(cycle.t0_sent))
       : 0;
 
-    console.groupCollapsed(`%c  Radar Performance Report (${new Date().toLocaleTimeString()})`, 'color: #3b82f6; font-weight: bold');
-    console.log(`Packets Processed : ${this.stats.count}`);
-    console.log(`Avg Latency      : %c${avgLatency.toFixed(2)}ms`, 'color: #22c55e; font-weight: bold');
-    console.log(`Throughput       : ${throughput.toFixed(2)} KB/s`);
-    console.log(`-------------------------------------------`);
-    console.log(`Waktu Kirim ID 0 (Pertama) : ${this.formatTime(this.audit.t1_sent)}`);
-    console.log(`Waktu Terima ID 99 (ke-100): ${this.formatTime(this.audit.t100_received)}`);
-    console.log(`%cDurasi Streaming ID 0 s/d 99: ${burstDuration.toFixed(2)}ms`, 'color: #f59e0b; font-weight: bold');
-    console.groupEnd();
-  }
+    const realLatId0 = cycle.isValid
+      ? (cycle.t0_received - driftManager.normalize(cycle.t0_sent))
+      : 0;
 
-  private formatTime(ts: number): string {
-    if (!ts) return "N/A";
-    const d = new Date(ts);
-    return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+    console.groupCollapsed(`%c📊 Radar Periodic Report (${getTimeHeader()})`, LOGGER_STYLES.header);
+
+    console.log(`%c=========================`, LOGGER_STYLES.separator);
+    console.log(`%c[ Be > gateway > FE ]`, LOGGER_STYLES.section);
+    console.log(`%c=========================`, LOGGER_STYLES.separator);
+    console.log(`%cPackets (5s window): %c${this.stats.count}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+    console.log(`%cAvg Latency      : %c${avgLatency.toFixed(2)}ms`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+    console.log(`%cThroughput       : %c${throughput.toFixed(2)} KB/s`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+    console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
+    console.log(`%cTotal Track Diterima (per siklus): %c${this.receivedIds.size}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+
+    const missingIds: number[] = [];
+    for (let i = 0; i < targetCount; i++) {
+      if (!this.receivedIds.has(i)) missingIds.push(i);
+    }
+    const isComplete = missingIds.length === 0;
+
+    console.groupCollapsed(`%cID Verification   : %c${isComplete ? 'LENGKAP' : missingIds.length + ' MISSING'}`, LOGGER_STYLES.label, isComplete ? LOGGER_STYLES.value : 'color: #ef4444');
+    
+    const idsArray = Array.from(this.receivedIds).sort((a, b) => a - b);
+    
+    if (!isComplete) {
+      console.log(`%cMissing IDs: %c${missingIds.join(', ')}`, 'color: #fca5a5', 'color: #ef4444; font-family: monospace');
+    } else {
+      console.log('%cSemua ID (0 s/d ' + (targetCount - 1) + ') diterima tanpa celah.', 'color: #34d399');
+    }
+
+    // Selalu tampilkan daftar lengkap agar bisa dicek manual
+    console.log('%cFull Received ID List:', 'color: #9ca3af', idsArray);
+    
+    console.groupEnd();
+
+
+
+    console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
+    if (cycle.isValid) {
+      const lastId = targetCount - 1;
+      console.log(`%cWaktu Kirim ID 0 (Pertama) : %c${formatLoggerTime(driftManager.normalize(cycle.t0_sent))}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+      console.log(`%cWaktu Terima ID 0 (Pertama): %c${formatLoggerTime(cycle.t0_received)}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+      console.log(`%cLatensi Murni satu ID (ID=0)     : %c${realLatId0.toFixed(2)}ms`, LOGGER_STYLES.label, Math.abs(realLatId0) < 50 ? LOGGER_STYLES.value : 'color: #ef4444');
+      
+      console.log(' '); // Spasi pemisah
+
+      console.log(`%cWaktu Terima ID ${lastId} (terakhir): %c${formatLoggerTime(cycle.tLast_received)}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+      console.log(`%cDurasi Streaming data pertama ke terahir  : %c${burstDuration.toFixed(2)}ms`, LOGGER_STYLES.label, LOGGER_STYLES.duration);
+    } else {
+      console.log('%c[!] Data siklus belum lengkap untuk audit presisi.', 'color: #f59e0b');
+    }
+    console.log(`%cClock Drift Adaptif      : %c${driftManager.getDrift().toFixed(2)}ms`, LOGGER_STYLES.label, 'color: #818cf8');
+    console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
+
+    console.groupEnd();
   }
 
   private resetStats(now: number): void {
@@ -94,52 +175,14 @@ class RadarLogger {
     this.stats.totalBytes = 0;
     this.stats.totalLat = 0;
     this.stats.startTime = now;
-    this.baseOffset = null;
 
-    this.audit.t1_sent = 0;
-    this.audit.t100_received = 0;
-    this.audit.t1_received = 0;
+    // Jangan reset audit cycle di sini agar summary tetap bisa menampilkan data terakhir yang valid
+    this.receivedIds.clear();
   }
 
-  /**
-   * Mencatat bukti jika data hilang setelah mencapai target.
-   */
+
   public logDataDrop(currentCount: number, targetCount: number): void {
-    if (targetCount <= 0) return;
-    if (this.integrity.lastTargetCount !== targetCount) {
-      this.integrity.targetReached = false;
-      this.integrity.maxObserved = 0;
-      this.integrity.lastTargetCount = targetCount;
-    }
-
-    if (!this.integrity.targetReached) {
-      if (currentCount >= targetCount) {
-        this.integrity.targetReached = true;
-        this.integrity.maxObserved = currentCount;
-        console.log(`%c Target ${targetCount} tercapai. Monitoring drop diaktifkan.`, 'color: #22c55e; font-weight: bold');
-      }
-      return;
-    }
-
-    if (currentCount === 0) {
-      // Jika data benar-benar kosong, anggap simulasi berhenti/reset
-      this.integrity.targetReached = false;
-      return;
-    }
-
-    if (currentCount < targetCount) {
-      const now = Date.now();
-      if (now - this.integrity.lastDropLog > 1000) {
-        console.warn(
-          `%c  DATA DROP DETECTED! %c Bukti: Data turun menjadi ${currentCount}/${targetCount} (Missing: ${targetCount - currentCount})`,
-          'color: #ffffff; background: #ef4444; padding: 2px 5px; border-radius: 3px;',
-          'color: #ef4444; font-weight: bold'
-        );
-        this.integrity.lastDropLog = now;
-      }
-    } else {
-      this.integrity.maxObserved = Math.max(this.integrity.maxObserved, currentCount);
-    }
+    integrityManager.logDataDrop(currentCount, targetCount);
   }
 
   public logError(ctx: string, err: any) {
@@ -147,7 +190,13 @@ class RadarLogger {
   }
 
   public logConnection(status: string, url: string) {
+    if (!this.enabled) return;
     console.log(`[Connection] ${status}: ${url}`);
+  }
+
+
+  public getClockDrift(): number {
+    return driftManager.getDrift();
   }
 }
 

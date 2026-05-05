@@ -1,8 +1,3 @@
-/**
- * OMG DDS-WEB Standard Gateway 
- * 
- */
-
 const opendds = require('opendds');
 const express = require('express');
 const cors = require('cors');
@@ -30,6 +25,7 @@ if (!factory) {
 }
 const participants = new Map();
 const writers = new Map();
+const subscriberCounts = new Map(); 
 
 const IDL_BIN_DIR = path.join(__dirname, 'idl');
 
@@ -94,20 +90,24 @@ wss.on('connection', (ws, req) => {
         const typeName = (topicName === 'RadarTrackTopic') ? 'RadarTrack::TrackData' : 'RadarCommand::Command';
 
         console.log(` [WS] Berlangganan ke ${topicName}`);
+        
+        // Update subscriber count
+        const currentCount = subscriberCounts.get(topicName) || 0;
+        subscriberCounts.set(topicName, currentCount + 1);
 
         const subQos = 
             {
                 DataReaderQos: {
                     reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
-                    history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 1 }
+                    history: { kind: 'KEEP_ALL_HISTORY_QOS' }
                 }
             };
         const reader = participant.subscribe(topicName, typeName, subQos, (r, sampleInfo, sample) => {
             if (sampleInfo.valid_data && ws.readyState === ws.OPEN) {
-                if (ws.bufferedAmount > 512 * 1024) return;
+                if (ws.bufferedAmount > 5 * 1024 * 1024) return;
 
                 if (topicName === 'RadarTrackTopic') {
-                    const fastJson = `{"trackId":${sample.trackId},"lat":${sample.lat},"lon":${sample.lon},"speed":${sample.speed},"timestamp":${sample.timestamp},"classification":${sample.classification}}`;
+                    const fastJson = `{"trackId":${sample.trackId},"lat":${sample.lat},"lon":${sample.lon},"speed":${sample.speed},"timestamp":${sample.timestamp},"classification":${sample.classification},"commandReceivedAt":${sample.commandReceivedAt || 0}}`;
                     
                      
                     if (sample.trackId % 100 === 0) {
@@ -124,6 +124,22 @@ wss.on('connection', (ws, req) => {
 
         ws.on('close', () => {
             console.log(` [WS] Berhenti berlangganan dari ${topicName}`);
+            
+            // Update subscriber count
+            const newCount = (subscriberCounts.get(topicName) || 1) - 1;
+            subscriberCounts.set(topicName, Math.max(0, newCount));
+
+            // Jika tidak ada lagi yang menonton radar, kirim STOP ke BE
+            if (topicName === 'RadarTrackTopic' && newCount <= 0) {
+                try {
+                    const cmdWriter = getWriter(participant, 'CommandTopic', 'RadarCommand::Command');
+                    console.log(' [SYSTEM] Semua client terputus. Mengirim STOP ke Backend...');
+                    cmdWriter.write({ action: 'STOP', value: 0 });
+                } catch (err) {
+                    console.error(` [Peringatan STOP Otomatis] ${err.message}`);
+                }
+            }
+
             try {
                 participant.unsubscribe(topicName, reader);
             } catch (err) {

@@ -48,7 +48,8 @@ TAO_BEGIN_VERSIONED_NAMESPACE_DECL
     (strm << _tao_aggregate.lon) &&
     (strm << _tao_aggregate.speed) &&
     (strm << _tao_aggregate.timestamp) &&
-    (strm << ::ACE_OutputCDR::from_octet (_tao_aggregate.classification));
+    (strm << ::ACE_OutputCDR::from_octet (_tao_aggregate.classification)) &&
+    (strm << _tao_aggregate.commandReceivedAt);
 }
 
 ::CORBA::Boolean operator>> (
@@ -61,7 +62,8 @@ TAO_BEGIN_VERSIONED_NAMESPACE_DECL
     (strm >> _tao_aggregate.lon) &&
     (strm >> _tao_aggregate.speed) &&
     (strm >> _tao_aggregate.timestamp) &&
-    (strm >> ::ACE_InputCDR::to_octet (_tao_aggregate.classification));
+    (strm >> ::ACE_InputCDR::to_octet (_tao_aggregate.classification)) &&
+    (strm >> _tao_aggregate.commandReceivedAt);
 }
 
 TAO_END_VERSIONED_NAMESPACE_DECL

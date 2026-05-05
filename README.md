@@ -56,12 +56,3 @@ Setelah berjalan, buka browser di port Rspack (misalnya `http://localhost:3000` 
 
 ---
 *Dokumen ini diperbarui secara otomatis selaras dengan arsitektur WebDDS.*
-
-sudo apt-get install ntpdate -y && sudo ntpdate pool.ntp.org
-sudo apt-get install ntpdate -y: Sistem akan mendownload dan menginstal aplikasi kecil bernama ntpdate. Aplikasi ini adalah standar industri untuk menyinkronkan waktu komputer melalui internet.
-sudo ntpdate pool.ntp.org: Aplikasi tersebut akan menghubungi server waktu global (pool.ntp.org), mengambil waktu yang paling akurat di dunia (berbasis jam atom), dan memaksa jam WSL Anda untuk mengikuti waktu tersebut secara instan.
-
- -Command "[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()" | tr -d '\r\n') && WSL_TIME=$(date +%s%3N) && echo "WIN: ${WIN_TIME}ms" && echo "WSL: ${WSL_TIME}ms" && echo "Selisih: $(( WSL_TIME - WIN_TIME ))ms"
-WIN: 1777865915983ms
-WSL: 1777865916208ms
-Selisih: 225ms

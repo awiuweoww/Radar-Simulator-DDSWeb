@@ -9,4 +9,5 @@
 struct RadarCommandReceiveData {
     std::string action;
     int32_t value;
+    int64_t receivedAt;  // Waktu nyata saat BE menerima command
 };

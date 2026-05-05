@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) {
 
         while (true) {
             int currentCount = radar_handler.get_target_count();
+            int64_t cmdReceivedAt = radar_handler.get_command_received_at();
             auto nowSteady = std::chrono::steady_clock::now();
             double timeSec = std::chrono::duration_cast<std::chrono::milliseconds>(nowSteady - startTime).count() * 0.001;
 
@@ -91,6 +92,7 @@ int main(int argc, char* argv[]) {
                 t.speed = p.speed;
                 t.timestamp = timestampMs;
                 t.classification = p.classification;
+                t.commandReceivedAt = cmdReceivedAt;
 
                 radar_publisher.set_radar_data(t);
             }
@@ -99,7 +101,7 @@ int main(int argc, char* argv[]) {
                 LOG_INFO("Main", "Simulation Cycle: Published " + std::to_string(currentCount) + " tracks (ID: 0 - " + std::to_string(currentCount - 1) + ")");
             }
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
 
         if (subscriber_thread.joinable()) {

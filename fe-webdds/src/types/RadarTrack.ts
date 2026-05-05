@@ -10,5 +10,6 @@ export interface TrackData {
   speed: number;
   timestamp: number;
   classification: number;
+  commandReceivedAt: number;
 }
 

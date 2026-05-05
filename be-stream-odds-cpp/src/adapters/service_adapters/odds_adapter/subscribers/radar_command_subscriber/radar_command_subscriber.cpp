@@ -53,6 +53,8 @@ void RadarCommandODDSSubscriber::start() {
 
                     this->command_receive_data_.action = this->msg_list_[i].action.in();
                     this->command_receive_data_.value = this->msg_list_[i].value;
+                    this->command_receive_data_.receivedAt = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::system_clock::now().time_since_epoch()).count();
 
                     LOG_INFO("ODDS Subscriber", "[RadarCommand] Menerima: " + 
                         this->command_receive_data_.action + " dengan nilai: " + 
