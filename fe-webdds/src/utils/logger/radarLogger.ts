@@ -37,6 +37,7 @@ class RadarLogger {
     count: 0,
     totalBytes: 0,
     totalLat: 0,
+    cycleCount: 0,
     startTime: performance.now(),
   };
 
@@ -69,6 +70,7 @@ class RadarLogger {
         this.activeCycle.t0_received = arrivalTime;
         this.activeCycle.t0_gateway = track.gatewayReceivedAt;
         this.audit.t_be_command_received = track.commandReceivedAt;
+        this.stats.cycleCount++;
 
         commandLogger.logCommandArrival(track.commandReceivedAt);
       }
@@ -105,6 +107,7 @@ class RadarLogger {
     if (!this.enabled) return;
     const duration = (performance.now() - this.stats.startTime) / 1000;
     const throughput = (this.stats.totalBytes / 1024) / duration;
+    const detectedHz = this.stats.cycleCount / duration;
     const avgLatency = this.stats.count > 0 ? (this.stats.totalLat / this.stats.count) : 0;
 
     const cycle = this.audit.lastCompletedCycle;
@@ -122,6 +125,7 @@ class RadarLogger {
     console.log(`%c=========================`, LOGGER_STYLES.separator);
     console.log(`%c[ Be > gateway > FE ]`, LOGGER_STYLES.section);
     console.log(`%c=========================`, LOGGER_STYLES.separator);
+    console.log(`%cTransmit Frequency : %c${detectedHz.toFixed(1)} Hz`, LOGGER_STYLES.label, detectedHz > 0.5 ? LOGGER_STYLES.value : 'color: #f59e0b');
     console.log(`%cPackets : %c${this.stats.count}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
     console.log(`%cAvg Latency      : %c${avgLatency.toFixed(2)}ms`, LOGGER_STYLES.label, LOGGER_STYLES.value);
     console.log(`%cThroughput       : %c${throughput.toFixed(2)} KB/s`, LOGGER_STYLES.label, LOGGER_STYLES.value);
@@ -191,6 +195,7 @@ class RadarLogger {
     this.stats.count = 0;
     this.stats.totalBytes = 0;
     this.stats.totalLat = 0;
+    this.stats.cycleCount = 0;
     this.stats.startTime = now;
     this.receivedIds.clear();
   }

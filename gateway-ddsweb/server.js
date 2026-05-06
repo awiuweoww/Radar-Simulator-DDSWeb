@@ -110,7 +110,7 @@ wss.on('connection', (ws, req) => {
             };
         const reader = participant.subscribe(topicName, typeName, subQos, (r, sampleInfo, sample) => {
             if (sampleInfo.valid_data && ws.readyState === ws.OPEN) {
-                if (ws.bufferedAmount > 5 * 1024 * 1024) return;
+                if (ws.bufferedAmount > 10 * 1024 * 1024) return;
 
                 if (topicName === 'RadarTrackTopic') {
                     const gatewayReceivedAt = Date.now();
