@@ -1,10 +1,12 @@
-import { clockSyncResult } from './clockDriftData';
+
 
 /**
  * @file clockSync.ts
  * @description Menampilkan hasil sinkronisasi jam di Browser Console.
- * Diimpor di entry point project agar muncul saat awal dijalankan.
+ * 
  */
+
+import { clockSyncResult } from './clockDriftData';
 
 export function reportClockSync() {
   const { wslTime, windowsTime, diffMs } = clockSyncResult;
@@ -29,5 +31,4 @@ export function reportClockSync() {
   console.groupEnd();
 }
 
-// Jalankan otomatis saat file ini di-load
 reportClockSync();

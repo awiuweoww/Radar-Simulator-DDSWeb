@@ -42,16 +42,9 @@ class DriftManager {
       this.adaptiveDrift = rawLat;
       return;
     }
-
-    // Jika rawLat lebih kecil (lebih negatif), berarti kita menemukan "lantai" baru
-    // yang lebih mendekati selisih jam murni (latensi lebih rendah).
     if (rawLat < this.adaptiveDrift) {
-      // Adaptasi sedang untuk penurunan (mencegah lonjakan outlier negatif)
       this.adaptiveDrift = this.adaptiveDrift * 0.7 + rawLat * 0.3;
     } else {
-      // Adaptasi sangat sangat lambat untuk kenaikan.
-      // Ini untuk mengikuti drift jam asli (misal WSL yang semakin cepat/lambat)
-      // tanpa terpengaruh oleh jitter jaringan jangka pendek.
       this.adaptiveDrift = this.adaptiveDrift * 0.9995 + rawLat * 0.0005;
     }
   }
@@ -84,9 +77,6 @@ class DriftManager {
     return this.hasReported;
   }
 
-  /**
-   * Reset drift jika terjadi anomali besar (misal WSL reboot).
-   */
   public reset(): void {
     this.adaptiveDrift = null;
     this.hasReported = false;

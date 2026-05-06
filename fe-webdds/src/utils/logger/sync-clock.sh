@@ -5,8 +5,7 @@
 # DESCRIPTION: Menyelaraskan jam antara WSL2 dan Windows dengan presisi tinggi.
 # ==============================================================================
 
-# Ambil waktu secara sekuensial untuk meminimalkan jitter startup powershell
-# Kita ambil Windows dulu karena startup-nya paling lama
+# Ambil waktu secara sekuensial
 win_time_base=$(powershell.exe -NoProfile -Command "Get-Date -Format 'HH:mm:ss.fff'" 2>/dev/null | tr -d '\r')
 wsl_time=$(date +"%T.%3N")
 
@@ -24,7 +23,6 @@ win_ms=$(echo "$win_time" | awk -F'[:.]' '{print ($1 * 3600000) + ($2 * 60000) +
 
 diff=$((wsl_ms - win_ms))
 
-# Logika Snap-to-Sync yang lebih ketat (hanya jika di bawah 5ms)
 abs_diff=${diff#-}
 if [ "$abs_diff" -le 5 ]; then
     diff=0

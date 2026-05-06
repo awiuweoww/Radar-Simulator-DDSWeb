@@ -21,14 +21,12 @@ class IntegrityManager {
   public logDataDrop(currentCount: number, targetCount: number): void {
     if (!this.enabled || targetCount <= 0) return;
 
-    // Reset jika target count berubah
     if (this.state.lastTargetCount !== targetCount) {
       this.state.targetReached = false;
       this.state.maxObserved = 0;
       this.state.lastTargetCount = targetCount;
     }
 
-    // Tunggu sampai target pertama kali tercapai sebelum mulai monitor drop
     if (!this.state.targetReached) {
       if (currentCount >= targetCount) {
         this.state.targetReached = true;
@@ -38,16 +36,13 @@ class IntegrityManager {
       return;
     }
 
-    // Jika stream berhenti total, anggap target belum tercapai lagi
     if (currentCount === 0) {
       this.state.targetReached = false;
       return;
     }
 
-    // Deteksi Drop
     if (currentCount < targetCount) {
       const now = Date.now();
-      // Throttling log agar tidak spam (maks 1 per detik)
       if (now - this.state.lastDropLog > 1000) {
         console.warn(
           `%c  DATA DROP DETECTED! %c Bukti: Data turun menjadi ${currentCount}/${targetCount} (Missing: ${targetCount - currentCount})`,
@@ -57,14 +52,10 @@ class IntegrityManager {
         this.state.lastDropLog = now;
       }
     } else {
-      // Update rekor tertinggi
       this.state.maxObserved = Math.max(this.state.maxObserved, currentCount);
     }
   }
-
-  /**
-   * Reset status integrasi
-   */
+  
   public reset(): void {
     this.state.targetReached = false;
     this.state.maxObserved = 0;

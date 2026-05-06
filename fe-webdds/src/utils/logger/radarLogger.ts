@@ -59,13 +59,9 @@ class RadarLogger {
       const cleanLat = rawLat - driftManager.getDrift();
       this.stats.totalLat += Math.max(0, cleanLat);
 
-
-      // Kumpulkan ID yang diterima
+      /* Berfungsi sebagai pencatat setiap data yang masuk */
       this.receivedIds.add(track.trackId);
-
-      // Logika Audit Cycle-Aware
       if (track.trackId === 0) {
-        // Mulai siklus baru
         this.activeCycle.t0_sent = track.timestamp;
         this.activeCycle.t0_received = arrivalTime;
         this.audit.t_be_command_received = track.commandReceivedAt;
@@ -75,7 +71,6 @@ class RadarLogger {
 
       const lastExpectedId = targetCount - 1;
       if (track.trackId === lastExpectedId && track.trackId !== 0) {
-        // Siklus lengkap! Simpan ke audit untuk laporan
         this.audit.lastCompletedCycle = {
           t0_sent: this.activeCycle.t0_sent,
           t0_received: this.activeCycle.t0_received,
@@ -116,7 +111,7 @@ class RadarLogger {
       ? (cycle.t0_received - driftManager.normalize(cycle.t0_sent))
       : 0;
 
-    console.groupCollapsed(`%c📊 Radar Periodic Report (${getTimeHeader()})`, LOGGER_STYLES.header);
+    console.groupCollapsed(`%c Radar Periodic Report (${getTimeHeader()})`, LOGGER_STYLES.header);
 
     console.log(`%c=========================`, LOGGER_STYLES.separator);
     console.log(`%c[ Be > gateway > FE ]`, LOGGER_STYLES.section);
@@ -175,8 +170,6 @@ class RadarLogger {
     this.stats.totalBytes = 0;
     this.stats.totalLat = 0;
     this.stats.startTime = now;
-
-    // Jangan reset audit cycle di sini agar summary tetap bisa menampilkan data terakhir yang valid
     this.receivedIds.clear();
   }
 

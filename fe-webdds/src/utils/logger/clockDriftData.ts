@@ -4,8 +4,8 @@
  * DO NOT EDIT MANUALLY.
  */
 export const clockSyncResult = {
-  wslTime: "17:10:58.248",
-  windowsTime: "17:10:58.120",
-  diffMs: 128,
-  timestamp: "2026-05-05T17:10:58"
+  wslTime: "10:32:00.266",
+  windowsTime: "10:32:00.241",
+  diffMs: 25,
+  timestamp: "2026-05-06T10:32:00"
 };
