@@ -51,13 +51,22 @@ class DriftManager {
 
 
   /**
-   * Mengambil nilai drift saat ini. 
+   * Mengambil selisih jam statis hasil dari sync-clock.sh (WSL vs Windows).
+   * Tidak terpengaruh oleh latensi jaringan.
+   */
+  public getStaticOffset(): number {
+    return -clockSyncResult.diffMs;
+  }
+
+  /**
+   * Mengambil nilai drift saat ini (adaptif).
+   * Mengandung Clock Offset + Minimum Network Latency.
    */
   public getDrift(): number {
     if (this.adaptiveDrift !== null) {
       return this.adaptiveDrift;
     }
-    return -clockSyncResult.diffMs;
+    return this.getStaticOffset();
   }
 
   /**

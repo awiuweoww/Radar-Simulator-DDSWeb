@@ -20,7 +20,9 @@ class RadarLogger {
     lastCompletedCycle: {
       t0_sent: 0,
       t0_received: 0,
+      t0_gateway: 0,
       tLast_received: 0,
+      tLast_gateway: 0,
       isValid: false
     }
   };
@@ -28,6 +30,7 @@ class RadarLogger {
   private activeCycle = {
     t0_sent: 0,
     t0_received: 0,
+    t0_gateway: 0,
   };
 
   private stats = {
@@ -56,7 +59,7 @@ class RadarLogger {
 
     tracks.forEach(track => {
       const rawLat = arrivalTime - track.timestamp;
-      const cleanLat = rawLat - driftManager.getDrift();
+      const cleanLat = rawLat - driftManager.getStaticOffset();
       this.stats.totalLat += Math.max(0, cleanLat);
 
       /* Berfungsi sebagai pencatat setiap data yang masuk */
@@ -64,6 +67,7 @@ class RadarLogger {
       if (track.trackId === 0) {
         this.activeCycle.t0_sent = track.timestamp;
         this.activeCycle.t0_received = arrivalTime;
+        this.activeCycle.t0_gateway = track.gatewayReceivedAt;
         this.audit.t_be_command_received = track.commandReceivedAt;
 
         commandLogger.logCommandArrival(track.commandReceivedAt);
@@ -74,14 +78,16 @@ class RadarLogger {
         this.audit.lastCompletedCycle = {
           t0_sent: this.activeCycle.t0_sent,
           t0_received: this.activeCycle.t0_received,
+          t0_gateway: this.activeCycle.t0_gateway,
           tLast_received: arrivalTime,
+          tLast_gateway: track.gatewayReceivedAt,
           isValid: true
         };
       }
     });
 
     const now = performance.now();
-    if (now - this.stats.startTime > 5000) {
+    if (now - this.stats.startTime > 10000) {
       this.printSummary(targetCount);
       this.resetStats(now);
     }
@@ -108,7 +114,7 @@ class RadarLogger {
       : 0;
 
     const realLatId0 = cycle.isValid
-      ? (cycle.t0_received - driftManager.normalize(cycle.t0_sent))
+      ? (cycle.t0_received - (cycle.t0_sent + driftManager.getStaticOffset()))
       : 0;
 
     console.groupCollapsed(`%c Radar Periodic Report (${getTimeHeader()})`, LOGGER_STYLES.header);
@@ -116,7 +122,7 @@ class RadarLogger {
     console.log(`%c=========================`, LOGGER_STYLES.separator);
     console.log(`%c[ Be > gateway > FE ]`, LOGGER_STYLES.section);
     console.log(`%c=========================`, LOGGER_STYLES.separator);
-    console.log(`%cPackets (5s window): %c${this.stats.count}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+    console.log(`%cPackets : %c${this.stats.count}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
     console.log(`%cAvg Latency      : %c${avgLatency.toFixed(2)}ms`, LOGGER_STYLES.label, LOGGER_STYLES.value);
     console.log(`%cThroughput       : %c${throughput.toFixed(2)} KB/s`, LOGGER_STYLES.label, LOGGER_STYLES.value);
     console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
@@ -148,7 +154,23 @@ class RadarLogger {
     console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
     if (cycle.isValid) {
       const lastId = targetCount - 1;
-      console.log(`%cWaktu Kirim ID 0 (Pertama) : %c${formatLoggerTime(driftManager.normalize(cycle.t0_sent))}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+      
+      // Transmission Time to Gateway (ms)
+      // Definisi: Waktu dari track pertama dikirim BE sampai track terakhir diterima Gateway
+      const txTimeToGateway = Math.max(0, cycle.tLast_gateway - cycle.t0_sent);
+      
+      // Transmission Time to Browser (ms)
+      // Definisi: Waktu dari track pertama dikirim BE sampai track terakhir diterima Browser
+      // Kita gunakan Static Offset agar latensi jaringan tetap terhitung (tidak ter-filter oleh adaptive drift)
+      const t0_sent_windows = cycle.t0_sent + driftManager.getStaticOffset();
+      const txTimeToBrowser = Math.max(0, cycle.tLast_received - t0_sent_windows);
+
+      console.log(`%cTransmission Time to Gateway : %c${txTimeToGateway.toFixed(2)}ms`, LOGGER_STYLES.label, LOGGER_STYLES.duration);
+      console.log(`%cTransmission Time to Browser : %c${txTimeToBrowser.toFixed(2)}ms`, LOGGER_STYLES.label, LOGGER_STYLES.duration);
+      console.log(`%cAvg Latency (End-to-End)      : %c${avgLatency.toFixed(2)}ms`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+      
+      console.log(' ');
+      console.log(`%cWaktu Kirim ID 0 (Pertama) : %c${formatLoggerTime(cycle.t0_sent + driftManager.getStaticOffset())}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
       console.log(`%cWaktu Terima ID 0 (Pertama): %c${formatLoggerTime(cycle.t0_received)}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
       console.log(`%cLatensi Murni satu ID (ID=0)     : %c${realLatId0.toFixed(2)}ms`, LOGGER_STYLES.label, Math.abs(realLatId0) < 50 ? LOGGER_STYLES.value : 'color: #ef4444');
       

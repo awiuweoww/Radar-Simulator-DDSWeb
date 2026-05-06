@@ -39,85 +39,79 @@ Dokumen ini menjelaskan sumber data, rumus, dan contoh penghitungan untuk semua 
   - Dalam 5 detik akan diterima **5 siklus** data.
   - Total paket: `5 siklus x 3000 track = 15.000 paket`.
 
-### B. Avg Latency
-- **Asal Data**: Rata-rata selisih waktu semua paket setelah dikompensasi Drift.
-- **Rumus**: `Sum(Waktu_Terima_FE - (Waktu_Kirim_BE + Drift)) / Total_Packets`
-- **Contoh**: Jika total akumulasi latensi adalah `4.135.000 ms` dari `3.917` paket.
-  - Hitung: `4.135.000 / 3.917 = 1055.65 ms`.
+### B. Avg Latency (End-to-End)
+- **Asal Data**: Rata-rata selisih waktu semua paket setelah dikompensasi **Static Clock Offset**.
+- **Rumus**: `Sum(Waktu_Terima_FE - (Waktu_Kirim_BE + StaticOffset)) / Total_Packets`
+- **Tujuan**: Mengukur latensi jaringan *rill* dari BE ke FE tanpa terpengaruh perbedaan jam antar OS.
 
 ### C. Throughput (Radar)
 - **Asal Data**: Ukuran asli string JSON yang diterima melalui WebSocket.
 - **Lokasi Pengambilan**: 
-  1.  **`src/utils/api/webdds.ts`**: Di sini sistem menangkap event WebSocket mentah. Ukuran data diambil menggunakan `event.data.length` (jumlah karakter dalam string JSON).
-  2.  **`src/utils/api/radarApi.ts`**: Menerima ukuran tersebut (`rawLength`) dan meneruskannya ke fungsi `logIncomingPackets`.
+  1.  **`src/utils/api/webdds.ts`**: Menangkap event WebSocket mentah (`event.data.length`).
+  2.  **`src/utils/api/radarApi.ts`**: Meneruskan ukuran (`rawLength`) ke logger.
 - **Rumus**: `Throughput = (Total_Accumulated_Bytes / 1024) / 5 detik`
-- **Contoh**:
-  - Diterima 1 siklus data berisi 3000 track.
-  - Panjang string JSON gabungan tersebut adalah **450.000 bytes** (sekitar 440 KB).
-  - Jika dalam 5 detik ada 5 siklus: `Total = 450.000 x 5 = 2.250.000 bytes`.
-  - Hitung: `(2.250.000 / 1024) / 5 = 439.45 KB/s`.
 
 ---
 
 ## 3. Audit Siklus (Burst Audit)
 *Log ini menggunakan data dari siklus lengkap terakhir (ID 0 s/d ID Terakhir).*
 
-### A. Waktu Kirim ID 0 (Pertama)
-- **Rumus**: `Normalize(Track0.timestamp)` → `Track0.timestamp + Drift`
-- **Contoh**: `17:17:23.680 (Mentah) + 2324.30ms (Drift) = 17:17:26.004`.
+### A. Transmission Time to Gateway
+- **Definisi**: Total waktu dari saat BE mengirim track pertama (ID 0) sampai Gateway selesai menerima track terakhir dalam satu burst.
+- **Rumus**: `T_Last_Gateway_Received - T_First_BE_Sent` (Keduanya dalam skala waktu WSL).
 
-### B. Latensi Murni ID 0
-- **Rumus**: `Waktu_Terima_ID0_FE - Normalized_Kirim_ID0_BE`
-- **Contoh**:
-  - Terima: `17:17:25.714`
-  - Kirim (Norm): `17:17:26.004`
-  - Hitung: `...714 - ...004 = -290.00 ms`.
-  - *(Catatan: Jika minus, berarti Drift Adaptif sedang mengejar perubahan jam yang drastis).*
+### B. Transmission Time to Browser
+- **Definisi**: Total waktu dari saat BE mengirim track pertama (ID 0) sampai Browser selesai menerima track terakhir.
+- **Rumus**: `T_Last_FE_Received - (T_First_BE_Sent + StaticOffset)`
+- **Tujuan**: Mengukur waktu penyelesaian pengiriman satu "rombongan" data secara utuh dari hulu ke hilir.
 
-### C. Durasi Streaming (End-to-End)
-- **Rumus**: `Waktu_Terima_ID_Terakhir_FE - Normalized_Kirim_ID0_BE`
-- **Contoh**:
-  - Terima ID 2999: `17:17:25.724`
-  - Kirim ID 0 (Norm): `17:17:26.004`
-  - Hitung: `...724 - ...004 = -280 ms` (dibulatkan ke `0.00ms` oleh `Math.max(0,...)`).
+### C. Durasi Streaming (Burst Spread)
+- **Definisi**: Lebar atau rentang waktu kedatangan paket di sisi Browser (dari ID 0 sampai ID terakhir).
+- **Rumus**: `T_Last_FE_Received - T_First_FE_Received`
+- **Analogi**: Jika rombongan dikirim serentak tapi sampai satu-per-satu dengan jeda, maka Durasi Streaming akan bernilai besar.
+
+### D. Latensi Murni ID 0
+- **Rumus**: `Waktu_Terima_ID0_FE - (Waktu_Kirim_ID0_BE + StaticOffset)`
 
 ---
 
-## 4. Simulasi Lengkap Clock Drift (Plus vs Mines)
+## 4. Ilustrasi Garis Waktu Performa (Lengkap)
 
-Asumsi:
-- **Interval Pengiriman di BE**: 20ms (Waktu dari ID 0 ke ID terakhir).
-- **Latensi Jaringan Asli**: 5ms.
+Bayangkan Backend mengirim **30 data** sekaligus dalam satu "rombongan" (Burst):
 
-### Skenario A: Drift PLUS (+100ms)
-*Artinya: Jam Windows 100ms lebih CEPAT dari jam WSL.*
-
-| Metrik | Proses / Rumus | Hasil Simulasi |
-| :--- | :--- | :--- |
-| **Waktu Kirim BE (ID 0)** | Data lahir di WSL | `09:00:00.000` |
-| **Waktu Kirim BE (ID Akhir)**| Data lahir di WSL | `09:00:00.020` |
-| **Waktu Terima FE (ID 0)** | 5ms Jaringan + 100ms Selisih Jam | `09:00:00.105` |
-| **Waktu Terima FE (ID Akhir)**| 5ms Jaringan + 100ms Selisih Jam | `09:00:00.125` |
-| **Clock Drift Terdeteksi** | `T_terima - T_kirim` (min) | `+100.00 ms` |
-| **Normalized Kirim ID 0** | `000 + 100` | `09:00:00.100` |
-| **Latensi Murni ID 0** | `105 - 100` | **5.00 ms** |
-| **Durasi Streaming** | `125 (Terima Akhir) - 100 (Kirim 0 Norm)` | **25.00 ms** |
-
----
-
-### Skenario B: Drift MINES (-100ms)
-*Artinya: Jam Windows 100ms lebih LAMBAT dari jam WSL.*
-
-| Metrik | Proses / Rumus | Hasil Simulasi |
-| :--- | :--- | :--- |
-| **Waktu Kirim BE (ID 0)** | Data lahir di WSL | `09:00:00.100` |
-| **Waktu Kirim BE (ID Akhir)**| Data lahir di WSL | `09:00:00.120` |
-| **Waktu Terima FE (ID 0)** | 5ms Jaringan - 100ms Selisih Jam | `09:00:00.005` |
-| **Waktu Terima FE (ID Akhir)**| 5ms Jaringan - 100ms Selisih Jam | `09:00:00.025` |
-| **Clock Drift Terdeteksi** | `T_terima - T_kirim` (min) | `-100.00 ms` |
-| **Normalized Kirim ID 0** | `100 + (-100)` | `09:00:00.000` |
-| **Latensi Murni ID 0** | `005 - 000` | **5.00 ms** |
-| **Durasi Streaming** | `025 (Terima Akhir) - 000 (Kirim 0 Norm)` | **25.00 ms** |
+```text
+SKALA WAKTU (ms) --->
+0ms          10ms          20ms          30ms          40ms          50ms
+|             |             |             |             |             |
+[BE KIRIM] (WSL)
+|-- ID 0 dikirim (0ms)
+|-- ID 1...28
+|-- ID 29 dikirim (0.5ms) -> BE mengirim sangat cepat (hampir serentak)
+|
+|
+|         [GATEWAY TERIMA] (WSL)
+|         |-- ID 0 tiba (12ms)
+|         |-- ID 29 tiba (13ms)
+|         |
+|         [METRIK GATEWAY]
+|         * Transmission Time to Gateway: 13ms - 0ms = 13ms
+|
+|
+|                                [BROWSER TERIMA] (Windows - Normalized)
+|                                |-- ID 0 tiba (27ms)
+|                                |-- ID 1...28 menyusul
+|                                |-- ID 29 tiba (39ms)
+|                                |
+|                                [METRIK BROWSER / FE]
+|                                1. Avg Latency (E2E): Rata-rata dari semua ID.
+|                                   Contoh: ~33ms
+|
+|                                2. Transmission Time to Browser: 39ms - 0ms = 39ms
+|                                   (Total waktu dari Hulu ke Hilir)
+|
+|                                3. Durasi Streaming (Spread): 39ms - 27ms = 12ms
+|                                   (Seberapa lebar data berceceran di browser)
+```
 
 ---
 
@@ -129,5 +123,11 @@ Asumsi:
 | **BE > FE** | C++ -> Gateway -> Browser | `radarLogger.ts` |
 | **Clock Sync** | Windows Clock & WSL Clock | `driftManager.ts` |
 
-> [!TIP]
-> Jika Anda melihat **Latensi Murni** bernilai minus yang besar (seperti `-289ms`), itu tandanya beban CPU sangat tinggi sehingga jam WSL melambat secara ekstrem. Segera lakukan `wsl --shutdown` untuk mereset kondisi kernel.
+---
+
+## 6. Glosarium Peristilahan
+
+- **Static Clock Offset**: Selisih jam antara WSL dan Windows yang dihitung oleh `sync-clock.sh`. Nilai ini bersifat tetap dan digunakan sebagai baseline sinkronisasi.
+- **Adaptive Drift**: Estimasi latensi minimum jaringan yang dipelajari sistem secara real-time. Digunakan untuk menstabilkan visualisasi (menghilangkan jitter).
+- **Burst**: Satu kelompok data radar yang dikirimkan secara bersamaan dalam satu siklus frekuensi (misal: 3000 track dikirim sekaligus).
+

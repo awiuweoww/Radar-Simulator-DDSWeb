@@ -11,5 +11,6 @@ export interface TrackData {
   timestamp: number;
   classification: number;
   commandReceivedAt: number;
+  gatewayReceivedAt: number;
 }
 

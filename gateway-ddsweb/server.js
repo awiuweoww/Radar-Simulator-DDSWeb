@@ -98,8 +98,14 @@ wss.on('connection', (ws, req) => {
         const subQos = 
             {
                 DataReaderQos: {
+                    /*
                     reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
                     history: { kind: 'KEEP_ALL_HISTORY_QOS' }
+                    */
+                    
+                    reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' },
+                    history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 1 }
+                
                 }
             };
         const reader = participant.subscribe(topicName, typeName, subQos, (r, sampleInfo, sample) => {
@@ -107,13 +113,14 @@ wss.on('connection', (ws, req) => {
                 if (ws.bufferedAmount > 5 * 1024 * 1024) return;
 
                 if (topicName === 'RadarTrackTopic') {
-                    const fastJson = `{"trackId":${sample.trackId},"lat":${sample.lat},"lon":${sample.lon},"speed":${sample.speed},"timestamp":${sample.timestamp},"classification":${sample.classification},"commandReceivedAt":${sample.commandReceivedAt || 0}}`;
+                    const gatewayReceivedAt = Date.now();
+                    const fastJson = `{"trackId":${sample.trackId},"lat":${sample.lat},"lon":${sample.lon},"speed":${sample.speed},"timestamp":${sample.timestamp},"classification":${sample.classification},"commandReceivedAt":${sample.commandReceivedAt || 0},"gatewayReceivedAt":${gatewayReceivedAt}}`;
                     
-                     
+                    /*
                     if (sample.trackId % 100 === 0) {
                         console.log(` [STREAM] Forwarding Track: ${sample.trackId} | Pos: ${sample.lat.toFixed(4)}, ${sample.lon.toFixed(4)}`);
                     }
-                    
+                    */
                     ws.send(fastJson);
                 } else {
                     ws.send(JSON.stringify(sample));
