@@ -8,6 +8,8 @@
 import { TrackData } from '../../types/RadarTrack';
 import { WebDDS, WebDDSParticipant, Topic } from './webdds';
 import { radarLogger } from '../logger/radarLogger';
+import { stressLogger } from '../logger/stressLogger';
+import { raceLogger } from '../logger/raceLogger';
 
 export type RadarUpdateCallback = (data: TrackData[]) => void;
 
@@ -15,6 +17,9 @@ class RadarSubscriber {
   private participant: WebDDSParticipant | null = null;
   private trackTopic: Topic;
   private commandTopic: Topic;
+  private squareTopic: Topic;
+  private circleTopic: Topic;
+  private triangleTopic: Topic;
   private commandWriter: any = null;
   private restUrl: string = '';
   private wsUrl: string = '';
@@ -31,6 +36,9 @@ class RadarSubscriber {
     /** Inisialisasi Topik sesuai IDL*/
     this.trackTopic = new Topic('RadarTrackTopic', 'RadarTrack::TrackData');
     this.commandTopic = new Topic('CommandTopic', 'RadarCommand::Command');
+    this.squareTopic = new Topic('SquareTrackTopic', 'SquareTrack::TrackData');
+    this.circleTopic = new Topic('CircleTrackTopic', 'CircleTrack::TrackData');
+    this.triangleTopic = new Topic('TriangleTrackTopic', 'TriangleTrack::TrackData');
   }
 
   /**
@@ -60,11 +68,31 @@ class RadarSubscriber {
         tracks = data;
       }
 
-
       if (tracks.length > 0) {
+        raceLogger.logArrival("RADAR", tracks[0].timestamp);
         radarLogger.logIncomingPackets(data, tracks, this.currentTargetCount, rawLength);
         callback(tracks);
       }
+    });
+
+    /** SUBSCRIBE ke Stress Test Topics */
+    ['Square', 'Circle', 'Triangle'].forEach((shapeName) => {
+      const topic = new Topic(`${shapeName}TrackTopic`, `${shapeName}Track::TrackData`);
+      
+      this.participant!.subscribe(topic, (data: any) => {
+        // data biasanya adalah array sampel dari DDS
+        const samples = Array.isArray(data) ? data : [data];
+        
+        if (samples.length > 0) {
+          raceLogger.logArrival(shapeName, samples[0].timestamp);
+          
+          // Tambahkan field shape agar Frontend tahu ini objek bentuk apa (untuk filter & logo LEN)
+          const stressData = samples.map((d: any) => ({ ...d, shape: shapeName.toUpperCase() }));
+          
+          stressLogger.logStressPacket(stressData[0], this.currentTargetCount);
+          callback(stressData);
+        }
+      });
     });
 
     /** Publish Dashboard Command */

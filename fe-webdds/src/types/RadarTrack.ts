@@ -12,5 +12,6 @@ export interface TrackData {
   classification: number;
   commandReceivedAt: number;
   gatewayReceivedAt: number;
+  shape?: string;
 }
 

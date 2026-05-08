@@ -25,8 +25,8 @@
 // TAO_IDL - Generated from
 // /opt/odds3291-java/OpenDDS-3.29.1/ACE_wrappers/TAO/TAO_IDL/be/be_codegen.cpp:454
 
-#ifndef _TAO_IDL_RADARCOMMANDTYPESUPPORTS_3PUUUY_H_
-#define _TAO_IDL_RADARCOMMANDTYPESUPPORTS_3PUUUY_H_
+#ifndef _TAO_IDL_RADARCOMMANDTYPESUPPORTS_QSZJS0_H_
+#define _TAO_IDL_RADARCOMMANDTYPESUPPORTS_QSZJS0_H_
 
 #include /**/ "ace/pre.h"
 

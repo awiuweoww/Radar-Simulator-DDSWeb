@@ -56,3 +56,29 @@ Setelah berjalan, buka browser di port Rspack (misalnya `http://localhost:3000` 
 
 ---
 *Dokumen ini diperbarui secara otomatis selaras dengan arsitektur WebDDS.*
+
+Batas maksimal jumlah topik yang bisa ditangani oleh Gateway secara teknis dipengaruhi oleh beberapa faktor, namun angkanya cukup besar. Berikut adalah rinciannya:
+
+1. Batas Sistem Operasi (File Descriptors)
+Setiap koneksi WebSocket dan setiap reader DDS dianggap sebagai "file descriptor" oleh Linux.
+
+Secara default, Linux biasanya mengizinkan 1.024 hingga 4.096 file descriptor per proses (bisa ditingkatkan hingga 65.535 dengan ulimit -n).
+Jadi, secara teori, Anda bisa memiliki ratusan hingga ribuan topik sekaligus.
+2. Batas Resource (Memory & CPU)
+Ini adalah batas yang akan Anda rasakan terlebih dahulu sebelum mencapai batas jumlah topik:
+
+Memory: Setiap topik yang didaftarkan di OpenDDS membutuhkan alokasi memori untuk Discovery dan Buffer.
+CPU: Semakin banyak topik, semakin banyak "konteks" yang harus dipantau oleh Node.js. Jika ada 1.000 topik yang semuanya aktif mengirim data, CPU akan sibuk melakukan context switching.
+3. Batas Throughput (Total Paket per Detik)
+Ini adalah "batas nyata" bagi Gateway berbasis Node.js:
+
+Bukan jumlah topiknya yang masalah, tapi total paket per detik dari semua topik tersebut.
+Node.js (Single Threaded) harus melakukan serialisasi JSON untuk setiap paket. Jika total paket dari semua topik melebihi 20.000 - 30.000 paket per detik, Gateway biasanya mulai mengalami delay (latency meningkat).
+Estimasi untuk Proyek Anda:
+Untuk simulator radar ini, dengan spesifikasi komputer standar:
+
+Jumlah Topik: Anda sangat aman hingga 50 - 100 topik.
+Jumlah Data: Batasnya adalah ketika total objek (Radar + Square + Circle + Triangle) mencapai sekitar 10.000 - 15.000 objek per detik. Di atas itu, Anda mungkin butuh optimasi lebih lanjut (seperti menggunakan format binary daripada JSON).
+Saran Pengujian: Jika Anda ingin mengetes batas ini, kita bisa menduplikasi topik SquareTrackTopic menjadi Square1, Square2, Square3, dst. dan melihat kapan Gateway Anda mulai "menyerah" (ditandai dengan kenaikan latency yang drastis).
+
+Apakah Anda ingin mencoba menambah beban dengan meningkatkan jumlah objek di satu topik (misal 10.000 Square objects), atau menambah jumlah topiknya?

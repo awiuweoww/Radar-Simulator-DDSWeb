@@ -29,7 +29,7 @@
 #ifdef OPENDDS_IDL_FILE_SPECIFIC
 #  undef OPENDDS_IDL_FILE_SPECIFIC
 #endif
-#define OPENDDS_IDL_FILE_SPECIFIC(base, index) opendds_idl_generated_radarcommandtypesupportimpl_cpp_gpxs54##_##base##index
+#define OPENDDS_IDL_FILE_SPECIFIC(base, index) opendds_idl_generated_radarcommandtypesupportimpl_cpp_4qu1pi##_##base##index
 
 
 

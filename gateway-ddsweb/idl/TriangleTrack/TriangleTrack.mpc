@@ -1,0 +1,5 @@
+project: dcpslib {
+  TypeSupport_Files {
+    TriangleTrack.idl
+  }
+}

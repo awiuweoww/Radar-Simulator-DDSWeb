@@ -25,8 +25,8 @@
 // TAO_IDL - Generated from
 // /opt/odds3291-java/OpenDDS-3.29.1/ACE_wrappers/TAO/TAO_IDL/be/be_codegen.cpp:631
 
-#ifndef _TAO_IDL_RADARTRACKS_RZXOF8_CPP_
-#define _TAO_IDL_RADARTRACKS_RZXOF8_CPP_
+#ifndef _TAO_IDL_RADARTRACKS_HSFC8Z_CPP_
+#define _TAO_IDL_RADARTRACKS_HSFC8Z_CPP_
 
 
 #include "RadarTrackS.h"

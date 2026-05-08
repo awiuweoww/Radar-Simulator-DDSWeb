@@ -11,12 +11,14 @@ import VectorLayer from 'ol/layer/Vector';
 import OLMap from 'ol/Map';
 import Overlay from 'ol/Overlay';
 import { fromLonLat } from 'ol/proj';
-import { Style, Fill, Stroke, RegularShape } from 'ol/style';
+import { Style, Fill, Stroke, RegularShape, Icon } from 'ol/style';
 import { useSimulationStore } from '../store/useSimulationStore';
 import { TrackData } from '../types/RadarTrack';
 import { CENTER_COORD } from './useMapInstance';
 import { radarApi, RadarUpdateCallback } from '../utils/api/radarApi';
 import { radarLogger } from '../utils/logger/radarLogger';
+//@ts-ignore
+import logoLen from '../assets/images/logo-len.png';
 
 // Cache Styles
 const FRIEND_STYLE = new Style({
@@ -35,6 +37,15 @@ const HOSTILE_STYLE = new Style({
   }),
 });
 
+// LEN Logo Style (untuk ID 0 Stress Test)
+const LEN_STYLE = new Style({
+  image: new Icon({
+    src: logoLen,
+    scale: 0.1, 
+    anchor: [0.5, 0.5],
+  }),
+});
+
 export function useRadarSimulation(
   mapInstanceRef: React.MutableRefObject<OLMap | null>,
   selectedTrackId: React.MutableRefObject<number | null>,
@@ -50,9 +61,9 @@ export function useRadarSimulation(
   const lastStateUpdateTime = useRef<number>(0);
   const currentSessionId = useRef<number>(0);
 
-  const livePoolRef = useRef<Map<number, TrackData>>(new Map());
-  const featureMap = useRef<Map<number, Feature<Point>>>(new Map());
-  const lastUpdateMap = useRef<Map<number, number>>(new Map());
+  const livePoolRef = useRef<Map<string, TrackData>>(new Map());
+  const featureMap = useRef<Map<string, Feature<Point>>>(new Map());
+  const lastUpdateMap = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -61,6 +72,9 @@ export function useRadarSimulation(
     const pointsLayer = new VectorLayer({
       source: vectorSourceRef.current,
       style: (feature) => {
+        const shape = feature.get('shape') as string;
+        if (shape) return LEN_STYLE;
+        
         const type = feature.get('classification') as number;
         return type === 1 ? HOSTILE_STYLE : FRIEND_STYLE;
       },
@@ -95,18 +109,30 @@ export function useRadarSimulation(
         const newFeatures: Feature<Point>[] = [];
 
         data.forEach(t => {
-          if (t.trackId >= targetCount) return;
-          pool.set(t.trackId, t);
-          lastUpdateMap.current.set(t.trackId, Date.now());
+          const shapeKey = t.shape || 'RADAR';
+          const uniqueKey = `${shapeKey}_${t.trackId}`;
 
-          let feature = features.get(t.trackId);
+          // FILTER: Jika stress test (bukan RADAR) dan ID bukan 0, jangan buat feature-nya
+          // Tapi data tetap masuk ke pool untuk kebutuhan statistik jika diperlukan
+          const isStress = !!t.shape;
+          const shouldRender = !isStress || (isStress && t.trackId === 0);
+
+          if (shapeKey === 'RADAR' && t.trackId >= targetCount) return;
+          
+          pool.set(uniqueKey, t);
+          lastUpdateMap.current.set(uniqueKey, Date.now());
+
+          if (!shouldRender) return; // Stop di sini jika tidak perlu dirender
+
+          let feature = features.get(uniqueKey);
           const coords = fromLonLat([t.lon, t.lat]);
 
           if (!feature) {
             feature = new Feature({ geometry: new Point(coords) });
             feature.set('classification', t.classification);
+            feature.set('shape', t.shape);
             feature.set('trackData', t);
-            features.set(t.trackId, feature);
+            features.set(uniqueKey, feature);
             newFeatures.push(feature);
           } else {
             feature.getGeometry()?.setCoordinates(coords);
@@ -122,14 +148,17 @@ export function useRadarSimulation(
         if (newFeatures.length > 0) {
           source.addFeatures(newFeatures);
         }
-        if (pool.size > targetCount) {
-          pool.forEach((_, id) => {
-            if (id >= targetCount) {
-              pool.delete(id);
-              const f = features.get(id);
-              if (f) {
-                source.removeFeature(f);
-                features.delete(id);
+        if (pool.size > (targetCount + 10000)) { // Cleanup jika terlalu banyak (untuk stress test)
+          pool.forEach((_, key) => {
+            if (key.startsWith('RADAR_')) {
+              const id = parseInt(key.split('_')[1]);
+              if (id >= targetCount) {
+                pool.delete(key);
+                const f = features.get(key);
+                if (f) {
+                  source.removeFeature(f);
+                  features.delete(key);
+                }
               }
             }
           });

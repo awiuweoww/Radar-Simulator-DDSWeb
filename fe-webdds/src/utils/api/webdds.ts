@@ -3,7 +3,11 @@
  * @description Implementasi inti standar OMG DDS-WEB untuk Frontend.
  * File ini menyediakan abstraksi untuk entitas DDS (Participant, Topic, DataReader, DataWriter)
  * menggunakan protokol native Web (WebSocket untuk Subscribe, REST/HTTP untuk Publish).
+ *
+ * v3: Ditambah RTT Ping/Pong untuk mengukur Gateway→Browser latency secara akurat.
  */
+
+import { driftManager } from '../logger/driftManager';
 
 /**
  * Representasi Topik DDS di sisi Web
@@ -42,12 +46,29 @@ export class WebDDSParticipant {
 
     ws.onopen = () => {
       console.log(`[OMG WebDDS] Streaming started for Topic: ${topic.name}`);
+
+      // Mulai RTT probe — hanya pada koneksi pertama (RadarTrackTopic)
+      if (topic.name === 'RadarTrackTopic') {
+        this.startRttProbe(ws);
+      }
     };
 
     ws.onmessage = (event) => {
       try {
-        const rawLength = typeof event.data === 'string' ? event.data.length : (event.data.byteLength || 0);
-        const data = JSON.parse(event.data);
+        const raw = event.data;
+
+        // Intercept __pong response untuk RTT calculation
+        if (typeof raw === 'string' && raw.includes('"__pong"')) {
+          const pong = JSON.parse(raw);
+          if (pong.__pong) {
+            const rtt = performance.now() - pong.__pong;
+            driftManager.updateRtt(rtt);
+          }
+          return; // jangan forward ke callback
+        }
+
+        const rawLength = typeof raw === 'string' ? raw.length : (raw.byteLength || 0);
+        const data = JSON.parse(raw);
         callback(data, rawLength);
       } catch (e) {
         console.error("[OMG WebDDS] Failed to parse message:", e);
@@ -64,6 +85,31 @@ export class WebDDSParticipant {
     };
 
     return ws;
+  }
+
+  /**
+   * RTT Probe: mengirim __ping periodik ke gateway, gateway langsung echo __pong.
+   * FE mengukur RTT, lalu RTT/2 = one-way latency Gateway→Browser.
+   * Interval 3 detik — cukup sering untuk mengikuti perubahan jaringan.
+   */
+  private rttInterval: ReturnType<typeof setInterval> | null = null;
+
+  private startRttProbe(ws: WebSocket): void {
+    // Kirim ping pertama setelah 500ms (beri waktu DDS subscribe)
+    setTimeout(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ __ping: performance.now() }));
+      }
+    }, 500);
+
+    // Lalu ulangi setiap 3 detik
+    this.rttInterval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ __ping: performance.now() }));
+      } else {
+        if (this.rttInterval) clearInterval(this.rttInterval);
+      }
+    }, 3000);
   }
 
   /**
@@ -95,6 +141,10 @@ export class WebDDSParticipant {
   }
 
   public disconnect() {
+    if (this.rttInterval) {
+      clearInterval(this.rttInterval);
+      this.rttInterval = null;
+    }
     console.log(`[OMG WebDDS] Disconnecting ${this.sockets.size} sockets...`);
     this.sockets.forEach(ws => {
       if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {

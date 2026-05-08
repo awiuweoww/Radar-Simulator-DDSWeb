@@ -29,7 +29,7 @@
 #ifdef OPENDDS_IDL_FILE_SPECIFIC
 #  undef OPENDDS_IDL_FILE_SPECIFIC
 #endif
-#define OPENDDS_IDL_FILE_SPECIFIC(base, index) opendds_idl_generated_radartracktypesupportimpl_cpp_g1s06y##_##base##index
+#define OPENDDS_IDL_FILE_SPECIFIC(base, index) opendds_idl_generated_radartracktypesupportimpl_cpp_4zedfw##_##base##index
 
 
 

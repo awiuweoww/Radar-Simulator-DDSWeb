@@ -21,16 +21,27 @@ endif
 
 include $(ACE_ROOT)/include/makeinclude/macros.GNU
 
-all: RadarCommand-target RadarTrack-target
+all: CircleTrack-target RadarCommand-target RadarTrack-target SquareTrack-target TriangleTrack-target
 
-depend: RadarCommand-target-depend RadarTrack-target-depend
+depend: CircleTrack-target-depend RadarCommand-target-depend RadarTrack-target-depend SquareTrack-target-depend TriangleTrack-target-depend
 
 REMAINING_TARGETS := $(filter-out all depend,$(TARGETS_NESTED:.nested=)) $(CUSTOM_TARGETS)
 .PHONY: $(REMAINING_TARGETS)
 
 $(REMAINING_TARGETS):
+	$(KEEP_GOING)@cd CircleTrack && $(MAKE) -f GNUmakefile.CircleTrack $(@)
 	$(KEEP_GOING)@cd RadarCommand && $(MAKE) -f GNUmakefile.RadarCommand $(@)
 	$(KEEP_GOING)@cd RadarTrack && $(MAKE) -f GNUmakefile.RadarTrack $(@)
+	$(KEEP_GOING)@cd SquareTrack && $(MAKE) -f GNUmakefile.SquareTrack $(@)
+	$(KEEP_GOING)@cd TriangleTrack && $(MAKE) -f GNUmakefile.TriangleTrack $(@)
+
+.PHONY: CircleTrack-target
+CircleTrack-target:
+	$(KEEP_GOING)@cd CircleTrack && $(MAKE) -f GNUmakefile.CircleTrack all
+
+.PHONY: CircleTrack-target-depend
+CircleTrack-target-depend:
+	$(KEEP_GOING)@cd CircleTrack && $(MAKE) -f GNUmakefile.CircleTrack depend
 
 .PHONY: RadarCommand-target
 RadarCommand-target:
@@ -48,6 +59,25 @@ RadarTrack-target:
 RadarTrack-target-depend:
 	$(KEEP_GOING)@cd RadarTrack && $(MAKE) -f GNUmakefile.RadarTrack depend
 
+.PHONY: SquareTrack-target
+SquareTrack-target:
+	$(KEEP_GOING)@cd SquareTrack && $(MAKE) -f GNUmakefile.SquareTrack all
+
+.PHONY: SquareTrack-target-depend
+SquareTrack-target-depend:
+	$(KEEP_GOING)@cd SquareTrack && $(MAKE) -f GNUmakefile.SquareTrack depend
+
+.PHONY: TriangleTrack-target
+TriangleTrack-target:
+	$(KEEP_GOING)@cd TriangleTrack && $(MAKE) -f GNUmakefile.TriangleTrack all
+
+.PHONY: TriangleTrack-target-depend
+TriangleTrack-target-depend:
+	$(KEEP_GOING)@cd TriangleTrack && $(MAKE) -f GNUmakefile.TriangleTrack depend
+
 project_name_list:
+	@echo CircleTrack-target
 	@echo RadarCommand-target
 	@echo RadarTrack-target
+	@echo SquareTrack-target
+	@echo TriangleTrack-target

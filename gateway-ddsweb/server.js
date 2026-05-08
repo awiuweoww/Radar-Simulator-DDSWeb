@@ -25,7 +25,7 @@ if (!factory) {
 }
 const participants = new Map();
 const writers = new Map();
-const subscriberCounts = new Map(); 
+const subscriberCounts = new Map();
 
 const IDL_BIN_DIR = path.join(__dirname, 'idl');
 
@@ -87,27 +87,30 @@ wss.on('connection', (ws, req) => {
 
     try {
         const participant = getParticipant(domainId);
-        const typeName = (topicName === 'RadarTrackTopic') ? 'RadarTrack::TrackData' : 'RadarCommand::Command';
+
+        const typeNameMap = {
+            'RadarTrackTopic': 'RadarTrack::TrackData',
+            'CommandTopic': 'RadarCommand::Command',
+            'SquareTrackTopic': 'SquareTrack::TrackData',
+            'CircleTrackTopic': 'CircleTrack::TrackData',
+            'TriangleTrackTopic': 'TriangleTrack::TrackData'
+        };
+
+        const typeName = typeNameMap[topicName] || 'RadarCommand::Command';
 
         console.log(` [WS] Berlangganan ke ${topicName}`);
-        
+
         // Update subscriber count
         const currentCount = subscriberCounts.get(topicName) || 0;
         subscriberCounts.set(topicName, currentCount + 1);
 
-        const subQos = 
-            {
-                DataReaderQos: {
-                    /*
-                    reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
-                    history: { kind: 'KEEP_ALL_HISTORY_QOS' }
-                    */
-                    
-                    reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' },
-                    history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 1 }
-                
-                }
-            };
+        const subQos =
+        {
+            DataReaderQos: {
+                reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
+                history: { kind: 'KEEP_ALL_HISTORY_QOS' }
+            }
+        };
         const reader = participant.subscribe(topicName, typeName, subQos, (r, sampleInfo, sample) => {
             if (sampleInfo.valid_data && ws.readyState === ws.OPEN) {
                 if (ws.bufferedAmount > 10 * 1024 * 1024) return;
@@ -115,12 +118,11 @@ wss.on('connection', (ws, req) => {
                 if (topicName === 'RadarTrackTopic') {
                     const gatewayReceivedAt = Date.now();
                     const fastJson = `{"trackId":${sample.trackId},"lat":${sample.lat},"lon":${sample.lon},"speed":${sample.speed},"timestamp":${sample.timestamp},"classification":${sample.classification},"commandReceivedAt":${sample.commandReceivedAt || 0},"gatewayReceivedAt":${gatewayReceivedAt}}`;
-                    
-                    /*
-                    if (sample.trackId % 100 === 0) {
-                        console.log(` [STREAM] Forwarding Track: ${sample.trackId} | Pos: ${sample.lat.toFixed(4)}, ${sample.lon.toFixed(4)}`);
-                    }
-                    */
+                    ws.send(fastJson);
+                } else if (topicName.includes('Square') || topicName.includes('Circle') || topicName.includes('Triangle')) {
+                    const gatewayReceivedAt = Date.now();
+                    const shape = topicName.replace('TrackTopic', '').toUpperCase();
+                    const fastJson = `{"trackId":${sample.trackId},"lat":${sample.lat},"lon":${sample.lon},"timestamp":${sample.timestamp},"shape":"${shape}","gatewayReceivedAt":${gatewayReceivedAt}}`;
                     ws.send(fastJson);
                 } else {
                     ws.send(JSON.stringify(sample));
@@ -129,9 +131,20 @@ wss.on('connection', (ws, req) => {
         });
 
 
+        // RTT Ping/Pong: FE mengirim __ping, gateway langsung echo __pong
+        ws.on('message', (msg) => {
+            try {
+                const str = typeof msg === 'string' ? msg : msg.toString();
+                if (str.startsWith('{"__ping":')) {
+                    const parsed = JSON.parse(str);
+                    ws.send(JSON.stringify({ __pong: parsed.__ping }));
+                }
+            } catch (_) { /* ignore non-ping messages */ }
+        });
+
         ws.on('close', () => {
             console.log(` [WS] Berhenti berlangganan dari ${topicName}`);
-            
+
             // Update subscriber count
             const newCount = (subscriberCounts.get(topicName) || 1) - 1;
             subscriberCounts.set(topicName, Math.max(0, newCount));
@@ -165,7 +178,11 @@ async function initializeDDS() {
     try {
         opendds.load(path.join(IDL_BIN_DIR, 'RadarTrack', 'libRadarTrack'));
         opendds.load(path.join(IDL_BIN_DIR, 'RadarCommand', 'libRadarCommand'));
-        console.log(' [DDS] Pustaka Dimuat (libRadarTrack & libRadarCommand). Menunggu...');
+        opendds.load(path.join(IDL_BIN_DIR, 'SquareTrack', 'libSquareTrack'));
+        opendds.load(path.join(IDL_BIN_DIR, 'CircleTrack', 'libCircleTrack'));
+        opendds.load(path.join(IDL_BIN_DIR, 'TriangleTrack', 'libTriangleTrack'));
+
+        console.log(' [DDS] Semua Pustaka Dimuat (Radar + Stress Topics). Menunggu...');
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         const p0 = getParticipant(0);
