@@ -16,6 +16,8 @@
 #include "adapters/service_adapters/odds_adapter/subscribers/radar_command_subscriber/radar_command_subscriber.h"
 #include "handlers/service_interface_handlers/radar_handler/radar_handler.h"
 #include "threads/backend_interface_thread/backend_interface_thread.h"
+
+// Stress Test Publishers
 #include "adapters/service_adapters/odds_adapter/publishers/square_track_publisher/square_track_publisher.h"
 #include "adapters/service_adapters/odds_adapter/publishers/circle_track_publisher/circle_track_publisher.h"
 #include "adapters/service_adapters/odds_adapter/publishers/triangle_track_publisher/triangle_track_publisher.h"
@@ -24,7 +26,7 @@ struct SimulationConfig {
     bool squareEnabled   = true;
     bool circleEnabled   = true;
     bool triangleEnabled = true;
-    int stressObjectCount = 1000;
+    int stressObjectCount = 100;
 };
 
 struct TrackParams {
@@ -111,9 +113,8 @@ int main(int argc, char* argv[]) {
                 lastProcessedTs = currentTs;
 
                 int count = radar_handler.get_target_count();
-                if (count <= 0) continue; 
-
                 int64_t cmdAt = radar_handler.get_command_received_at();
+                
                 auto nowS = std::chrono::steady_clock::now();
                 double tSec = std::chrono::duration_cast<std::chrono::milliseconds>(nowS - startTime).count() * 0.001;
 
@@ -127,9 +128,8 @@ int main(int argc, char* argv[]) {
                     t.classification = params[i].classification;
                     t.commandReceivedAt = cmdAt;
                     radar_pub.set_radar_data(t);
-                    std::this_thread::sleep_for(std::chrono::microseconds(10));
                 }
-                LOG_INFO("RadarWorker", "Published " + std::to_string(count) + " tracks.");
+                if (count > 0) LOG_INFO("RadarWorker", "Published " + std::to_string(count) + " tracks.");
             }
         });
 
@@ -143,8 +143,6 @@ int main(int argc, char* argv[]) {
                 }
                 if(!g_running) break;
                 
-                if (radar_handler.get_target_count() <= 0) continue; 
-
                 long long currentTs = g_commonTimestamp.load();
                 lastProcessedTs = currentTs;
 
@@ -155,7 +153,6 @@ int main(int argc, char* argv[]) {
                     s.lon = 110.0 + (i * 0.0001);
                     s.timestamp = currentTs;
                     square_pub.set_square_data(s);
-                    std::this_thread::sleep_for(std::chrono::microseconds(10));
                 }
                 LOG_INFO("SquareWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
             }
@@ -171,8 +168,6 @@ int main(int argc, char* argv[]) {
                 }
                 if(!g_running) break;
                 
-                if (radar_handler.get_target_count() <= 0) continue; 
-
                 long long currentTs = g_commonTimestamp.load();
                 lastProcessedTs = currentTs;
 
@@ -183,7 +178,6 @@ int main(int argc, char* argv[]) {
                     c.lon = 111.0 + (i * 0.0001);
                     c.timestamp = currentTs;
                     circle_pub.set_circle_data(c);
-                    std::this_thread::sleep_for(std::chrono::microseconds(10));
                 }
                 LOG_INFO("CircleWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
             }
@@ -199,8 +193,6 @@ int main(int argc, char* argv[]) {
                 }
                 if(!g_running) break;
                 
-                if (radar_handler.get_target_count() <= 0) continue; 
-
                 long long currentTs = g_commonTimestamp.load();
                 lastProcessedTs = currentTs;
 
@@ -211,7 +203,6 @@ int main(int argc, char* argv[]) {
                     tr.lon = 112.0 + (i * 0.0001);
                     tr.timestamp = currentTs;
                     triangle_pub.set_triangle_data(tr);
-                    std::this_thread::sleep_for(std::chrono::microseconds(10));
                 }
                 LOG_INFO("TriangleWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
             }
@@ -227,13 +218,18 @@ int main(int argc, char* argv[]) {
                 g_commonTimestamp = get_burst_timestamp_ms();
             }
             g_cv.notify_all(); 
+            LOG_INFO("Master", "Cycle Triggered at T=" + std::to_string(g_commonTimestamp) + "ms");
         }
 
+        // Cleanup
         radar_worker.join();
         square_worker.join();
         circle_worker.join();
         triangle_worker.join();
-        if (sub_thread.joinable()) sub_thread.join();
+        LOG_INFO("Main", "Semua thread worker berhenti.");
+        
+        // Subscriber thread biasanya detach atau loop-safe
+        // sub_thread.join(); // Tergantung implementasi
     }
     catch (const std::exception &err) {
         LOG_ERROR("Main", std::string("Fatal Error: ") + err.what());

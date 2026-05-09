@@ -8,10 +8,10 @@
  * diffMs < 0 : WSL lebih lambat dari Windows (timestamp WSL < Windows)
  */
 export const clockSyncResult = {
-  wslTime: "10:55:10.083",
-  windowsTime: "10:55:10.356",
-  diffMs: -126,
+  wslTime: "14:25:17.300",
+  windowsTime: "14:25:17.993",
+  diffMs: -330,
   sampleCount: 5,
-  allSamples: [-135,-124,-126,-120,-127],
-  timestamp: "2026-05-08T10:55:10"
+  allSamples: [-368,-330,-331,-321,-317],
+  timestamp: "2026-05-09T14:25:18"
 };

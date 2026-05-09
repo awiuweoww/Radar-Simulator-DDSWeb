@@ -18,6 +18,7 @@ import { driftManager } from './driftManager';
 import { formatLoggerTime } from '../formatters';
 import { integrityManager } from './integrityManager';
 import { LOGGER_STYLES, getTimeHeader } from '../colors';
+import { stressLogger } from './stressLogger';
 
 // Cetak summary setiap N siklus
 const SUMMARY_EVERY_N_CYCLES = 5;
@@ -53,13 +54,13 @@ class RadarLogger {
     totalLatGateway: 0,   // akumulasi latency BE→Gateway (akurat, same clock)
     cycleCount: 0,
     startTime: performance.now(),
-  };
-
-  private stressStats = {
-    SQUARE: { count: 0, totalBytes: 0, totalLat: 0 },
-    CIRCLE: { count: 0, totalBytes: 0, totalLat: 0 },
-    TRIANGLE: { count: 0, totalBytes: 0, totalLat: 0 },
-    lastPrint: performance.now()
+    lastIntegritySnapshot: {
+      receivedCount: 0,
+      targetCount: 0,
+      timestamp: 0,
+      missingIds: [] as number[],
+      isComplete: true
+    }
   };
 
   private receivedIds = new Set<number>();
@@ -90,7 +91,8 @@ class RadarLogger {
         this.audit.t_be_command_received = track.commandReceivedAt;
         this.stats.cycleCount++;
 
-        commandLogger.logCommandArrival(track.commandReceivedAt);
+        // Pass both timestamps to commandLogger
+        commandLogger.logCommandArrival(track.commandReceivedAt, track.timestamp);
       }
 
       const lastExpectedId = targetCount - 1;
@@ -107,59 +109,15 @@ class RadarLogger {
     });
 
     // Cetak per N siklus
-    if (this.stats.cycleCount > 0 && this.stats.cycleCount % SUMMARY_EVERY_N_CYCLES === 0) {
+    if (this.stats.cycleCount >= SUMMARY_EVERY_N_CYCLES) {
+      // 1. Hitung integritas & Ambil snapshot
       this.printSummary(targetCount);
+      
+      // 2. Trigger laporan MultiTopic dengan timestamp yang baru saja selesai diaudit
+      stressLogger.triggerSyncReport(this.stats.lastIntegritySnapshot.timestamp);
+      
       this.resetStats(performance.now());
     }
-  }
-
-  public logStressPacket(data: {
-    trackId: number,
-    shape: 'SQUARE' | 'CIRCLE' | 'TRIANGLE',
-    timestamp: number,
-    gatewayReceivedAt: number
-  }): void {
-    if (!this.enabled) return;
-
-    const stats = this.stressStats[data.shape];
-    stats.count++;
-    stats.totalBytes += 100;
-
-    // Stress: latency BE→Gateway (same clock, akurat)
-    const cleanLat = Math.max(0, data.gatewayReceivedAt - data.timestamp);
-    stats.totalLat += cleanLat;
-
-    const now = performance.now();
-    if (now - this.stressStats.lastPrint > 5000) {
-      this.printStressSummary();
-      this.resetStressStats(now);
-    }
-  }
-
-  private printStressSummary(): void {
-    console.groupCollapsed(`%c Stress Test Report (${getTimeHeader()})`, 'color: #f472b6; font-weight: bold;');
-    (['SQUARE', 'CIRCLE', 'TRIANGLE'] as const).forEach(shape => {
-      const stats = this.stressStats[shape];
-      if (stats.count === 0) return;
-      const duration = (performance.now() - this.stressStats.lastPrint) / 1000;
-      const throughput = (stats.totalBytes / 1024) / duration;
-      const avgLat = stats.totalLat / stats.count;
-      console.log(
-        `%c[${shape}] %cPackets: %c${stats.count} %c| Throughput: %c${throughput.toFixed(2)} KB/s %c| Avg Lat: %c${avgLat.toFixed(2)}ms`,
-        'color: #f472b6; font-weight: bold;',
-        'color: #9ca3af;', 'color: #fff;',
-        'color: #9ca3af;', 'color: #fff;',
-        'color: #9ca3af;', 'color: #fff;'
-      );
-    });
-    console.groupEnd();
-  }
-
-  private resetStressStats(now: number): void {
-    this.stressStats.SQUARE = { count: 0, totalBytes: 0, totalLat: 0 };
-    this.stressStats.CIRCLE = { count: 0, totalBytes: 0, totalLat: 0 };
-    this.stressStats.TRIANGLE = { count: 0, totalBytes: 0, totalLat: 0 };
-    this.stressStats.lastPrint = now;
   }
 
   public logFeToBeSend(targetCount: number): void {
@@ -195,42 +153,39 @@ class RadarLogger {
   private printSummary(targetCount: number): void {
     if (!this.enabled) return;
 
+    // 1. Hitung integritas
+    const missingIds: number[] = [];
+    for (let i = 0; i < targetCount; i++) {
+      if (!this.receivedIds.has(i)) missingIds.push(i);
+    }
+    const isComplete = missingIds.length === 0;
+
+    const cycle = this.audit.lastCompletedCycle;
+    
+    // 2. Simpan Snapshot untuk logger lain (sebelum reset)
+    this.stats.lastIntegritySnapshot = {
+      receivedCount: this.receivedIds.size,
+      targetCount: targetCount,
+      timestamp: cycle.t0_be_timestamp,
+      missingIds: [...missingIds],
+      isComplete: isComplete
+    };
+
     const duration = (performance.now() - this.stats.startTime) / 1000;
     const throughput = (this.stats.totalBytes / 1024) / duration;
 
-    // Gateway→Browser segment: diukur akurat via WebSocket RTT/2
+    // Gateway→Browser segment
     const gwToBrowser = driftManager.getRtt();
 
-    // Avg Latency = rata-rata per-track (BE→Gateway) + RTT/2 = per-track BE→Browser
-    // Definisi tabel: "averaging measured time when each track data transmitted
-    //                  until track data received in Browser"
     const avgLatGateway = this.stats.count > 0
       ? (this.stats.totalLatGateway / this.stats.count)
       : 0;
     const avgLatency = avgLatGateway + gwToBrowser;
 
-    const cycle = this.audit.lastCompletedCycle;
-
-    // === Transmission Times (dari siklus terakhir yang lengkap) ===
-    // Definisi tabel: "time when first track data transmitted until
-    //                  last track data received in Gateway/Browser"
-    // BE→Gateway: first sent (t0_be_timestamp) → last received at GW (tLast_gateway_received)
-    const txToGateway = cycle.isValid
-      ? Math.max(0, cycle.tLast_gateway_received - cycle.t0_be_timestamp)
-      : 0;
-
-    // BE→Browser: txToGateway + RTT/2 (last track masih butuh transit WebSocket)
+    const txToGateway = cycle.isValid ? Math.max(0, cycle.tLast_gateway_received - cycle.t0_be_timestamp) : 0;
     const txToBrowser = txToGateway + gwToBrowser;
-
-    // Latensi ID 0: gateway-relative (akurat)
-    const latId0_gateway = cycle.isValid
-      ? (cycle.t0_gateway_received - cycle.t0_be_timestamp)
-      : 0;
-
-    // Durasi streaming: ID terakhir diterima FE - ID pertama diterima FE (same FE clock, akurat)
-    const streamingDuration = cycle.isValid
-      ? Math.max(0, cycle.tLast_fe_received - cycle.t0_fe_received)
-      : 0;
+    const latId0_gateway = cycle.isValid ? (cycle.t0_gateway_received - cycle.t0_be_timestamp) : 0;
+    const streamingDuration = cycle.isValid ? Math.max(0, cycle.tLast_fe_received - cycle.t0_fe_received) : 0;
 
     // ====================== PRINT ======================
     console.groupCollapsed(
@@ -242,28 +197,13 @@ class RadarLogger {
     console.log(`%c[ Be > gateway > FE ]`, LOGGER_STYLES.section);
     console.log(`%c=========================`, LOGGER_STYLES.separator);
 
-    console.log(
-      `%cPackets          : %c${this.stats.count}`,
-      LOGGER_STYLES.label, LOGGER_STYLES.value
-    );
-    console.log(
-      `%cAvg Latency      : %c${avgLatency.toFixed(2)}ms  (GW ${avgLatGateway.toFixed(2)}ms + WS ${gwToBrowser.toFixed(2)}ms)`,
-      LOGGER_STYLES.label, LOGGER_STYLES.value
-    );
-    console.log(
-      `%cThroughput       : %c${throughput.toFixed(2)} KB/s`,
-      LOGGER_STYLES.label, LOGGER_STYLES.value
-    );
+    console.log(`%cPackets          : %c${this.stats.count}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+    console.log(`%cAvg Latency      : %c${avgLatency.toFixed(2)}ms  (GW ${avgLatGateway.toFixed(2)}ms + WS ${gwToBrowser.toFixed(2)}ms)`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+    console.log(`%cThroughput       : %c${throughput.toFixed(2)} KB/s`, LOGGER_STYLES.label, LOGGER_STYLES.value);
 
     console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
 
     console.log(`%cTotal Track Diterima (per siklus): %c${this.receivedIds.size}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
-
-    const missingIds: number[] = [];
-    for (let i = 0; i < targetCount; i++) {
-      if (!this.receivedIds.has(i)) missingIds.push(i);
-    }
-    const isComplete = missingIds.length === 0;
 
     console.groupCollapsed(`%cID Verification   : %c${isComplete ? 'LENGKAP' : missingIds.length + ' MISSING'}`, LOGGER_STYLES.label, isComplete ? LOGGER_STYLES.value : 'color: #ef4444');
     
@@ -275,12 +215,8 @@ class RadarLogger {
       console.log('%cSemua ID (0 s/d ' + (targetCount - 1) + ') diterima tanpa celah.', 'color: #34d399');
     }
 
-    // Selalu tampilkan daftar lengkap agar bisa dicek manual
     console.log('%cFull Received ID List:', 'color: #9ca3af', idsArray);
-    
     console.groupEnd();
-
-
 
     console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
 
@@ -358,8 +294,21 @@ class RadarLogger {
     console.log(`[Connection] ${status}: ${url}`);
   }
 
-  public getClockDrift(): number {
-    return driftManager.getDrift();
+  public getIntegrityStatus() {
+    const missingIds: number[] = [];
+    const tCount = this.stats.cycleCount > 0 ? (this.audit.lastCompletedCycle.isValid ? (this.receivedIds.size + (this.audit.lastCompletedCycle.isValid ? 0 : 0)) : 0) : 0; 
+    return {
+      receivedIds: new Set(this.receivedIds),
+      targetCount: this.stats.count > 0 ? (this.audit.lastCompletedCycle.isValid ? (this.receivedIds.size + missingIds.length) : 0) : 0
+    };
+  }
+
+  /**
+   * Mengambil data kelengkapan ID terbaru (Snapshot Terakhir)
+   * untuk digunakan oleh stressLogger agar sinkron.
+   */
+  public getLatestIntegrity() {
+    return this.stats.lastIntegritySnapshot;
   }
 }
 

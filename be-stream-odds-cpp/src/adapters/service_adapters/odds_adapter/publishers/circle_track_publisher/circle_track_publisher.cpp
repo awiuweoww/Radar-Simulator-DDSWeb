@@ -18,8 +18,8 @@ CircleTrackODDSPublisher::CircleTrackODDSPublisher(const DDS::DomainParticipant_
     result = type_support->register_type(*this->get_participant_(), type_name);
     this->get_odds_operator_()->check_status(result, "register_type() CircleTrack::TrackData failed");
 
-    this->get_w_qos_()->reliability.kind = DDS::RELIABLE_RELIABILITY_QOS;
-    this->get_w_qos_()->history.kind = DDS::KEEP_ALL_HISTORY_QOS;
+    this->get_w_qos_()->reliability.kind = DDS::BEST_EFFORT_RELIABILITY_QOS;
+    this->get_w_qos_()->history.kind = DDS::KEEP_LAST_HISTORY_QOS;
     this->get_w_qos_()->history.depth = 1;
 
     this->set_topic(type_name, "CircleTrackTopic", writer);

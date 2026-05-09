@@ -10,22 +10,17 @@ Dokumen ini menjelaskan sumber data, rumus, dan contoh penghitungan untuk semua 
 ### A. Payload Size
 - **Asal Data**: Panjang string JSON yang dikirim melalui WebSocket.
 - **Rumus**: `JSON.stringify({ action, value }).length` (dalam satuan Bytes).
-- **Contoh**: Jika mengirim `{"action":"START","value":3000}`, panjangnya adalah **31 bytes**.
 
 ### B. Throughput (Est)
-- **Asal Data**: Hasil bagi antara ukuran data dan waktu tempuh.
 - **Rumus**: `PayloadSize (Bytes) / Latency (ms)`
-- **Contoh**: Payload **31 bytes**, Latensi **19.2ms**.
-  - Hitung: `31 / 19.2 = 1.61 KB/s`.
-  - *(Catatan: Bytes/ms secara matematis sama nilainya dengan KB/s).*
 
-### C. Durasi Pengiriman (Latency)
-- **Asal Data**: Selisih antara waktu kirim di FE dan waktu tiba di BE.
-- **Rumus**: `(Waktu_Terima_BE + Drift) - Waktu_Kirim_FE`
-- **Contoh**:
-  - FE Kirim: `17:10:00.000`
-  - BE Terima (Normal): `17:10:00.015`
-  - Hasil: **15.00 ms**.
+### C. Round-Trip Time (RTT) Command
+- **Definisi**: Total waktu dari klik tombol di FE sampai FE menerima respons data pertama (ID 0).
+- **Rumus**: `T_Receive_ID0_FE - T_Send_Command_FE`.
+
+### D. BE Processing Time (Logic Delay)
+- **Definisi**: Jeda waktu internal di C++ saat memproses perintah sebelum burst data pertama dikirim.
+- **Rumus**: `T_First_Track_Sent_BE - T_Command_Received_BE` (Menggunakan WSL Clock).
 
 ---
 
@@ -33,22 +28,13 @@ Dokumen ini menjelaskan sumber data, rumus, dan contoh penghitungan untuk semua 
 *Log ini muncul secara periodik setiap 5 detik (Radar Periodic Report).*
 
 ### A. Packets (5s window)
-- **Asal Data**: Counter internal di `radarLogger.ts` yang bertambah setiap ada track baru masuk.
 - **Rumus**: `count = count + tracks.length`
-- **Contoh**: Jika interval BE adalah **1000ms** (1 detik) dan mengirim **3000 track** per siklus:
-  - Dalam 5 detik akan diterima **5 siklus** data.
-  - Total paket: `5 siklus x 3000 track = 15.000 paket`.
 
 ### B. Avg Latency (End-to-End)
 - **Asal Data**: Rata-rata selisih waktu semua paket setelah dikompensasi **Static Clock Offset**.
 - **Rumus**: `Sum(Waktu_Terima_FE - (Waktu_Kirim_BE + StaticOffset)) / Total_Packets`
-- **Tujuan**: Mengukur latensi jaringan *rill* dari BE ke FE tanpa terpengaruh perbedaan jam antar OS.
 
 ### C. Throughput (Radar)
-- **Asal Data**: Ukuran asli string JSON yang diterima melalui WebSocket.
-- **Lokasi Pengambilan**: 
-  1.  **`src/utils/api/webdds.ts`**: Menangkap event WebSocket mentah (`event.data.length`).
-  2.  **`src/utils/api/radarApi.ts`**: Meneruskan ukuran (`rawLength`) ke logger.
 - **Rumus**: `Throughput = (Total_Accumulated_Bytes / 1024) / 5 detik`
 
 ---
@@ -57,77 +43,96 @@ Dokumen ini menjelaskan sumber data, rumus, dan contoh penghitungan untuk semua 
 *Log ini menggunakan data dari siklus lengkap terakhir (ID 0 s/d ID Terakhir).*
 
 ### A. Transmission Time to Gateway
-- **Definisi**: Total waktu dari saat BE mengirim track pertama (ID 0) sampai Gateway selesai menerima track terakhir dalam satu burst.
 - **Rumus**: `T_Last_Gateway_Received - T_First_BE_Sent` (Keduanya dalam skala waktu WSL).
 
 ### B. Transmission Time to Browser
-- **Definisi**: Total waktu dari saat BE mengirim track pertama (ID 0) sampai Browser selesai menerima track terakhir.
 - **Rumus**: `T_Last_FE_Received - (T_First_BE_Sent + StaticOffset)`
-- **Tujuan**: Mengukur waktu penyelesaian pengiriman satu "rombongan" data secara utuh dari hulu ke hilir.
 
 ### C. Durasi Streaming (Burst Spread)
-- **Definisi**: Lebar atau rentang waktu kedatangan paket di sisi Browser (dari ID 0 sampai ID terakhir).
+- **Definisi**: Rentang waktu kedatangan paket di sisi Browser (dari ID 0 sampai ID terakhir).
 - **Rumus**: `T_Last_FE_Received - T_First_FE_Received`
-- **Analogi**: Jika rombongan dikirim serentak tapi sampai satu-per-satu dengan jeda, maka Durasi Streaming akan bernilai besar.
-
-### D. Latensi Murni ID 0
-- **Rumus**: `Waktu_Terima_ID0_FE - (Waktu_Kirim_ID0_BE + StaticOffset)`
 
 ---
 
-## 4. Ilustrasi Garis Waktu Performa (Lengkap)
+## 4. MultiTopic & Race Condition Monitoring
+*Metrik khusus untuk memantau sinkronisasi antar topik (Radar, Square, Circle, Triangle).*
 
-Bayangkan Backend mengirim **30 data** sekaligus dalam satu "rombongan" (Burst):
+### A. Race Condition Report (Startup)
+- **Fungsi**: Mencatat urutan topik mana yang paling cepat sampai di Browser saat simulasi pertama kali dimulai.
+- **Jendela Pengukuran**: Menggunakan timeout **3 detik** untuk mengumpulkan semua topik.
+- **Urutan**: Menentukan "Winner" dan menghitung delay topik lainnya relatif terhadap pemenang.
+
+### B. MultiTopic Sync Audit (Periodic)
+- **Arsitektur Master-Slave**: `RadarLogger` bertindak sebagai Master yang memicu laporan `StressLogger`.
+- **Integritas Data**: Melakukan verifikasi ID (0 s/d N) untuk semua topik secara bersamaan berdasarkan Timestamp Sumber yang sama.
+
+---
+
+## 5. Network Health & RTT Probing
+*Metrik tambahan untuk mengukur kualitas koneksi secara real-time antara Gateway dan Browser.*
+
+### A. Mekanisme WebSocket Ping/Pong (Gateway-to-Browser)
+Sistem melakukan probing aktif setiap 3 detik untuk mendapatkan angka latensi jaringan yang murni:
+1.  **FE (Browser)**: Mengirim paket JSON `{"__ping": timestamp}` melalui WebSocket yang sedang aktif.
+2.  **Gateway (Node.js)**: Mendeteksi kunci `__ping`, lalu secara instan memantulkannya kembali (*echo*) dalam format `{"__pong": timestamp}` tanpa melibatkan logika DDS.
+3.  **FE (Browser)**: Menghitung selisih waktu saat pong diterima dengan timestamp yang tersimpan di dalam paket tersebut.
+    - **Rumus RTT**: `T_Terima_Pong - T_Kirim_Ping`.
+    - **One-Way Latency**: `RTT / 2`.
+
+### B. Manfaat Audit RTT
+- **Akurasi Latensi**: Digunakan oleh `radarLogger` untuk memecah Avg Latency menjadi: `(BE to Gateway) + (Gateway to Browser)`.
+- **Adaptive Sync**: Membantu `driftManager` menentukan seberapa besar kompensasi waktu yang harus diberikan pada visualisasi agar tetap sinkron dengan jam asli.
+
+---
+
+## 6. Ilustrasi Garis Waktu Performa (Lengkap)
+
+Bayangkan Backend mengirim **3000 data Radar** dan **1000 data Square** secara bersamaan:
 
 ```text
 SKALA WAKTU (ms) --->
-0ms          10ms          20ms          30ms          40ms          50ms
-|             |             |             |             |             |
-[BE KIRIM] (WSL)
-|-- ID 0 dikirim (0ms)
-|-- ID 1...28
-|-- ID 29 dikirim (0.5ms) -> BE mengirim sangat cepat (hampir serentak)
+0ms          10ms          20ms          30ms          40ms          50ms          60ms          70ms
+|             |             |             |             |             |             |             |
+[BACKEND C++ (WSL)]
+|-- (T: 0ms) RADAR ID 0 dikirim 
+|-- (T: 0.01ms) SQUARE ID 0 dikirim (setelah jeda micro-delay 10us)
+|-- (T: 30ms) RADAR ID 2999 selesai dikirim (Burst Radar Selesai)
+|-- (T: 40ms) SQUARE ID 999 selesai dikirim (Burst Square Selesai)
 |
+|         [GATEWAY NODEJS (WSL)]
+|         |-- (T: 12ms) RADAR ID 0 tiba di Gateway
+|         |-- (T: 12.5ms) SQUARE ID 0 tiba di Gateway
+|         |-- (T: 45ms) RADAR ID 2999 tiba (Gateway Tx Time: 45ms)
 |
-|         [GATEWAY TERIMA] (WSL)
-|         |-- ID 0 tiba (12ms)
-|         |-- ID 29 tiba (13ms)
-|         |
-|         [METRIK GATEWAY]
-|         * Transmission Time to Gateway: 13ms - 0ms = 13ms
+|                                [BROWSER / FE (Windows - Normalized)]
+|                                |-- (T: 27ms) RADAR ID 0 Tiba (WINNER: Race Logger mencatat 27ms)
+|                                |-- (T: 28ms) SQUARE ID 0 Tiba (SQUARE Delay: +1.0ms)
+|                                |-- (T: 60ms) RADAR ID 2999 Tiba (Burst Radar Complete)
+|                                |-- (T: 72ms) SQUARE ID 999 Tiba (Burst Square Complete)
 |
-|
-|                                [BROWSER TERIMA] (Windows - Normalized)
-|                                |-- ID 0 tiba (27ms)
-|                                |-- ID 1...28 menyusul
-|                                |-- ID 29 tiba (39ms)
-|                                |
-|                                [METRIK BROWSER / FE]
-|                                1. Avg Latency (E2E): Rata-rata dari semua ID.
-|                                   Contoh: ~33ms
-|
-|                                2. Transmission Time to Browser: 39ms - 0ms = 39ms
-|                                   (Total waktu dari Hulu ke Hilir)
-|
-|                                3. Durasi Streaming (Spread): 39ms - 27ms = 12ms
-|                                   (Seberapa lebar data berceceran di browser)
+|                                [AUDIT HASIL DI KONSOL BROWSER]
+|                                1. Race Monitor: RADAR [1.], SQUARE [2.] Delay +1.0ms
+|                                2. Transmission to Browser (Radar): 60ms - 0ms = 60ms
+|                                3. Burst Spread (Radar): 60ms - 27ms = 33ms
 ```
 
 ---
 
-## 5. Ringkasan Tugas Performa
+## 7. Ringkasan Tugas Performa
 
 | Pengukuran | Komponen Terlibat | Siapa yang Menghitung? |
 | :--- | :--- | :--- |
 | **FE > BE** | Browser -> Gateway -> C++ | `commandLogger.ts` |
 | **BE > FE** | C++ -> Gateway -> Browser | `radarLogger.ts` |
+| **MultiTopic** | Sinkronisasi All Topics | `stressLogger.ts` |
+| **Race Monitor** | Urutan Kedatangan Awal | `raceLogger.ts` |
 | **Clock Sync** | Windows Clock & WSL Clock | `driftManager.ts` |
 
 ---
 
-## 6. Glosarium Peristilahan
+## 8. Glosarium Peristilahan
 
-- **Static Clock Offset**: Selisih jam antara WSL dan Windows yang dihitung oleh `sync-clock.sh`. Nilai ini bersifat tetap dan digunakan sebagai baseline sinkronisasi.
-- **Adaptive Drift**: Estimasi latensi minimum jaringan yang dipelajari sistem secara real-time. Digunakan untuk menstabilkan visualisasi (menghilangkan jitter).
-- **Burst**: Satu kelompok data radar yang dikirimkan secara bersamaan dalam satu siklus frekuensi (misal: 3000 track dikirim sekaligus).
-
+- **Static Clock Offset (v2)**: Selisih jam WSL-Windows yang dihitung oleh `sync-clock.sh` dengan mengambil median 5 sampel dan koreksi overhead PowerShell.
+- **Adaptive Drift**: Estimasi latensi minimum jaringan untuk stabilisasi visualisasi.
+- **Burst**: Satu kelompok data radar yang dikirimkan secara bersamaan dalam satu siklus.
+- **Master-Slave Reporting**: Mekanisme sinkronisasi log di mana satu logger utama mengontrol kapan logger lain mencetak laporannya.

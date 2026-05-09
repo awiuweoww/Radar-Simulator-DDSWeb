@@ -2,11 +2,6 @@
  * @file commandLogger.ts
  * @description Auditor performa pengiriman command dari Frontend ke Backend.
  * Fokus pada aliran [ Fe > gateway > BE ].
- *
- * FIXED: Menggunakan round-trip measurement (same FE clock) untuk akurasi.
- * - RTT = waktu dari FE kirim command sampai FE terima track ID 0 pertama kembali.
- * - One-way estimate = RTT / 2
- * - Semua timestamp dari Clock B (FE) → tidak ada cross-clock error.
  */
 
 import { driftManager } from './driftManager';
@@ -17,8 +12,9 @@ class CommandLogger {
   private enabled: boolean = true;
 
   private audit = {
-    feSendTime: 0,        // Clock B: saat FE kirim command
-    feReceiveTime: 0,     // Clock B: saat FE terima track ID 0 pertama
+    feSendTime: 0,        
+    feReceiveTime: 0,     
+    beProcessingTime: 0,  
     targetCount: 0,
     payloadSize: 0,
     isPendingReport: false,
@@ -39,15 +35,16 @@ class CommandLogger {
 
   /**
    * Mencatat waktu saat FE menerima data pertama kembali dari BE (track ID 0).
-   * Ini menandakan command sudah sampai ke BE dan BE sudah mulai mengirim data.
-   *
-   * RTT = feReceiveTime - feSendTime (kedua Clock B, akurat 100%)
-   * One-way ≈ RTT / 2
+   * 
+   * @param beCommandReceivedAt Kapan command sampai di BE (WSL Clock)
+   * @param beTrackTimestamp Kapan track ID 0 dikirim oleh BE (WSL Clock)
    */
-  public logCommandArrival(_beTime: number): void {
+  public logCommandArrival(beCommandReceivedAt: number, beTrackTimestamp: number): void {
     if (!this.audit.isPendingReport || this.audit.feSendTime <= 0) return;
-
-    // Catat waktu FE menerima response (Clock B — same clock dengan feSendTime)
+    
+    if (beCommandReceivedAt > 0 && beTrackTimestamp >= beCommandReceivedAt) {
+      this.audit.beProcessingTime = beTrackTimestamp - beCommandReceivedAt;
+    }
     this.audit.feReceiveTime = driftManager.now();
     this.printReport();
     this.audit.isPendingReport = false;
@@ -55,13 +52,14 @@ class CommandLogger {
 
   private printReport(): void {
     if (!this.enabled) return;
-    const { feSendTime, feReceiveTime, payloadSize, targetCount } = this.audit;
-    
-    // RTT: FE kirim command → FE terima track ID 0 (same Clock B, akurat)
+    const { feSendTime, feReceiveTime, beProcessingTime, payloadSize, targetCount } = this.audit;
+  
     const rtt = feReceiveTime - feSendTime;
-    const oneWay = rtt / 2;
+    
+    const networkTransit = Math.max(0, rtt - beProcessingTime);
+    const oneWayTransit = networkTransit / 2;
  
-    console.group(`%c Command Performance [Fe > gateway > BE] (${getTimeHeader()})`, LOGGER_STYLES.commandHeader);
+    console.groupCollapsed(`%c Command Performance [Fe > gateway > BE] (${getTimeHeader()})`, LOGGER_STYLES.commandHeader);
     console.log(`%c=========================`, LOGGER_STYLES.separator);
     console.log(`%cTarget Objects    : %c${targetCount}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
     console.log(`%cPayload Size      : %c${payloadSize} bytes`, LOGGER_STYLES.label, LOGGER_STYLES.value);
@@ -70,8 +68,11 @@ class CommandLogger {
     console.log(`%cWaktu Kirim FE    : %c${formatLoggerTime(feSendTime)}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
     console.log(`%cWaktu Terima FE   : %c${formatLoggerTime(feReceiveTime)}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
     console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
-    console.log(`%cRound Trip (RTT)  : %c${rtt.toFixed(2)} ms  (FE send → FE receive ID 0)`, LOGGER_STYLES.label, LOGGER_STYLES.duration);
-    console.log(`%cOne-way (est)     : %c${oneWay.toFixed(2)} ms  (RTT / 2)`, LOGGER_STYLES.label, LOGGER_STYLES.duration);
+    
+    console.log(`%cRound Trip (RTT)  : %c${rtt.toFixed(2)} ms  (Total waktu tunggu)`, LOGGER_STYLES.label, LOGGER_STYLES.duration);
+    console.log(`%cBE Logic Delay    : %c${beProcessingTime.toFixed(2)} ms  (Waktu BE proses objek)`, LOGGER_STYLES.label, 'color: #f59e0b');
+    console.log(`%cNetwork Transit   : %c${networkTransit.toFixed(2)} ms  (Total transit Gateway+WS)`, LOGGER_STYLES.label, LOGGER_STYLES.duration);
+    console.log(`%cOne-way (est)     : %c${oneWayTransit.toFixed(2)} ms  (Transit searah)`, LOGGER_STYLES.label, LOGGER_STYLES.duration);
     console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
     
     console.groupEnd();

@@ -55,7 +55,6 @@ class RadarSubscriber {
 
     /**
      * SUBSCRIBE ke data radar
-     * 
      */
     this.participant.subscribe(this.trackTopic, (data: any, rawLength?: number) => {
       let tracks: TrackData[] = [];
@@ -71,6 +70,16 @@ class RadarSubscriber {
       if (tracks.length > 0) {
         raceLogger.logArrival("RADAR", tracks[0].timestamp);
         radarLogger.logIncomingPackets(data, tracks, this.currentTargetCount, rawLength);
+
+        tracks.forEach(track => {
+          stressLogger.logStressPacket({
+            trackId: track.trackId,
+            shape: 'RADAR',
+            timestamp: track.timestamp,
+            gatewayReceivedAt: (track as any).gatewayReceivedAt
+          }, this.currentTargetCount);
+        });
+
         callback(tracks);
       }
     });
@@ -78,18 +87,23 @@ class RadarSubscriber {
     /** SUBSCRIBE ke Stress Test Topics */
     ['Square', 'Circle', 'Triangle'].forEach((shapeName) => {
       const topic = new Topic(`${shapeName}TrackTopic`, `${shapeName}Track::TrackData`);
-      
+
       this.participant!.subscribe(topic, (data: any) => {
-        // data biasanya adalah array sampel dari DDS
         const samples = Array.isArray(data) ? data : [data];
-        
+
         if (samples.length > 0) {
-          raceLogger.logArrival(shapeName, samples[0].timestamp);
-          
-          // Tambahkan field shape agar Frontend tahu ini objek bentuk apa (untuk filter & logo LEN)
+          raceLogger.logArrival(shapeName.toUpperCase(), samples[0].timestamp);
+
+          samples.forEach((s: any) => {
+            stressLogger.logStressPacket({
+              trackId: s.trackId,
+              shape: shapeName.toUpperCase(),
+              timestamp: s.timestamp,
+              gatewayReceivedAt: s.gatewayReceivedAt
+            }, this.currentTargetCount);
+          });
+
           const stressData = samples.map((d: any) => ({ ...d, shape: shapeName.toUpperCase() }));
-          
-          stressLogger.logStressPacket(stressData[0], this.currentTargetCount);
           callback(stressData);
         }
       });
@@ -116,6 +130,9 @@ class RadarSubscriber {
   public updateTargetCount(count: number): void {
     this.currentTargetCount = count;
     if (this.commandWriter) {
+      if (count > 0) {
+        raceLogger.reset();
+      }
       radarLogger.logFeToBeSend(count);
       const action = count > 0 ? 'START' : 'STOP';
       this.commandWriter.write({ action, value: count });
@@ -124,6 +141,7 @@ class RadarSubscriber {
 
   public stop(): void {
     if (this.commandWriter) {
+      raceLogger.reset();
       this.commandWriter.write({ action: 'STOP', value: 0 });
     }
   }

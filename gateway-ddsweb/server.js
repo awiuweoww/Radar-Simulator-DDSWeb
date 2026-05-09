@@ -45,7 +45,12 @@ function getWriter(participant, topicName, typeName) {
         const qos = {
             DataWriterQos: {
                 reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
-                history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 },
+                history: { kind: 'KEEP_ALL_HISTORY_QOS' },
+                resource_limits: {
+                    max_samples: 10000,
+                    max_instances: 2000,
+                    max_samples_per_instance: 1000
+                },
                 durability: { kind: 'TRANSIENT_LOCAL_DURABILITY_QOS' }
             }
         };
@@ -107,8 +112,8 @@ wss.on('connection', (ws, req) => {
         const subQos =
         {
             DataReaderQos: {
-                reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
-                history: { kind: 'KEEP_ALL_HISTORY_QOS' }
+                reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' },
+                history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 1 }
             }
         };
         const reader = participant.subscribe(topicName, typeName, subQos, (r, sampleInfo, sample) => {
@@ -161,7 +166,7 @@ wss.on('connection', (ws, req) => {
             }
 
             try {
-                participant.unsubscribe(topicName, reader);
+                participant.unsubscribe(reader);
             } catch (err) {
                 console.error(` [Peringatan Pembersihan WS] ${err.message}`);
             }

@@ -2,13 +2,7 @@
 
 # ==============================================================================
 # SCRIPT: sync-clock.sh (FIXED v2)
-# DESCRIPTION: Menyelaraskan jam antara WSL2 dan Windows dengan presisi tinggi.
-#
-# FIX v2:
-#   1. Race condition: WSL diambil SEBELUM dan SESUDAH powershell, lalu
-#      diffMs dikoreksi dengan setengah overhead eksekusi powershell.
-#   2. Dead zone 5ms dihapus — selisih kecil tetap dicatat apa adanya.
-#   3. Pengukuran diulang 5x, lalu diambil median untuk stabilitas.
+# DESCRIPTION: Menyelaraskan jam antara WSL2 dan Windows .
 # ==============================================================================
 
 NUM_SAMPLES=5

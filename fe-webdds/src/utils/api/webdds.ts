@@ -4,7 +4,7 @@
  * File ini menyediakan abstraksi untuk entitas DDS (Participant, Topic, DataReader, DataWriter)
  * menggunakan protokol native Web (WebSocket untuk Subscribe, REST/HTTP untuk Publish).
  *
- * v3: Ditambah RTT Ping/Pong untuk mengukur Gateway→Browser latency secara akurat.
+ *  RTT Ping/Pong untuk mengukur Gateway→Browser latency secara akurat.
  */
 
 import { driftManager } from '../logger/driftManager';
@@ -47,7 +47,7 @@ export class WebDDSParticipant {
     ws.onopen = () => {
       console.log(`[OMG WebDDS] Streaming started for Topic: ${topic.name}`);
 
-      // Mulai RTT probe — hanya pada koneksi pertama (RadarTrackTopic)
+      // Mulai RTT probe 
       if (topic.name === 'RadarTrackTopic') {
         this.startRttProbe(ws);
       }
@@ -64,7 +64,7 @@ export class WebDDSParticipant {
             const rtt = performance.now() - pong.__pong;
             driftManager.updateRtt(rtt);
           }
-          return; // jangan forward ke callback
+          return; 
         }
 
         const rawLength = typeof raw === 'string' ? raw.length : (raw.byteLength || 0);
@@ -90,19 +90,19 @@ export class WebDDSParticipant {
   /**
    * RTT Probe: mengirim __ping periodik ke gateway, gateway langsung echo __pong.
    * FE mengukur RTT, lalu RTT/2 = one-way latency Gateway→Browser.
-   * Interval 3 detik — cukup sering untuk mengikuti perubahan jaringan.
+   * Interval 3 detik
    */
   private rttInterval: ReturnType<typeof setInterval> | null = null;
 
   private startRttProbe(ws: WebSocket): void {
-    // Kirim ping pertama setelah 500ms (beri waktu DDS subscribe)
+    // Kirim ping pertama
     setTimeout(() => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ __ping: performance.now() }));
       }
     }, 500);
 
-    // Lalu ulangi setiap 3 detik
+    // ulangi setiap 3 detik
     this.rttInterval = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ __ping: performance.now() }));
