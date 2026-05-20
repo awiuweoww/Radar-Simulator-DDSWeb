@@ -17,9 +17,6 @@ class RadarSubscriber {
   private participant: WebDDSParticipant | null = null;
   private trackTopic: Topic;
   private commandTopic: Topic;
-  private squareTopic: Topic;
-  private circleTopic: Topic;
-  private triangleTopic: Topic;
   private commandWriter: any = null;
   private restUrl: string = '';
   private wsUrl: string = '';
@@ -36,9 +33,6 @@ class RadarSubscriber {
     /** Inisialisasi Topik sesuai IDL*/
     this.trackTopic = new Topic('RadarTrackTopic', 'RadarTrack::TrackData');
     this.commandTopic = new Topic('CommandTopic', 'RadarCommand::Command');
-    this.squareTopic = new Topic('SquareTrackTopic', 'SquareTrack::TrackData');
-    this.circleTopic = new Topic('CircleTrackTopic', 'CircleTrack::TrackData');
-    this.triangleTopic = new Topic('TriangleTrackTopic', 'TriangleTrack::TrackData');
   }
 
   /**
@@ -85,7 +79,7 @@ class RadarSubscriber {
     });
 
     /** SUBSCRIBE ke Stress Test Topics */
-    ['Square', 'Circle', 'Triangle'].forEach((shapeName) => {
+    ['Square', 'Circle', 'Triangle', 'Parallelogram', 'Trapezoid', 'Rhombus', 'Ellipse', 'Pentagon', 'Hexagon'].forEach((shapeName) => {
       const topic = new Topic(`${shapeName}TrackTopic`, `${shapeName}Track::TrackData`);
 
       this.participant!.subscribe(topic, (data: any) => {
@@ -100,7 +94,7 @@ class RadarSubscriber {
               shape: shapeName.toUpperCase(),
               timestamp: s.timestamp,
               gatewayReceivedAt: s.gatewayReceivedAt
-            }, this.currentTargetCount);
+            }, 100);
           });
 
           const stressData = samples.map((d: any) => ({ ...d, shape: shapeName.toUpperCase() }));

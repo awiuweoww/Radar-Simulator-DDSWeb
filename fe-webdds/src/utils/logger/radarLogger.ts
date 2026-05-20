@@ -1,15 +1,15 @@
 /**
- * @file radarLogger.ts (v5 — Table-Accurate Metrics)
+ * @file radarLogger.ts (v6 — High-Frequency Safe, Time-Based Reporting)
  * @description Auditor performa Web DDS Radar.
  *
- * v5 Changes (sesuai definisi tabel pengujian):
- *   1. Transmission → Gateway = first track sent → LAST track received at Gateway.
- *      Formula: tLast_gateway_received - t0_be_timestamp (same WSL clock, akurat).
- *   2. Transmission → Browser = txToGateway + RTT/2 (total first sent → last received Browser).
- *      → Browser SELALU >= Gateway karena data melewati gateway dulu.
- *   3. Avg Latency = rata-rata per-track (gatewayReceivedAt - timestamp) + RTT/2.
- *      = average latency setiap track dari BE sampai Browser.
- *   4. Durasi streaming = selisih waktu terima ID terakhir - ID pertama di FE (same-clock).
+ * v6 Changes (fix untuk 10Hz, 50Hz, dll):
+ *   - GANTI trigger dari cycle-count (SUMMARY_EVERY_N_CYCLES) ke TIME-BASED (5 detik).
+ *     Alasan: di frekuensi tinggi, siklus sangat cepat dan cycle-detection bisa gagal
+ *     karena track dari burst baru datang sebelum burst sebelumnya selesai diterima.
+ *   - Track per-burst menggunakan timestamp sebagai key, bukan hanya satu activeCycle
+ *     yang bisa ditimpa. Ini memastikan burst yang overlap tidak saling menghapus data.
+ *   - Metrics tetap sama: Transmission → Gateway, Transmission → Browser, Avg Latency,
+ *     Throughput, ID Verification, Durasi Streaming.
  */
 
 import { TrackData } from '../../types/RadarTrack';
@@ -20,39 +20,42 @@ import { integrityManager } from './integrityManager';
 import { LOGGER_STYLES, getTimeHeader } from '../colors';
 import { stressLogger } from './stressLogger';
 
-// Cetak summary setiap N siklus
-const SUMMARY_EVERY_N_CYCLES = 5;
+/** Interval laporan periodik dalam milidetik */
+const REPORT_INTERVAL_MS = 10000;
+
+/** Data satu burst (satu siklus pengiriman dari BE) */
+interface BurstRecord {
+  t0_be_timestamp: number;       // timestamp burst dari BE (WSL clock)
+  t0_gateway_received: number;   // gateway Date.now() saat terima ID 0
+  t0_fe_received: number;        // FE arrival saat terima ID 0
+  tLast_gateway_received: number; // gateway Date.now() saat terima ID terakhir
+  tLast_fe_received: number;     // FE arrival saat terima ID terakhir
+  highestTrackId: number;        // ID track tertinggi yang diterima di burst ini
+  receivedIds: Set<number>;      // Set ID yang diterima di burst ini
+  hasId0: boolean;               // Apakah ID 0 sudah diterima
+}
 
 class RadarLogger {
   private enabled: boolean = true;
 
   /**
-   * Audit data dari siklus terakhir yang lengkap (ID 0 s/d ID terakhir sudah diterima).
-   * Semua timestamp disimpan mentah — konversi dilakukan saat print.
+   * Per-burst tracking: key = BE timestamp (semua track dalam satu burst
+   * memiliki timestamp identik dari BE).
    */
+  private bursts = new Map<number, BurstRecord>();
+
+  /** Burst terakhir yang terselesaikan (ID 0 + ID terakhir keduanya diterima) */
+  private lastCompletedBurst: BurstRecord | null = null;
+
   private audit = {
     t_be_command_received: 0,
-    lastCompletedCycle: {
-      t0_be_timestamp: 0,        // timestamp burst dari BE (WSL clock)
-      t0_gateway_received: 0,    // gateway Date.now() saat terima ID 0 (WSL clock)
-      t0_fe_received: 0,         // FE arrival saat terima ID 0 (Windows clock)
-      tLast_gateway_received: 0, // gateway Date.now() saat terima ID terakhir
-      tLast_fe_received: 0,      // FE arrival saat terima ID terakhir
-      isValid: false
-    }
-  };
-
-  private activeCycle = {
-    t0_be_timestamp: 0,
-    t0_gateway_received: 0,
-    t0_fe_received: 0,
   };
 
   private stats = {
     count: 0,
     totalBytes: 0,
     totalLatGateway: 0,   // akumulasi latency BE→Gateway (akurat, same clock)
-    cycleCount: 0,
+    cycleCount: 0,        // jumlah burst (setiap kali ID 0 diterima)
     startTime: performance.now(),
     lastIntegritySnapshot: {
       receivedCount: 0,
@@ -63,7 +66,17 @@ class RadarLogger {
     }
   };
 
+  /** Set ID yang diterima dalam window pelaporan ini (untuk integrity check) */
   private receivedIds = new Set<number>();
+
+  /** Timer ID untuk periodic report */
+  private reportTimerId: ReturnType<typeof setInterval> | null = null;
+
+  /** targetCount terakhir yang diketahui (untuk integrity check di timer) */
+  private lastKnownTargetCount: number = 0;
+
+  /** Flag: apakah sudah pernah menerima data dalam window ini */
+  private hasDataInWindow: boolean = false;
 
   public logIncomingPackets(
     data: unknown,
@@ -74,8 +87,15 @@ class RadarLogger {
     this.stats.count += tracks.length;
     const byteSize = rawLength ?? (tracks.length * 150);
     this.stats.totalBytes += byteSize;
+    this.lastKnownTargetCount = targetCount;
+    this.hasDataInWindow = true;
 
     const arrivalTime = driftManager.now();
+
+    // Start timer pada data pertama yang diterima
+    if (this.reportTimerId === null) {
+      this.startReportTimer();
+    }
 
     tracks.forEach(track => {
       // Latency BE→Gateway (same WSL clock — akurat)
@@ -84,10 +104,38 @@ class RadarLogger {
 
       this.receivedIds.add(track.trackId);
 
+      // --- Per-burst tracking ---
+      const burstKey = track.timestamp;
+      let burst = this.bursts.get(burstKey);
+
+      if (!burst) {
+        burst = {
+          t0_be_timestamp: burstKey,
+          t0_gateway_received: 0,
+          t0_fe_received: 0,
+          tLast_gateway_received: 0,
+          tLast_fe_received: 0,
+          highestTrackId: -1,
+          receivedIds: new Set<number>(),
+          hasId0: false,
+        };
+        this.bursts.set(burstKey, burst);
+
+        // Bersihkan burst lama (simpan max 20 burst terbaru)
+        if (this.bursts.size > 20) {
+          const oldestKey = this.bursts.keys().next().value;
+          if (oldestKey !== undefined) this.bursts.delete(oldestKey);
+        }
+      }
+
+      burst.receivedIds.add(track.trackId);
+
+      // Track ID 0: catat waktu awal burst
       if (track.trackId === 0) {
-        this.activeCycle.t0_be_timestamp = track.timestamp;
-        this.activeCycle.t0_gateway_received = track.gatewayReceivedAt;
-        this.activeCycle.t0_fe_received = arrivalTime;
+        burst.hasId0 = true;
+        burst.t0_be_timestamp = track.timestamp;
+        burst.t0_gateway_received = track.gatewayReceivedAt;
+        burst.t0_fe_received = arrivalTime;
         this.audit.t_be_command_received = track.commandReceivedAt;
         this.stats.cycleCount++;
 
@@ -95,33 +143,41 @@ class RadarLogger {
         commandLogger.logCommandArrival(track.commandReceivedAt, track.timestamp);
       }
 
+      // Update highest received track dan waktu terima terakhir
+      if (track.trackId > burst.highestTrackId) {
+        burst.highestTrackId = track.trackId;
+        burst.tLast_gateway_received = track.gatewayReceivedAt;
+        burst.tLast_fe_received = arrivalTime;
+      }
+
+      // Cek apakah burst sudah lengkap
       const lastExpectedId = targetCount - 1;
-      if (track.trackId === lastExpectedId && track.trackId !== 0) {
-        this.audit.lastCompletedCycle = {
-          t0_be_timestamp: this.activeCycle.t0_be_timestamp,
-          t0_gateway_received: this.activeCycle.t0_gateway_received,
-          t0_fe_received: this.activeCycle.t0_fe_received,
-          tLast_gateway_received: track.gatewayReceivedAt,
-          tLast_fe_received: arrivalTime,
-          isValid: true
-        };
+      if (burst.hasId0 && burst.highestTrackId >= lastExpectedId && lastExpectedId > 0) {
+        this.lastCompletedBurst = burst;
       }
     });
-
-    // Cetak per N siklus
-    if (this.stats.cycleCount >= SUMMARY_EVERY_N_CYCLES) {
-      // 1. Hitung integritas & Ambil snapshot
-      this.printSummary(targetCount);
-      
-      // 2. Trigger laporan MultiTopic dengan timestamp yang baru saja selesai diaudit
-      stressLogger.triggerSyncReport(this.stats.lastIntegritySnapshot.timestamp);
-      
-      this.resetStats(performance.now());
-    }
   }
 
   public logFeToBeSend(targetCount: number): void {
     commandLogger.logCommandSend(targetCount);
+  }
+
+  /**
+   * Start timer periodik untuk cetak laporan setiap REPORT_INTERVAL_MS.
+   */
+  private startReportTimer(): void {
+    if (this.reportTimerId !== null) return;
+
+    this.reportTimerId = setInterval(() => {
+      if (this.hasDataInWindow && this.stats.count > 0) {
+        this.printSummary(this.lastKnownTargetCount);
+
+        // Trigger laporan MultiTopic
+        stressLogger.triggerSyncReport(this.stats.lastIntegritySnapshot.timestamp);
+
+        this.resetStats(performance.now());
+      }
+    }, REPORT_INTERVAL_MS);
   }
 
   /**
@@ -133,14 +189,15 @@ class RadarLogger {
    *   [ Be > gateway > FE ]
    *   =========================
    *   Packets          : N
-   *   Avg Latency      : X.XXms  (GW X.XXms + WS X.XXms)   ← per-track avg to Browser
+   *   Cycles (Bursts)  : N
+   *   Avg Latency      : X.XXms  (GW X.XXms + WS X.XXms)
    *   Throughput       : X.XX KB/s
    *   -------------------------------------------
    *   Total Track Diterima : N
    *   ID Verification      : LENGKAP / N MISSING
    *   -------------------------------------------
-   *   Transmission → Gateway : X.XXms  (first sent → last received at GW)
-   *   Transmission → Browser : X.XXms  (Gateway + WS RTT/2)
+   *   Transmission → Gateway : X.XXms
+   *   Transmission → Browser : X.XXms
    *   -------------------------------------------
    *   Waktu Kirim ID 0   : HH:MM:SS.mmm
    *   Waktu Terima ID 0  : HH:MM:SS.mmm
@@ -153,20 +210,22 @@ class RadarLogger {
   private printSummary(targetCount: number): void {
     if (!this.enabled) return;
 
-    // 1. Hitung integritas
+    // 1. Hitung integritas (dari receivedIds window ini)
     const missingIds: number[] = [];
     for (let i = 0; i < targetCount; i++) {
       if (!this.receivedIds.has(i)) missingIds.push(i);
     }
     const isComplete = missingIds.length === 0;
 
-    const cycle = this.audit.lastCompletedCycle;
-    
+    // Gunakan burst terlengkap yang tersedia
+    const cycle = this.lastCompletedBurst;
+    const hasCycle = cycle !== null && cycle.hasId0;
+
     // 2. Simpan Snapshot untuk logger lain (sebelum reset)
     this.stats.lastIntegritySnapshot = {
       receivedCount: this.receivedIds.size,
       targetCount: targetCount,
-      timestamp: cycle.t0_be_timestamp,
+      timestamp: hasCycle ? cycle!.t0_be_timestamp : 0,
       missingIds: [...missingIds],
       isComplete: isComplete
     };
@@ -182,10 +241,10 @@ class RadarLogger {
       : 0;
     const avgLatency = avgLatGateway + gwToBrowser;
 
-    const txToGateway = cycle.isValid ? Math.max(0, cycle.tLast_gateway_received - cycle.t0_be_timestamp) : 0;
+    const txToGateway = hasCycle ? Math.max(0, cycle!.tLast_gateway_received - cycle!.t0_be_timestamp) : 0;
     const txToBrowser = txToGateway + gwToBrowser;
-    const latId0_gateway = cycle.isValid ? (cycle.t0_gateway_received - cycle.t0_be_timestamp) : 0;
-    const streamingDuration = cycle.isValid ? Math.max(0, cycle.tLast_fe_received - cycle.t0_fe_received) : 0;
+    const latId0_gateway = hasCycle ? (cycle!.t0_gateway_received - cycle!.t0_be_timestamp) : 0;
+    const streamingDuration = hasCycle ? Math.max(0, cycle!.tLast_fe_received - cycle!.t0_fe_received) : 0;
 
     // ====================== PRINT ======================
     console.groupCollapsed(
@@ -198,12 +257,13 @@ class RadarLogger {
     console.log(`%c=========================`, LOGGER_STYLES.separator);
 
     console.log(`%cPackets          : %c${this.stats.count}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+    console.log(`%cCycles (Bursts)  : %c${this.stats.cycleCount}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
     console.log(`%cAvg Latency      : %c${avgLatency.toFixed(2)}ms  (GW ${avgLatGateway.toFixed(2)}ms + WS ${gwToBrowser.toFixed(2)}ms)`, LOGGER_STYLES.label, LOGGER_STYLES.value);
     console.log(`%cThroughput       : %c${throughput.toFixed(2)} KB/s`, LOGGER_STYLES.label, LOGGER_STYLES.value);
 
     console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
 
-    console.log(`%cTotal Track Diterima (per siklus): %c${this.receivedIds.size}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
+    console.log(`%cTotal Track Diterima (per window): %c${this.receivedIds.size}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
 
     console.groupCollapsed(`%cID Verification   : %c${isComplete ? 'LENGKAP' : missingIds.length + ' MISSING'}`, LOGGER_STYLES.label, isComplete ? LOGGER_STYLES.value : 'color: #ef4444');
     
@@ -220,8 +280,8 @@ class RadarLogger {
 
     console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
 
-    if (cycle.isValid) {
-      const lastId = targetCount - 1;
+    if (hasCycle) {
+      const lastId = cycle!.highestTrackId;
 
       console.log(
         `%cTransmission → Gateway : %c${txToGateway.toFixed(2)}ms  (ID 0 sent → ID ${lastId} received at GW)`,
@@ -235,13 +295,12 @@ class RadarLogger {
       console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
 
       // Waktu kirim = BE burst timestamp (WSL clock)
-      // Untuk display, kita tampilkan apa adanya — biarkan user tahu ini waktu BE
       console.log(
-        `%cWaktu Kirim ID 0   : %c${formatLoggerTime(cycle.t0_be_timestamp)}`,
+        `%cWaktu Kirim ID 0   : %c${formatLoggerTime(cycle!.t0_be_timestamp)}`,
         LOGGER_STYLES.label, LOGGER_STYLES.value
       );
       console.log(
-        `%cWaktu Terima ID 0  : %c${formatLoggerTime(cycle.t0_gateway_received)}`,
+        `%cWaktu Terima ID 0  : %c${formatLoggerTime(cycle!.t0_gateway_received)}`,
         LOGGER_STYLES.label, LOGGER_STYLES.value
       );
       console.log(
@@ -253,7 +312,7 @@ class RadarLogger {
       console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
 
       console.log(
-        `%cWaktu Terima ID ${lastId} : %c${formatLoggerTime(cycle.tLast_gateway_received)}`,
+        `%cWaktu Terima ID ${lastId} : %c${formatLoggerTime(cycle!.tLast_gateway_received)}`,
         LOGGER_STYLES.label, LOGGER_STYLES.value
       );
       console.log(
@@ -264,7 +323,7 @@ class RadarLogger {
       console.log(`%c${LOGGER_STYLES.sepLine}`, LOGGER_STYLES.separator);
     } else {
       console.log(
-        '%c[!] Siklus belum lengkap untuk audit presisi.',
+        '%c[!] Belum ada burst lengkap (ID 0 + ID terakhir) untuk audit presisi.',
         'color: #f59e0b'
       );
     }
@@ -279,6 +338,11 @@ class RadarLogger {
     this.stats.cycleCount = 0;
     this.stats.startTime = now;
     this.receivedIds.clear();
+    this.hasDataInWindow = false;
+    this.lastCompletedBurst = null;
+
+    // Bersihkan semua burst data dari window sebelumnya
+    this.bursts.clear();
   }
 
   public logDataDrop(currentCount: number, targetCount: number): void {
@@ -296,10 +360,10 @@ class RadarLogger {
 
   public getIntegrityStatus() {
     const missingIds: number[] = [];
-    const tCount = this.stats.cycleCount > 0 ? (this.audit.lastCompletedCycle.isValid ? (this.receivedIds.size + (this.audit.lastCompletedCycle.isValid ? 0 : 0)) : 0) : 0; 
+    const tCount = this.stats.cycleCount > 0 ? (this.lastCompletedBurst !== null ? (this.receivedIds.size + (this.lastCompletedBurst !== null ? 0 : 0)) : 0) : 0; 
     return {
       receivedIds: new Set(this.receivedIds),
-      targetCount: this.stats.count > 0 ? (this.audit.lastCompletedCycle.isValid ? (this.receivedIds.size + missingIds.length) : 0) : 0
+      targetCount: this.stats.count > 0 ? (this.lastCompletedBurst !== null ? (this.receivedIds.size + missingIds.length) : 0) : 0
     };
   }
 

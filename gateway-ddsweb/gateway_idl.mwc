@@ -4,4 +4,10 @@ workspace {
   SquareTrack/SquareTrack.mpc
   CircleTrack/CircleTrack.mpc
   TriangleTrack/TriangleTrack.mpc
+  ParallelogramTrack/ParallelogramTrack.mpc
+  TrapezoidTrack/TrapezoidTrack.mpc
+  RhombusTrack/RhombusTrack.mpc
+  EllipseTrack/EllipseTrack.mpc
+  PentagonTrack/PentagonTrack.mpc
+  HexagonTrack/HexagonTrack.mpc
 }

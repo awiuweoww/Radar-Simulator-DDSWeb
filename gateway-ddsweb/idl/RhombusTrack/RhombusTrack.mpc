@@ -1,0 +1,26 @@
+project: dcps {
+  requires += tao_orbsvcs
+  includes += $(TAO_ROOT)/orbsvcs
+  idlflags += -I$(TAO_ROOT)/orbsvcs
+  dynamicflags += RHOMBUSTRACK_BUILD_DLL
+
+  TypeSupport_Files {
+    RhombusTrack.idl
+  }
+
+  Source_Files {
+    RhombusTrackTypeSupportImpl.cpp
+    RhombusTrackC.cpp
+    RhombusTrackS.cpp
+    RhombusTrackTypeSupportC.cpp
+    RhombusTrackTypeSupportS.cpp
+  }
+
+  Header_Files {
+    RhombusTrackTypeSupportImpl.h
+    RhombusTrackC.h
+    RhombusTrackS.h
+    RhombusTrackTypeSupportC.h
+    RhombusTrackTypeSupportS.h
+  }
+}

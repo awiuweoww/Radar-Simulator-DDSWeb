@@ -1,0 +1,26 @@
+project: dcps {
+  requires += tao_orbsvcs
+  includes += $(TAO_ROOT)/orbsvcs
+  idlflags += -I$(TAO_ROOT)/orbsvcs
+  dynamicflags += PARALLELOGRAMTRACK_BUILD_DLL
+
+  TypeSupport_Files {
+    ParallelogramTrack.idl
+  }
+
+  Source_Files {
+    ParallelogramTrackTypeSupportImpl.cpp
+    ParallelogramTrackC.cpp
+    ParallelogramTrackS.cpp
+    ParallelogramTrackTypeSupportC.cpp
+    ParallelogramTrackTypeSupportS.cpp
+  }
+
+  Header_Files {
+    ParallelogramTrackTypeSupportImpl.h
+    ParallelogramTrackC.h
+    ParallelogramTrackS.h
+    ParallelogramTrackTypeSupportC.h
+    ParallelogramTrackTypeSupportS.h
+  }
+}

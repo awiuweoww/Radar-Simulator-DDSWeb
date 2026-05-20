@@ -50,7 +50,7 @@ class RaceLogger {
       setTimeout(() => this.printRaceReport(sourceTimestamp), 5000);
     }
     
-    if (records.length >= 4 && !this.hasPrintedFirst) {
+    if (records.length >= 10 && !this.hasPrintedFirst) {
       this.printRaceReport(sourceTimestamp);
     }
   }
@@ -61,7 +61,7 @@ class RaceLogger {
 
     const hasRadar = records.some(r => r.topic === "RADAR");
     
-    const isComplete = records.length >= 4;
+    const isComplete = records.length >= 10;
     
     if (hasRadar && isComplete) {
       this.hasPrintedFirst = true;
@@ -79,7 +79,8 @@ class RaceLogger {
           console.log(`${topicLabel}%c${formatLoggerTime(r.feAbsTime)}`, "color: #fff;", "color: #9ca3af;", "color: #34d399; font-weight: bold;");
         } else {
           const delay = r.feTime - sorted[0].feTime;
-          console.log(`${topicLabel}%cDelay: +${delay.toFixed(2)}ms`, "color: #fff;", "color: #9ca3af;", "color: #fca5a5;");
+          console.log(`${topicLabel}%c${formatLoggerTime(r.feAbsTime)} %c| %cDelay: +${delay.toFixed(2)}ms`, 
+            "color: #fff;", "color: #9ca3af;", "color: #d1d5db;", "color: #9ca3af;", "color: #fca5a5;");
         }
       });
       console.log(`%c----------------------------------------------`, LOGGER_STYLES.separator);

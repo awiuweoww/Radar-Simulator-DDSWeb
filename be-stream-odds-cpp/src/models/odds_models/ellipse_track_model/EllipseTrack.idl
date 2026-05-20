@@ -1,0 +1,9 @@
+module EllipseTrack {
+  @topic
+  struct TrackData {
+    @key long trackId;
+    double lat;
+    double lon;
+    long long timestamp;
+  };
+};

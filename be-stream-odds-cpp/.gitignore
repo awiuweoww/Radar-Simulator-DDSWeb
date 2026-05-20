@@ -61,3 +61,7 @@ CMakeFiles/
 .cache
 
 .codegpt
+
+# Large dependency files (exclude from git)
+OpenDDS-3.29.1.zip
+cmake-3.31.3-linux-x86_64.tar.gz

@@ -1,0 +1,26 @@
+project: dcps {
+  requires += tao_orbsvcs
+  includes += $(TAO_ROOT)/orbsvcs
+  idlflags += -I$(TAO_ROOT)/orbsvcs
+  dynamicflags += TRAPEZOIDTRACK_BUILD_DLL
+
+  TypeSupport_Files {
+    TrapezoidTrack.idl
+  }
+
+  Source_Files {
+    TrapezoidTrackTypeSupportImpl.cpp
+    TrapezoidTrackC.cpp
+    TrapezoidTrackS.cpp
+    TrapezoidTrackTypeSupportC.cpp
+    TrapezoidTrackTypeSupportS.cpp
+  }
+
+  Header_Files {
+    TrapezoidTrackTypeSupportImpl.h
+    TrapezoidTrackC.h
+    TrapezoidTrackS.h
+    TrapezoidTrackTypeSupportC.h
+    TrapezoidTrackTypeSupportS.h
+  }
+}

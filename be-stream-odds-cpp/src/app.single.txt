@@ -17,6 +17,12 @@
 #include "adapters/service_adapters/odds_adapter/publishers/square_track_publisher/square_track_publisher.h"
 #include "adapters/service_adapters/odds_adapter/publishers/circle_track_publisher/circle_track_publisher.h"
 #include "adapters/service_adapters/odds_adapter/publishers/triangle_track_publisher/triangle_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/parallelogram_track_publisher/parallelogram_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/trapezoid_track_publisher/trapezoid_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/rhombus_track_publisher/rhombus_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/ellipse_track_publisher/ellipse_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/pentagon_track_publisher/pentagon_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/hexagon_track_publisher/hexagon_track_publisher.h"
 
 /**
  * Konfigurasi Stress Test
@@ -25,6 +31,12 @@ struct SimulationConfig {
     bool squareEnabled   = true;
     bool circleEnabled   = true;
     bool triangleEnabled = true;
+    bool parallelogramEnabled   = true;
+    bool trapezoidEnabled   = true;
+    bool rhombusEnabled   = true;
+    bool ellipseEnabled   = true;
+    bool pentagonEnabled   = true;
+    bool hexagonEnabled   = true;
     int stressObjectCount = 100;
 };
 
@@ -63,6 +75,12 @@ int main(int argc, char* argv[]) {
         SquareTrackODDSPublisher square_publisher(participant);
         CircleTrackODDSPublisher circle_publisher(participant);
         TriangleTrackODDSPublisher triangle_publisher(participant);
+        ParallelogramTrackODDSPublisher parallelogram_publisher(participant);
+        TrapezoidTrackODDSPublisher trapezoid_publisher(participant);
+        RhombusTrackODDSPublisher rhombus_publisher(participant);
+        EllipseTrackODDSPublisher ellipse_publisher(participant);
+        PentagonTrackODDSPublisher pentagon_publisher(participant);
+        HexagonTrackODDSPublisher hexagon_publisher(participant);
 
         SimulationConfig config;
 
@@ -188,6 +206,90 @@ int main(int argc, char* argv[]) {
                     + std::to_string(config.stressObjectCount) + " Triangle objects.");
             }
 
+            // 4. Parallelogram Stress
+            if (config.parallelogramEnabled) {
+                for (int i = 0; i < config.stressObjectCount; i++) {
+                    StressTrackTransmitData p;
+                    p.trackId   = i;
+                    p.lat       = -8.0 + (i * 0.0001);
+                    p.lon       = 113.0 + (i * 0.0001);
+                    p.timestamp = commonBurstTimestamp;
+                    parallelogram_publisher.set_parallelogram_data(p);
+                }
+                LOG_INFO("Main", "Stress Test: Published "
+                    + std::to_string(config.stressObjectCount) + " Parallelogram objects.");
+            }
+
+            // 5. Trapezoid Stress
+            if (config.trapezoidEnabled) {
+                for (int i = 0; i < config.stressObjectCount; i++) {
+                    StressTrackTransmitData trz;
+                    trz.trackId   = i;
+                    trz.lat       = -3.0 + (i * 0.0001);
+                    trz.lon       = 112.0 + (i * 0.0001);
+                    trz.timestamp = commonBurstTimestamp;
+                    trapezoid_publisher.set_trapezoid_data(trz);
+                }
+                LOG_INFO("Main", "Stress Test: Published "
+                    + std::to_string(config.stressObjectCount) + " Trapezoid objects.");
+            }
+
+            // 6. Rhombus Stress
+            if (config.rhombusEnabled) {
+                for (int i = 0; i < config.stressObjectCount; i++) {
+                    StressTrackTransmitData r;
+                    r.trackId   = i;
+                    r.lat       = -4.0 + (i * 0.0001);
+                    r.lon       = 108.0 + (i * 0.0001);
+                    r.timestamp = commonBurstTimestamp;
+                    rhombus_publisher.set_rhombus_data(r);
+                }
+                LOG_INFO("Main", "Stress Test: Published "
+                    + std::to_string(config.stressObjectCount) + " Rhombus objects.");
+            }
+
+            // 7. Ellipse Stress
+            if (config.ellipseEnabled) {
+                for (int i = 0; i < config.stressObjectCount; i++) {
+                    StressTrackTransmitData el;
+                    el.trackId   = i;
+                    el.lat       = -7.0 + (i * 0.0001);
+                    el.lon       = 108.0 + (i * 0.0001);
+                    el.timestamp = commonBurstTimestamp;
+                    ellipse_publisher.set_ellipse_data(el);
+                }
+                LOG_INFO("Main", "Stress Test: Published "
+                    + std::to_string(config.stressObjectCount) + " Ellipse objects.");
+            }
+
+            // 8. Pentagon Stress
+            if (config.pentagonEnabled) {
+                for (int i = 0; i < config.stressObjectCount; i++) {
+                    StressTrackTransmitData pen;
+                    pen.trackId   = i;
+                    pen.lat       = -9.0 + (i * 0.0001);
+                    pen.lon       = 110.0 + (i * 0.0001);
+                    pen.timestamp = commonBurstTimestamp;
+                    pentagon_publisher.set_pentagon_data(pen);
+                }
+                LOG_INFO("Main", "Stress Test: Published "
+                    + std::to_string(config.stressObjectCount) + " Pentagon objects.");
+            }
+
+            // 9. Hexagon Stress
+            if (config.hexagonEnabled) {
+                for (int i = 0; i < config.stressObjectCount; i++) {
+                    StressTrackTransmitData hex;
+                    hex.trackId   = i;
+                    hex.lat       = -5.0 + (i * 0.0001);
+                    hex.lon       = 114.0 + (i * 0.0001);
+                    hex.timestamp = commonBurstTimestamp;
+                    hexagon_publisher.set_hexagon_data(hex);
+                }
+                LOG_INFO("Main", "Stress Test: Published "
+                    + std::to_string(config.stressObjectCount) + " Hexagon objects.");
+            }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
 
@@ -225,4 +327,17 @@ Dengan menyetel ke 5000, kita memberikan ruang yang sangat luas agar tidak ada d
     this->w_qos_.resource_limits.max_instances = 100;
     this->w_qos_.resource_limits.max_samples_per_instance = 1000;
 
-ini untuk apa yaa?
+//////
+
+Jawaban untuk pertanyaan "ini untuk apa yaa?":
+
+Blok kode di atas adalah konfigurasi QoS (Quality of Service) untuk membatasi kapasitas penyimpanan internal (resource_limits) yang dialokasikan oleh DDS pada DataWriter (atau DataReader) ketika menggunakan keandalan RELIABLE dan sejarah KEEP_ALL.
+
+Mengapa konfigurasi ini diperlukan?
+1. Menghindari Pemblokiran / Data Hilang: Secara default, kapasitas antrean internal DDS sangat terbatas. Saat program mengirimkan ribuan objek stress test sekaligus secara cepat, antrean DDS akan cepat penuh. Ketika penuh, DDS dengan QoS RELIABLE + KEEP_ALL akan memblokir thread pengirim (DataWriter) atau membuang data baru, yang menyebabkan status "MISSING" pada penerimaan data.
+2. Penjelasan Batasan yang Diatur:
+   - max_samples = 5000: Batas total sampel data maksimum yang dapat disimpan di memori publisher secara keseluruhan sebelum dikirim dan mendapat konfirmasi (ACK) dari subscriber.
+   - max_instances = 100: Batas jumlah objek/track unik (berdasarkan field kunci seperti trackId) yang dapat dikelola secara aktif oleh DataWriter dalam satu waktu.
+   - max_samples_per_instance = 1000: Batas riwayat sampel data yang disimpan untuk setiap track/instance tunggal.
+
+Dengan mengatur batas-batasan ini menjadi lebih tinggi (seperti 5000), program memberikan ruang buffer memori yang sangat luas kepada DDS untuk mengatasi lonjakan trafik (burst) selama pengujian beban berat tanpa kehilangan data.

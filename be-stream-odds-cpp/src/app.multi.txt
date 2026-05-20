@@ -16,16 +16,26 @@
 #include "adapters/service_adapters/odds_adapter/subscribers/radar_command_subscriber/radar_command_subscriber.h"
 #include "handlers/service_interface_handlers/radar_handler/radar_handler.h"
 #include "threads/backend_interface_thread/backend_interface_thread.h"
-
-// Stress Test Publishers
 #include "adapters/service_adapters/odds_adapter/publishers/square_track_publisher/square_track_publisher.h"
 #include "adapters/service_adapters/odds_adapter/publishers/circle_track_publisher/circle_track_publisher.h"
 #include "adapters/service_adapters/odds_adapter/publishers/triangle_track_publisher/triangle_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/parallelogram_track_publisher/parallelogram_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/trapezoid_track_publisher/trapezoid_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/rhombus_track_publisher/rhombus_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/ellipse_track_publisher/ellipse_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/pentagon_track_publisher/pentagon_track_publisher.h"
+#include "adapters/service_adapters/odds_adapter/publishers/hexagon_track_publisher/hexagon_track_publisher.h"
 
 struct SimulationConfig {
     bool squareEnabled   = true;
     bool circleEnabled   = true;
     bool triangleEnabled = true;
+    bool parallelogramEnabled   = true;
+    bool trapezoidEnabled   = true;
+    bool rhombusEnabled   = true;
+    bool ellipseEnabled   = true;
+    bool pentagonEnabled   = true;
+    bool hexagonEnabled   = true;
     int stressObjectCount = 100;
 };
 
@@ -75,6 +85,12 @@ int main(int argc, char* argv[]) {
         SquareTrackODDSPublisher square_pub(participant);
         CircleTrackODDSPublisher circle_pub(participant);
         TriangleTrackODDSPublisher triangle_pub(participant);
+        ParallelogramTrackODDSPublisher parallelogram_pub(participant);
+        TrapezoidTrackODDSPublisher trapezoid_pub(participant);
+        RhombusTrackODDSPublisher rhombus_pub(participant);
+        EllipseTrackODDSPublisher ellipse_pub(participant);
+        PentagonTrackODDSPublisher pentagon_pub(participant);
+        HexagonTrackODDSPublisher hexagon_pub(participant);
 
         // Subscriber & Handler
         RadarCommandODDSSubscriber radar_sub(participant);
@@ -85,7 +101,7 @@ int main(int argc, char* argv[]) {
         SimulationConfig config;
         auto startTime = std::chrono::steady_clock::now();
 
-        const int MAX_TRACKS = 10000;
+        const int MAX_TRACKS = 100000;
         std::vector<TrackParams> params(MAX_TRACKS);
         for (int i = 0; i < MAX_TRACKS; i++) {
             double headingRad = get_random(i, 3.3) * 6.28318;
@@ -113,8 +129,9 @@ int main(int argc, char* argv[]) {
                 lastProcessedTs = currentTs;
 
                 int count = radar_handler.get_target_count();
+                if (count <= 0) continue; 
+
                 int64_t cmdAt = radar_handler.get_command_received_at();
-                
                 auto nowS = std::chrono::steady_clock::now();
                 double tSec = std::chrono::duration_cast<std::chrono::milliseconds>(nowS - startTime).count() * 0.001;
 
@@ -128,8 +145,9 @@ int main(int argc, char* argv[]) {
                     t.classification = params[i].classification;
                     t.commandReceivedAt = cmdAt;
                     radar_pub.set_radar_data(t);
+                    std::this_thread::sleep_for(std::chrono::microseconds(50));
                 }
-                if (count > 0) LOG_INFO("RadarWorker", "Published " + std::to_string(count) + " tracks.");
+                LOG_INFO("RadarWorker", "Published " + std::to_string(count) + " tracks.");
             }
         });
 
@@ -143,18 +161,23 @@ int main(int argc, char* argv[]) {
                 }
                 if(!g_running) break;
                 
+                if (radar_handler.get_target_count() <= 0) continue; 
+
                 long long currentTs = g_commonTimestamp.load();
                 lastProcessedTs = currentTs;
 
-                for (int i = 0; i < config.stressObjectCount; i++) {
-                    StressTrackTransmitData s;
-                    s.trackId = i;
-                    s.lat = -5.0 + (i * 0.0001);
-                    s.lon = 110.0 + (i * 0.0001);
-                    s.timestamp = currentTs;
-                    square_pub.set_square_data(s);
+                if (config.squareEnabled) {
+                    for (int i = 0; i < config.stressObjectCount; i++) {
+                        StressTrackTransmitData s;
+                        s.trackId = i;
+                        s.lat = -5.0 + (i * 0.0001);
+                        s.lon = 110.0 + (i * 0.0001);
+                        s.timestamp = currentTs;
+                        square_pub.set_square_data(s);
+                        std::this_thread::sleep_for(std::chrono::microseconds(50));
+                    }
+                    LOG_INFO("SquareWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
                 }
-                LOG_INFO("SquareWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
             }
         });
 
@@ -168,18 +191,23 @@ int main(int argc, char* argv[]) {
                 }
                 if(!g_running) break;
                 
+                if (radar_handler.get_target_count() <= 0) continue; 
+
                 long long currentTs = g_commonTimestamp.load();
                 lastProcessedTs = currentTs;
 
-                for (int i = 0; i < config.stressObjectCount; i++) {
-                    StressTrackTransmitData c;
-                    c.trackId = i;
-                    c.lat = -6.0 + (i * 0.0001);
-                    c.lon = 111.0 + (i * 0.0001);
-                    c.timestamp = currentTs;
-                    circle_pub.set_circle_data(c);
+                if (config.circleEnabled) {
+                    for (int i = 0; i < config.stressObjectCount; i++) {
+                        StressTrackTransmitData c;
+                        c.trackId = i;
+                        c.lat = -6.0 + (i * 0.0001);
+                        c.lon = 111.0 + (i * 0.0001);
+                        c.timestamp = currentTs;
+                        circle_pub.set_circle_data(c);
+                        std::this_thread::sleep_for(std::chrono::microseconds(50));
+                    }
+                    LOG_INFO("CircleWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
                 }
-                LOG_INFO("CircleWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
             }
         });
 
@@ -193,18 +221,203 @@ int main(int argc, char* argv[]) {
                 }
                 if(!g_running) break;
                 
+                if (radar_handler.get_target_count() <= 0) continue; 
+
                 long long currentTs = g_commonTimestamp.load();
                 lastProcessedTs = currentTs;
 
-                for (int i = 0; i < config.stressObjectCount; i++) {
-                    StressTrackTransmitData tr;
-                    tr.trackId = i;
-                    tr.lat = -7.0 + (i * 0.0001);
-                    tr.lon = 112.0 + (i * 0.0001);
-                    tr.timestamp = currentTs;
-                    triangle_pub.set_triangle_data(tr);
+                if (config.triangleEnabled) {
+                    for (int i = 0; i < config.stressObjectCount; i++) {
+                        StressTrackTransmitData tr;
+                        tr.trackId = i;
+                        tr.lat = -7.0 + (i * 0.0001);
+                        tr.lon = 112.0 + (i * 0.0001);
+                        tr.timestamp = currentTs;
+                        triangle_pub.set_triangle_data(tr);
+                        std::this_thread::sleep_for(std::chrono::microseconds(50));
+                    }
+                    LOG_INFO("TriangleWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
                 }
-                LOG_INFO("TriangleWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
+            }
+        });
+
+        // 5. Parallelogram Worker
+        std::thread parallelogram_worker([&](){
+            long long lastProcessedTs = 0;
+            while(g_running) {
+                {
+                    std::unique_lock<std::mutex> lock(g_mtx);
+                    g_cv.wait(lock, [&]{ return (g_commonTimestamp > lastProcessedTs) || !g_running; });
+                }
+                if(!g_running) break;
+                
+                if (radar_handler.get_target_count() <= 0) continue; 
+
+                long long currentTs = g_commonTimestamp.load();
+                lastProcessedTs = currentTs;
+
+                if (config.parallelogramEnabled) {
+                    for (int i = 0; i < config.stressObjectCount; i++) {
+                        StressTrackTransmitData t;
+                        t.trackId = i;
+                        t.lat = -8.0 + (i * 0.0001);
+                        t.lon = 113.0 + (i * 0.0001);
+                        t.timestamp = currentTs;
+                        parallelogram_pub.set_parallelogram_data(t);
+                        std::this_thread::sleep_for(std::chrono::microseconds(50));
+                    }
+                    LOG_INFO("ParallelogramWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
+                }
+            }
+        });
+
+        // 6. Trapezoid Worker
+        std::thread trapezoid_worker([&](){
+            long long lastProcessedTs = 0;
+            while(g_running) {
+                {
+                    std::unique_lock<std::mutex> lock(g_mtx);
+                    g_cv.wait(lock, [&]{ return (g_commonTimestamp > lastProcessedTs) || !g_running; });
+                }
+                if(!g_running) break;
+                
+                if (radar_handler.get_target_count() <= 0) continue; 
+
+                long long currentTs = g_commonTimestamp.load();
+                lastProcessedTs = currentTs;
+
+                if (config.trapezoidEnabled) {
+                    for (int i = 0; i < config.stressObjectCount; i++) {
+                        StressTrackTransmitData t;
+                        t.trackId = i;
+                        t.lat = -3.0 + (i * 0.0001);
+                        t.lon = 112.0 + (i * 0.0001);
+                        t.timestamp = currentTs;
+                        trapezoid_pub.set_trapezoid_data(t);
+                        std::this_thread::sleep_for(std::chrono::microseconds(50));
+                    }
+                    LOG_INFO("TrapezoidWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
+                }
+            }
+        });
+
+        // 7. Rhombus Worker
+        std::thread rhombus_worker([&](){
+            long long lastProcessedTs = 0;
+            while(g_running) {
+                {
+                    std::unique_lock<std::mutex> lock(g_mtx);
+                    g_cv.wait(lock, [&]{ return (g_commonTimestamp > lastProcessedTs) || !g_running; });
+                }
+                if(!g_running) break;
+                
+                if (radar_handler.get_target_count() <= 0) continue; 
+
+                long long currentTs = g_commonTimestamp.load();
+                lastProcessedTs = currentTs;
+
+                if (config.rhombusEnabled) {
+                    for (int i = 0; i < config.stressObjectCount; i++) {
+                        StressTrackTransmitData t;
+                        t.trackId = i;
+                        t.lat = -4.0 + (i * 0.0001);
+                        t.lon = 108.0 + (i * 0.0001);
+                        t.timestamp = currentTs;
+                        rhombus_pub.set_rhombus_data(t);
+                        std::this_thread::sleep_for(std::chrono::microseconds(50));
+                    }
+                    LOG_INFO("RhombusWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
+                }
+            }
+        });
+
+        // 8. Ellipse Worker
+        std::thread ellipse_worker([&](){
+            long long lastProcessedTs = 0;
+            while(g_running) {
+                {
+                    std::unique_lock<std::mutex> lock(g_mtx);
+                    g_cv.wait(lock, [&]{ return (g_commonTimestamp > lastProcessedTs) || !g_running; });
+                }
+                if(!g_running) break;
+                
+                if (radar_handler.get_target_count() <= 0) continue; 
+
+                long long currentTs = g_commonTimestamp.load();
+                lastProcessedTs = currentTs;
+
+                if (config.ellipseEnabled) {
+                    for (int i = 0; i < config.stressObjectCount; i++) {
+                        StressTrackTransmitData t;
+                        t.trackId = i;
+                        t.lat = -7.0 + (i * 0.0001);
+                        t.lon = 108.0 + (i * 0.0001);
+                        t.timestamp = currentTs;
+                        ellipse_pub.set_ellipse_data(t);
+                        std::this_thread::sleep_for(std::chrono::microseconds(50));
+                    }
+                    LOG_INFO("EllipseWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
+                }
+            }
+        });
+
+        // 9. Pentagon Worker
+        std::thread pentagon_worker([&](){
+            long long lastProcessedTs = 0;
+            while(g_running) {
+                {
+                    std::unique_lock<std::mutex> lock(g_mtx);
+                    g_cv.wait(lock, [&]{ return (g_commonTimestamp > lastProcessedTs) || !g_running; });
+                }
+                if(!g_running) break;
+                
+                if (radar_handler.get_target_count() <= 0) continue; 
+
+                long long currentTs = g_commonTimestamp.load();
+                lastProcessedTs = currentTs;
+
+                if (config.pentagonEnabled) {
+                    for (int i = 0; i < config.stressObjectCount; i++) {
+                        StressTrackTransmitData t;
+                        t.trackId = i;
+                        t.lat = -9.0 + (i * 0.0001);
+                        t.lon = 110.0 + (i * 0.0001);
+                        t.timestamp = currentTs;
+                        pentagon_pub.set_pentagon_data(t);
+                        std::this_thread::sleep_for(std::chrono::microseconds(50));
+                    }
+                    LOG_INFO("PentagonWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
+                }
+            }
+        });
+
+        // 10. Hexagon Worker
+        std::thread hexagon_worker([&](){
+            long long lastProcessedTs = 0;
+            while(g_running) {
+                {
+                    std::unique_lock<std::mutex> lock(g_mtx);
+                    g_cv.wait(lock, [&]{ return (g_commonTimestamp > lastProcessedTs) || !g_running; });
+                }
+                if(!g_running) break;
+                
+                if (radar_handler.get_target_count() <= 0) continue; 
+
+                long long currentTs = g_commonTimestamp.load();
+                lastProcessedTs = currentTs;
+
+                if (config.hexagonEnabled) {
+                    for (int i = 0; i < config.stressObjectCount; i++) {
+                        StressTrackTransmitData t;
+                        t.trackId = i;
+                        t.lat = -5.0 + (i * 0.0001);
+                        t.lon = 114.0 + (i * 0.0001);
+                        t.timestamp = currentTs;
+                        hexagon_pub.set_hexagon_data(t);
+                        std::this_thread::sleep_for(std::chrono::microseconds(50));
+                    }
+                    LOG_INFO("HexagonWorker", "Published " + std::to_string(config.stressObjectCount) + " objects.");
+                }
             }
         });
 
@@ -218,18 +431,19 @@ int main(int argc, char* argv[]) {
                 g_commonTimestamp = get_burst_timestamp_ms();
             }
             g_cv.notify_all(); 
-            LOG_INFO("Master", "Cycle Triggered at T=" + std::to_string(g_commonTimestamp) + "ms");
         }
 
-        // Cleanup
         radar_worker.join();
         square_worker.join();
         circle_worker.join();
         triangle_worker.join();
-        LOG_INFO("Main", "Semua thread worker berhenti.");
-        
-        // Subscriber thread biasanya detach atau loop-safe
-        // sub_thread.join(); // Tergantung implementasi
+        parallelogram_worker.join();
+        trapezoid_worker.join();
+        rhombus_worker.join();
+        ellipse_worker.join();
+        pentagon_worker.join();
+        hexagon_worker.join();
+        if (sub_thread.joinable()) sub_thread.join();
     }
     catch (const std::exception &err) {
         LOG_ERROR("Main", std::string("Fatal Error: ") + err.what());

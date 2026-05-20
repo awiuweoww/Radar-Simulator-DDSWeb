@@ -10,6 +10,7 @@ RUN apt-get update -y && \
         bison \
         build-essential \
         ca-certificates \
+        ccache \
         curl \
         flex \
         g++ \
@@ -27,15 +28,14 @@ RUN apt-get update -y && \
     rm -rf /var/lib/apt/lists/*
 
 # Install CMake using precompiled binary (v3.31.3)
-ADD https://github.com/Kitware/CMake/releases/download/v3.31.3/cmake-3.31.3-linux-x86_64.tar.gz \
-        cmake-3.31.3-linux-x86_64.tar.gz
+COPY cmake-3.31.3-linux-x86_64.tar.gz cmake-3.31.3-linux-x86_64.tar.gz
 RUN tar -xzf cmake-3.31.3-linux-x86_64.tar.gz && \
     mv cmake-3.31.3-linux-x86_64 /usr/local/cmake && \
     ln -s /usr/local/cmake/bin/* /usr/local/bin && \
     rm cmake-3.31.3-linux-x86_64.tar.gz
 
 # --- Install OpenDDS (v3.29.1) ---
-ADD https://docs.len-iot.id/s/xm9zTrTASaBxd8p/download/OpenDDS-3.29.1.zip OpenDDS-3.29.1.zip
+COPY OpenDDS-3.29.1.zip OpenDDS-3.29.1.zip
 RUN unzip OpenDDS-3.29.1.zip && \
     mv OpenDDS-3.29.1 /opt/OpenDDS && \
     rm OpenDDS-3.29.1.zip
@@ -57,8 +57,9 @@ COPY CMakeUserPresets.json /app/CMakeUserPresets.json
 COPY CMakeModules /app/CMakeModules
 
 # Install and configure Conan 2.x
-RUN pip3 install --no-cache-dir conan && \
-    conan profile detect --force && \
+RUN pip3 install --no-cache-dir conan
+
+RUN conan profile detect --force && \
     conan install . --output-folder=build --build=missing
 
 # Copy source and other files
@@ -67,9 +68,11 @@ COPY idl /app/idl
 COPY simple.ior /app/
 COPY rtps.ini /app/
 
-# Build project
-RUN cmake --preset conan-release && \
-    cmake --build "/app/build" --config Release --target all -j$(nproc)
+# Build project using BuildKit ccache mount
+RUN --mount=type=cache,target=/root/.ccache \
+    cmake --preset conan-release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache && \
+    cmake --build "/app/build" --config Release --target all -j2 && \
+    cp /app/build/be-stream-odds-cpp /app/be-stream-odds-cpp
 
 # ===== RUNTIME STAGE =====
 FROM ubuntu:22.04
@@ -81,8 +84,8 @@ RUN apt-get update -y && \
 RUN mkdir -p /app/build/logs
 WORKDIR /app/build
 
-# Copy binary and essential files
-COPY --from=build /app/build/be-stream-odds-cpp /app/build/be-stream-odds-cpp
+# Copy binary and essential files (from the non-cached staging folder)
+COPY --from=build /app/be-stream-odds-cpp /app/build/be-stream-odds-cpp
 COPY --from=build /app/rtps.ini /app/rtps.ini
 COPY --from=build /app/simple.ior /app/simple.ior
 

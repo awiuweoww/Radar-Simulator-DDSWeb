@@ -1,0 +1,5 @@
+node_modules
+*.log
+idl/**/*.so*
+idl/**/GNUmakefile*
+idl/**/*.o

@@ -1,0 +1,26 @@
+project: dcps {
+  requires += tao_orbsvcs
+  includes += $(TAO_ROOT)/orbsvcs
+  idlflags += -I$(TAO_ROOT)/orbsvcs
+  dynamicflags += ELLIPSETRACK_BUILD_DLL
+
+  TypeSupport_Files {
+    EllipseTrack.idl
+  }
+
+  Source_Files {
+    EllipseTrackTypeSupportImpl.cpp
+    EllipseTrackC.cpp
+    EllipseTrackS.cpp
+    EllipseTrackTypeSupportC.cpp
+    EllipseTrackTypeSupportS.cpp
+  }
+
+  Header_Files {
+    EllipseTrackTypeSupportImpl.h
+    EllipseTrackC.h
+    EllipseTrackS.h
+    EllipseTrackTypeSupportC.h
+    EllipseTrackTypeSupportS.h
+  }
+}

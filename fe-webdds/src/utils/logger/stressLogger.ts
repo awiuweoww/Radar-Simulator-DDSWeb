@@ -21,7 +21,7 @@ class StressLogger {
   // Map untuk menyimpan history stats per timestamp agar tidak tertimpa data baru
   // Key: SourceTimestamp, Value: Map<Shape, TopicStats>
   private historyStats = new Map<number, Map<string, TopicStats>>();
-  private activeTopics = new Set<string>(['RADAR', 'SQUARE', 'CIRCLE', 'TRIANGLE']);
+  private activeTopics = new Set<string>(['RADAR', 'SQUARE', 'CIRCLE', 'TRIANGLE', 'PARALLELOGRAM', 'TRAPEZOID', 'RHOMBUS', 'ELLIPSE', 'PENTAGON', 'HEXAGON']);
   private isReportPending: boolean = false;
   private reportTimeout: any = null;
 
@@ -58,7 +58,7 @@ class StressLogger {
     }
 
     const s = timestampMap.get(shape)!;
-    
+
     // Auto-adjust targetCount: Jika kita menerima ID lebih besar dari targetCount saat ini, 
     // berarti targetCount yang di-hardcode di FE salah. Kita ikuti data dari BE.
     if (data.trackId >= s.targetCount) {
@@ -77,17 +77,17 @@ class StressLogger {
 
     if (this.reportTimeout) clearTimeout(this.reportTimeout);
 
-    // Jeda 600ms agar data topik lain di timestamp yang sama pasti sudah sampai
+    // Jeda 1200ms agar data topik lain di timestamp yang sama pasti sudah sampai
     this.reportTimeout = setTimeout(() => {
       this.printMultiTopicReport(targetTimestamp);
       this.isReportPending = false;
-    }, 600);
+    }, 1200);
   }
 
   private printMultiTopicReport(targetTimestamp: number): void {
     if (!this.enabled) return;
 
-    const topicsToDisplay = ['RADAR', 'SQUARE', 'CIRCLE', 'TRIANGLE'];
+    const topicsToDisplay = ['RADAR', 'SQUARE', 'CIRCLE', 'TRIANGLE', 'PARALLELOGRAM', 'TRAPEZOID', 'RHOMBUS', 'ELLIPSE', 'PENTAGON', 'HEXAGON'];
     const timestampMap = this.historyStats.get(targetTimestamp);
 
     console.groupCollapsed(`%c [ MultiTopic RACE REPORT ] (${getTimeHeader()})`, "color: #f472b6; font-weight: bold; font-size: 14px;");
@@ -122,7 +122,7 @@ class StressLogger {
           receivedCount = s.receivedIds.size;
           tCount = s.targetCount;
           idsArray = Array.from(s.receivedIds).sort((a, b) => a - b);
-          
+
           for (let i = 0; i < tCount; i++) {
             if (!s.receivedIds.has(i)) missingIds.push(i);
           }
@@ -134,15 +134,15 @@ class StressLogger {
         console.log(`%cStatus: %cWAITING / NO DATA IN THIS CYCLE`, LOGGER_STYLES.label, "color: #9ca3af; font-style: italic;");
       } else {
         console.log(`%cTotal Track Diterima (per siklus): %c${receivedCount}`, LOGGER_STYLES.label, LOGGER_STYLES.value);
-        
+
         console.groupCollapsed(`%cID Verification   : %c${isComplete ? 'LENGKAP' : missingIds.length + ' MISSING'}`, LOGGER_STYLES.label, isComplete ? LOGGER_STYLES.value : 'color: #ef4444');
-        
+
         if (isComplete) {
           console.log(`%cSemua ID (0 s/d ${tCount - 1}) diterima tanpa celah.`, 'color: #34d399');
         } else {
           console.log(`%cMissing IDs: %c${missingIds.join(', ')}`, 'color: #fca5a5');
         }
-        
+
         if (idsArray.length > 0) {
           console.log('%cFull Received ID List:', 'color: #9ca3af', idsArray);
         }

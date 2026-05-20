@@ -1,0 +1,26 @@
+project: dcps {
+  requires += tao_orbsvcs
+  includes += $(TAO_ROOT)/orbsvcs
+  idlflags += -I$(TAO_ROOT)/orbsvcs
+  dynamicflags += HEXAGONTRACK_BUILD_DLL
+
+  TypeSupport_Files {
+    HexagonTrack.idl
+  }
+
+  Source_Files {
+    HexagonTrackTypeSupportImpl.cpp
+    HexagonTrackC.cpp
+    HexagonTrackS.cpp
+    HexagonTrackTypeSupportC.cpp
+    HexagonTrackTypeSupportS.cpp
+  }
+
+  Header_Files {
+    HexagonTrackTypeSupportImpl.h
+    HexagonTrackC.h
+    HexagonTrackS.h
+    HexagonTrackTypeSupportC.h
+    HexagonTrackTypeSupportS.h
+  }
+}

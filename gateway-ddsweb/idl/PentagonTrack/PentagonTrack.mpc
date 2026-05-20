@@ -1,0 +1,26 @@
+project: dcps {
+  requires += tao_orbsvcs
+  includes += $(TAO_ROOT)/orbsvcs
+  idlflags += -I$(TAO_ROOT)/orbsvcs
+  dynamicflags += PENTAGONTRACK_BUILD_DLL
+
+  TypeSupport_Files {
+    PentagonTrack.idl
+  }
+
+  Source_Files {
+    PentagonTrackTypeSupportImpl.cpp
+    PentagonTrackC.cpp
+    PentagonTrackS.cpp
+    PentagonTrackTypeSupportC.cpp
+    PentagonTrackTypeSupportS.cpp
+  }
+
+  Header_Files {
+    PentagonTrackTypeSupportImpl.h
+    PentagonTrackC.h
+    PentagonTrackS.h
+    PentagonTrackTypeSupportC.h
+    PentagonTrackTypeSupportS.h
+  }
+}

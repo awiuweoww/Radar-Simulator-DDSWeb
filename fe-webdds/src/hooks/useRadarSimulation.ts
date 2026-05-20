@@ -18,7 +18,23 @@ import { CENTER_COORD } from './useMapInstance';
 import { radarApi, RadarUpdateCallback } from '../utils/api/radarApi';
 import { radarLogger } from '../utils/logger/radarLogger';
 //@ts-ignore
-import logoLen from '../assets/images/logo-len.png';
+import imgSquare from '../assets/images/square.png';
+//@ts-ignore
+import imgCircle from '../assets/images/circle.png';
+//@ts-ignore
+import imgTriangle from '../assets/images/triangle.png';
+//@ts-ignore
+import imgParallelogram from '../assets/images/parallelogram.png';
+//@ts-ignore
+import imgTrapezoid from '../assets/images/trapezoid.png';
+//@ts-ignore
+import imgRhombus from '../assets/images/rhombus.png';
+//@ts-ignore
+import imgEllipse from '../assets/images/ellipse.png';
+//@ts-ignore
+import imgPentagon from '../assets/images/pentagon.png';
+//@ts-ignore
+import imgHexagon from '../assets/images/hexagon.png';
 
 // Cache Styles
 const FRIEND_STYLE = new Style({
@@ -37,11 +53,75 @@ const HOSTILE_STYLE = new Style({
   }),
 });
 
-// LEN Logo Style (untuk ID 0 Stress Test)
-const LEN_STYLE = new Style({
+
+const SQUARE_STYLE = new Style({
   image: new Icon({
-    src: logoLen,
-    scale: 0.1, 
+    src: imgSquare,
+    scale: 0.12,
+    anchor: [0.5, 0.5],
+  }),
+});
+
+const CIRCLE_STYLE = new Style({
+  image: new Icon({
+    src: imgCircle,
+    scale: 0.09,
+    anchor: [0.5, 0.5],
+  }),
+});
+
+const TRIANGLE_STYLE = new Style({
+  image: new Icon({
+    src: imgTriangle,
+    scale: 0.095,
+    anchor: [0.5, 0.5],
+  }),
+});
+
+const PARALLELOGRAM_STYLE = new Style({
+  image: new Icon({
+    src: imgParallelogram,
+    scale: 0.32,
+    anchor: [0.5, 0.5],
+  }),
+});
+
+const TRAPEZOID_STYLE = new Style({
+  image: new Icon({
+    src: imgTrapezoid,
+    scale: 0.20,
+    anchor: [0.5, 0.5],
+  }),
+});
+
+const RHOMBUS_STYLE = new Style({
+  image: new Icon({
+    src: imgRhombus,
+    scale: 0.27,
+    anchor: [0.5, 0.5],
+  }),
+});
+
+const ELLIPSE_STYLE = new Style({
+  image: new Icon({
+    src: imgEllipse,
+    scale: 0.31,
+    anchor: [0.5, 0.5],
+  }),
+});
+
+const PENTAGON_STYLE = new Style({
+  image: new Icon({
+    src: imgPentagon,
+    scale: 0.35,
+    anchor: [0.5, 0.5],
+  }),
+});
+
+const HEXAGON_STYLE = new Style({
+  image: new Icon({
+    src: imgHexagon,
+    scale: 0.37,
     anchor: [0.5, 0.5],
   }),
 });
@@ -73,12 +153,22 @@ export function useRadarSimulation(
       source: vectorSourceRef.current,
       style: (feature) => {
         const shape = feature.get('shape') as string;
-        if (shape) return LEN_STYLE;
-        
+        if (shape === 'SQUARE') return SQUARE_STYLE;
+        if (shape === 'CIRCLE') return CIRCLE_STYLE;
+        if (shape === 'TRIANGLE') return TRIANGLE_STYLE;
+        if (shape === 'PARALLELOGRAM') return PARALLELOGRAM_STYLE;
+        if (shape === 'TRAPEZOID') return TRAPEZOID_STYLE;
+        if (shape === 'RHOMBUS') return RHOMBUS_STYLE;
+        if (shape === 'ELLIPSE') return ELLIPSE_STYLE;
+        if (shape === 'PENTAGON') return PENTAGON_STYLE;
+        if (shape === 'HEXAGON') return HEXAGON_STYLE;
+
         const type = feature.get('classification') as number;
         return type === 1 ? HOSTILE_STYLE : FRIEND_STYLE;
       },
       zIndex: 999,
+      updateWhileAnimating: true,
+      updateWhileInteracting: true,
     });
     map.addLayer(pointsLayer);
 
@@ -118,7 +208,7 @@ export function useRadarSimulation(
           const shouldRender = !isStress || (isStress && t.trackId === 0);
 
           if (shapeKey === 'RADAR' && t.trackId >= targetCount) return;
-          
+
           pool.set(uniqueKey, t);
           lastUpdateMap.current.set(uniqueKey, Date.now());
 
@@ -206,7 +296,7 @@ export function useRadarSimulation(
 
           // Global BE Death Detection
           const now = Date.now();
-          const GLOBAL_TIMEOUT_MS = 5000; 
+          const GLOBAL_TIMEOUT_MS = 5000;
           const lastGlobalUpdate = Array.from(lastUpdateMap.current.values())
             .reduce((max, val) => Math.max(max, val), 0);
 

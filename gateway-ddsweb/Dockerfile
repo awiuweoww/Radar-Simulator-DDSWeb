@@ -20,7 +20,7 @@ RUN apt-get update -y && \
     rm -rf /var/lib/apt/lists/*
 
 # Install OpenDDS
-ADD https://docs.len-iot.id/s/xm9zTrTASaBxd8p/download/OpenDDS-3.29.1.zip OpenDDS-3.29.1.zip
+COPY OpenDDS-3.29.1.zip OpenDDS-3.29.1.zip
 RUN unzip OpenDDS-3.29.1.zip && \
     mv OpenDDS-3.29.1 /opt/OpenDDS && \
     rm OpenDDS-3.29.1.zip
@@ -39,15 +39,18 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-# Copy application files
-COPY server.js ./
-
-# Copy IDL directory, lalu compile ulang agar library .so cocok dengan glibc container
+# Copy IDL directory dan workspace file (done BEFORE copying application code to leverage caching)
 COPY idl ./idl/
-RUN cd /app/idl/RadarTrack && \
-    $MPC_ROOT/mwc.pl -type gnuace && make clean && make && \
-    cd /app/idl/RadarCommand && \
-    $MPC_ROOT/mwc.pl -type gnuace && make clean && make
+COPY gateway_idl.mwc ./idl/
+
+# Compile IDL agar library .so cocok dengan glibc container
+RUN cd idl && \
+    $MPC_ROOT/mwc.pl -type gnuace gateway_idl.mwc && \
+    make clean && \
+    make -j2
+
+# Copy application files (Node.js code is copied at the very end so that server.js changes take less than 1 second to build)
+COPY server.js ./
 
 EXPOSE 8080
 

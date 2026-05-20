@@ -16,6 +16,12 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src/models/odds_models/square_track_model
     ${CMAKE_CURRENT_SOURCE_DIR}/src/models/odds_models/circle_track_model
     ${CMAKE_CURRENT_SOURCE_DIR}/src/models/odds_models/triangle_track_model
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/models/odds_models/parallelogram_track_model
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/models/odds_models/trapezoid_track_model
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/models/odds_models/rhombus_track_model
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/models/odds_models/ellipse_track_model
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/models/odds_models/pentagon_track_model
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/models/odds_models/hexagon_track_model
     $ENV{DDS_ROOT}
     $ENV{ACE_ROOT}
     $ENV{TAO_ROOT}

@@ -9,6 +9,17 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
+// Monitor Event Loop Lag
+let lastLoopTime = Date.now();
+setInterval(() => {
+    const now = Date.now();
+    const lag = now - lastLoopTime - 500;
+    if (lag > 25) {
+        console.warn(`\x1b[31m [PERFORMA LAMBAT] Lag Event Loop sebesar ${lag.toFixed(1)} ms! Penyebab: Thread utama Node.js sibuk memproses serialization atau WebSocket data. Antrean DDS berisiko meluap (depth: 1).\x1b[0m`);
+    }
+    lastLoopTime = now;
+}, 500).unref();
+
 app.use(cors());
 app.use(express.json());
 
@@ -45,12 +56,7 @@ function getWriter(participant, topicName, typeName) {
         const qos = {
             DataWriterQos: {
                 reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
-                history: { kind: 'KEEP_ALL_HISTORY_QOS' },
-                resource_limits: {
-                    max_samples: 10000,
-                    max_instances: 2000,
-                    max_samples_per_instance: 1000
-                },
+                history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 10 },
                 durability: { kind: 'TRANSIENT_LOCAL_DURABILITY_QOS' }
             }
         };
@@ -98,7 +104,13 @@ wss.on('connection', (ws, req) => {
             'CommandTopic': 'RadarCommand::Command',
             'SquareTrackTopic': 'SquareTrack::TrackData',
             'CircleTrackTopic': 'CircleTrack::TrackData',
-            'TriangleTrackTopic': 'TriangleTrack::TrackData'
+            'TriangleTrackTopic': 'TriangleTrack::TrackData',
+            'ParallelogramTrackTopic': 'ParallelogramTrack::TrackData',
+            'TrapezoidTrackTopic': 'TrapezoidTrack::TrackData',
+            'RhombusTrackTopic': 'RhombusTrack::TrackData',
+            'EllipseTrackTopic': 'EllipseTrack::TrackData',
+            'PentagonTrackTopic': 'PentagonTrack::TrackData',
+            'HexagonTrackTopic': 'HexagonTrack::TrackData'
         };
 
         const typeName = typeNameMap[topicName] || 'RadarCommand::Command';
@@ -112,19 +124,43 @@ wss.on('connection', (ws, req) => {
         const subQos =
         {
             DataReaderQos: {
-                reliability: { kind: 'BEST_EFFORT_RELIABILITY_QOS' },
+                reliability: { kind: 'RELIABLE_RELIABILITY_QOS' },
                 history: { kind: 'KEEP_LAST_HISTORY_QOS', depth: 1 }
             }
         };
+
+        let lastTimestamp = 0;
+        let expectedTrackId = 0;
+
         const reader = participant.subscribe(topicName, typeName, subQos, (r, sampleInfo, sample) => {
             if (sampleInfo.valid_data && ws.readyState === ws.OPEN) {
+                // Gap / Queue Overflow Detection
+                const ts = sample.timestamp;
+                const trackId = sample.trackId;
+
+                if (ts !== lastTimestamp) {
+                    if (lastTimestamp !== 0 && trackId > 0) {
+                        console.warn(`\x1b[33m [ANTREAN PENUH / DATA HILANG] Topik ${topicName}: Kehilangan ${trackId} sampel pertama pada burst ${ts}! Penyebab: Antrean DataReader DDS penuh (depth: 1) karena pemrosesan Node.js tertunda.\x1b[0m`);
+                    }
+                    lastTimestamp = ts;
+                    expectedTrackId = trackId + 1;
+                } else {
+                    if (trackId !== expectedTrackId) {
+                        const lostCount = trackId - expectedTrackId;
+                        if (lostCount > 0) {
+                            console.warn(`\x1b[33m [ANTREAN PENUH / DATA HILANG] Topik ${topicName}: Kehilangan ${lostCount} sampel pada burst ${ts}! Penyebab: Antrean DataReader DDS penuh (depth: 1) karena pemrosesan Node.js tertunda.\x1b[0m`);
+                        }
+                    }
+                    expectedTrackId = trackId + 1;
+                }
+
                 if (ws.bufferedAmount > 10 * 1024 * 1024) return;
 
                 if (topicName === 'RadarTrackTopic') {
                     const gatewayReceivedAt = Date.now();
                     const fastJson = `{"trackId":${sample.trackId},"lat":${sample.lat},"lon":${sample.lon},"speed":${sample.speed},"timestamp":${sample.timestamp},"classification":${sample.classification},"commandReceivedAt":${sample.commandReceivedAt || 0},"gatewayReceivedAt":${gatewayReceivedAt}}`;
                     ws.send(fastJson);
-                } else if (topicName.includes('Square') || topicName.includes('Circle') || topicName.includes('Triangle')) {
+                } else if (topicName.includes('Square') || topicName.includes('Circle') || topicName.includes('Triangle') || topicName.includes('Parallelogram') || topicName.includes('Trapezoid') || topicName.includes('Rhombus') || topicName.includes('Ellipse') || topicName.includes('Pentagon') || topicName.includes('Hexagon')) {
                     const gatewayReceivedAt = Date.now();
                     const shape = topicName.replace('TrackTopic', '').toUpperCase();
                     const fastJson = `{"trackId":${sample.trackId},"lat":${sample.lat},"lon":${sample.lon},"timestamp":${sample.timestamp},"shape":"${shape}","gatewayReceivedAt":${gatewayReceivedAt}}`;
@@ -186,6 +222,12 @@ async function initializeDDS() {
         opendds.load(path.join(IDL_BIN_DIR, 'SquareTrack', 'libSquareTrack'));
         opendds.load(path.join(IDL_BIN_DIR, 'CircleTrack', 'libCircleTrack'));
         opendds.load(path.join(IDL_BIN_DIR, 'TriangleTrack', 'libTriangleTrack'));
+        opendds.load(path.join(IDL_BIN_DIR, 'ParallelogramTrack', 'libParallelogramTrack'));
+        opendds.load(path.join(IDL_BIN_DIR, 'TrapezoidTrack', 'libTrapezoidTrack'));
+        opendds.load(path.join(IDL_BIN_DIR, 'RhombusTrack', 'libRhombusTrack'));
+        opendds.load(path.join(IDL_BIN_DIR, 'EllipseTrack', 'libEllipseTrack'));
+        opendds.load(path.join(IDL_BIN_DIR, 'PentagonTrack', 'libPentagonTrack'));
+        opendds.load(path.join(IDL_BIN_DIR, 'HexagonTrack', 'libHexagonTrack'));
 
         console.log(' [DDS] Semua Pustaka Dimuat (Radar + Stress Topics). Menunggu...');
         await new Promise(resolve => setTimeout(resolve, 1000));

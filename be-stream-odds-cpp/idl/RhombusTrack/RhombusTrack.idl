@@ -1,0 +1,9 @@
+module RhombusTrack {
+  @topic
+  struct TrackData {
+    @key long trackId;
+    double lat;
+    double lon;
+    long long timestamp;
+  };
+};
